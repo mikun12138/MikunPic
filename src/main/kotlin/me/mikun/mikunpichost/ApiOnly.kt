@@ -1,4 +1,4 @@
-package me.mikun
+package me.mikun.mikunpichost
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createApplicationPlugin

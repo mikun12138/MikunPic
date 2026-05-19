@@ -1,4 +1,4 @@
-package me.mikun.storage
+package me.mikun.mikunpichost.storage
 
 import com.qcloud.cos.COSClient
 import com.qcloud.cos.ClientConfig
@@ -78,4 +78,11 @@ class PicStorageCos : PicStorage() {
         ).let { request ->
             cosClient.getObject(request)
         }.objectContent
+
+    override suspend fun upload(
+        byteArray: ByteArray,
+        filename: String
+    ) {
+        TODO("Not yet implemented")
+    }
 }

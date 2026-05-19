@@ -1,4 +1,4 @@
-package me.mikun
+package me.mikun.mikunpichost
 
 import com.asyncapi.kotlinasyncapi.context.service.AsyncApiExtension
 import com.asyncapi.kotlinasyncapi.ktor.AsyncApiPlugin

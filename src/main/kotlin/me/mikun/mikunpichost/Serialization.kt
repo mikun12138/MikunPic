@@ -1,4 +1,4 @@
-package me.mikun
+package me.mikun.mikunpichost
 
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application

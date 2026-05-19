@@ -1,16 +1,17 @@
-package me.mikun
+package me.mikun.mikunpichost
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.netty.EngineMain
 import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.ratelimit.RateLimit
 import io.ktor.server.plugins.ratelimit.RateLimitName
-import me.mikun.storage.PicStorage
+import me.mikun.mikunpichost.storage.PicStorage
 import kotlin.time.Duration.Companion.minutes
 
 fun main(args: Array<String>) {
-    io.ktor.server.netty.EngineMain
+    EngineMain
         .main(args)
 }
 
@@ -19,6 +20,7 @@ fun Application.module() {
     configureSerialization()
     configureRouting()
     configureOpenApi()
+    configureDatabase()
 
     if (environment.config.property("api_only").getString() == "true") {
         install(ApiOnlyPlugin)

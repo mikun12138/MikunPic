@@ -1,4 +1,4 @@
-package me.mikun.storage
+package me.mikun.mikunpichost.storage
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.log
@@ -8,9 +8,20 @@ import java.util.concurrent.CopyOnWriteArraySet
 abstract class PicStorage {
     protected val picKeys =
         object : CopyOnWriteArraySet<String>() {
-            private val extensions = listOf(".jpg", ".jpeg", ".png", ".gif", ".jfif")
+            private val extensions = listOf(
+                ".jpg",
+                ".jpeg",
+                ".png",
+                ".gif",
+                ".jfif"
+            )
 
-            private fun isValid(e: String?): Boolean = e != null && extensions.any { e.endsWith(it, ignoreCase = true) }
+            private fun isValid(e: String?): Boolean = e != null && extensions.any {
+                e.endsWith(
+                    it,
+                    ignoreCase = true
+                )
+            }
 
             override fun add(e: String?): Boolean = isValid(e) && super.add(e)
 
@@ -53,9 +64,23 @@ abstract class PicStorage {
         }
 
         suspend fun random(): InputStream? = delegate.random()
+
+        suspend fun upload(
+            byteArray: ByteArray,
+            filename: String
+        ) = delegate.upload(
+            byteArray,
+            filename
+        )
     }
 
     abstract fun init(application: Application)
 
     abstract suspend fun random(): InputStream?
+
+    abstract suspend fun upload(
+        byteArray: ByteArray,
+        filename: String
+    )
+
 }

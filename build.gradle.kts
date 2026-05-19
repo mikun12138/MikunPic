@@ -5,8 +5,8 @@ val kotlin_version: String by project
 //val logback_version: String by project
 
 plugins {
-    kotlin("jvm") version "2.2.20"
-    id("io.ktor.plugin") version "3.3.2"
+    kotlin("jvm") version "2.3.21"
+    id("io.ktor.plugin") version "3.4.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
     id("com.diffplug.spotless") version "8.1.0"
 }
@@ -16,15 +16,6 @@ version = "0.0.1"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
-}
-
-ktor {
-    @OptIn(OpenApiPreview::class)
-    openApi {
-        title = "Mikun PicHost Api"
-        version = "0.0.1"
-        description = "simple pic-host with local file"
-    }
 }
 
 dependencies {
@@ -46,6 +37,11 @@ dependencies {
     implementation("com.qcloud:cos_api:5.6.259")
     implementation("com.qcloud:cos-sts_api:3.1.1")
 
+    implementation("org.jetbrains.exposed:exposed-core:1.3.0")
+    implementation("org.jetbrains.exposed:exposed-dao:1.3.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:1.3.0")
+
+    implementation("org.xerial:sqlite-jdbc:3.53.1.0")
 
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
@@ -55,11 +51,6 @@ dependencies {
 
 configurations.all {
     exclude(group = "ch.qos.logback")
-}
-
-// em...without this i need build twice...
-tasks.named("processResources") {
-    dependsOn("buildOpenApi")
 }
 
 tasks.withType<Jar> {

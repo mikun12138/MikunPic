@@ -1,7 +1,6 @@
-package me.mikun.storage
+package me.mikun.mikunpichost.storage
 
-import io.ktor.server.application.Application
-import io.ktor.server.application.log
+import io.ktor.server.application.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -69,6 +68,21 @@ class PicStorageLocal : PicStorage() {
             findExist(10) ?: run {
                 flashStorage()
                 findExist(1)
+            }
+        }
+    }
+
+    override suspend fun upload(
+        byteArray: ByteArray,
+        filename: String
+    ) {
+        withContext(Dispatchers.IO) {
+            File(folderPath, filename).apply {
+                if (exists()) {
+                    println("file: $filename already exist!")
+                } else {
+                    this.writeBytes(byteArray)
+                }
             }
         }
     }

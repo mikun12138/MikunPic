@@ -120,8 +120,8 @@ class CosTest {
     @Test
     fun uploadFileTest() {
         val bucketName = testBucketName
-        val toUpload = Thread.currentThread().contextClassLoader.getResource("rua.jpg")!!
-        val key = "rua.jpg"
+        val toUpload = Thread.currentThread().contextClassLoader.getResource("test/rua.jpg")!!
+        val key = "test/rua.jpg"
         PutObjectRequest(
             bucketName,
             key,
@@ -152,7 +152,7 @@ class CosTest {
 
     @Test
     fun downloadObjectTest() {
-        val key = "rua.jpg"
+        val key = "test/rua.jpg"
         val localFile = File("sandbox/rua_download.jpg")
         GetObjectRequest(
             testBucketName,
@@ -169,7 +169,7 @@ class CosTest {
 
     @Test
     fun getUrlTest() {
-        val key = "rua.jpg"
+        val key = "test/rua.jpg"
         cosClient
             .getObjectUrl(
                 testBucketName,
@@ -181,7 +181,7 @@ class CosTest {
 
     @Test
     fun getPresignedUrlTest() {
-        val key = "rua.jpg"
+        val key = "test/rua.jpg"
         GeneratePresignedUrlRequest(
             testBucketName,
             key,
