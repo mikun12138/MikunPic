@@ -1,4 +1,4 @@
-package me.mikun.mikunpichost.storage
+package me.mikun.mikunpic.storage
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.log

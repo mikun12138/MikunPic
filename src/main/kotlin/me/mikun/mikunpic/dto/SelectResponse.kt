@@ -1,9 +1,8 @@
-package me.mikun.mikunpichost.dto
+package me.mikun.mikunpic.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import me.mikun.me.mikun.mikunpichost.dto.data.Pic
-import me.mikun.mikunpichost.database.PicEntity
+import me.mikun.mikunpic.dto.data.Pic
 
 @Serializable
 data class SelectResponse(

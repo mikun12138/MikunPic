@@ -1,4 +1,4 @@
-rootProject.name = "MikunPicHost"
+rootProject.name = "MikunPic"
 
 dependencyResolutionManagement {
     repositories {

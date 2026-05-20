@@ -1,4 +1,4 @@
-package me.mikun.mikunpichost
+package me.mikun.mikunpic
 
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
@@ -8,15 +8,10 @@ import io.ktor.server.routing.routing
 import io.ktor.server.routing.routingRoot
 
 fun Application.configureOpenApi() {
-//    routing {
-//        openAPI(path = "/", swaggerFile = "openapi/generated.json")
-//    }
     routing {
-
-
         openAPI(path = "/") {
             info = OpenApiInfo(
-                "mikun poc host",
+                "mikun pic",
                 "0.0.1"
             )
             source = OpenApiDocSource.Routing {

@@ -1,8 +1,8 @@
-package me.mikun.me.mikun.mikunpichost.dto.data
+package me.mikun.mikunpic.dto.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import me.mikun.mikunpichost.database.PicEntity
+import me.mikun.mikunpic.database.PicEntity
 
 @Serializable
 data class Pic(
@@ -14,13 +14,11 @@ data class Pic(
     val tags: List<String> = emptyList()
 ) {
     companion object {
-        fun fromPicEntity(
-            picEntity: PicEntity
-        ): Pic {
+        fun PicEntity.toPic(): Pic {
             return Pic(
-                picEntity.filename,
-                picEntity.illustrator?.name,
-                picEntity.tags.map { it.name }
+                this.filename,
+                this.illustrator?.name,
+                this.tags.map { it.name }
             )
         }
     }

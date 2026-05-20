@@ -1,4 +1,4 @@
-package me.mikun.mikunpichost.storage
+package me.mikun.mikunpic.storage
 
 import com.qcloud.cos.COSClient
 import com.qcloud.cos.ClientConfig
@@ -83,6 +83,18 @@ class PicStorageCos : PicStorage() {
         byteArray: ByteArray,
         filename: String
     ) {
-        TODO("Not yet implemented")
+        val metadata = ObjectMetadata().apply {
+            contentLength = byteArray.size.toLong()
+        }
+
+        val request = PutObjectRequest(
+            bucket.name,
+            filename,
+            byteArray.inputStream(),
+            metadata
+        )
+
+        cosClient.putObject(request)
+
     }
 }

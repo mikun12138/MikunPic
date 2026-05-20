@@ -1,4 +1,4 @@
-package me.mikun.mikunpichost
+package me.mikun.mikunpic
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createApplicationPlugin
@@ -6,6 +6,7 @@ import io.ktor.server.request.uri
 import io.ktor.server.response.respondText
 import kotlin.text.contains
 
+// TODO::
 val ApiOnlyPlugin =
     createApplicationPlugin(name = "ApiOnlyPlugin") {
         onCall { call ->

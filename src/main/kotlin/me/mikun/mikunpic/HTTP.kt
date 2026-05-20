@@ -1,4 +1,4 @@
-package me.mikun.mikunpichost
+package me.mikun.mikunpic
 
 import com.asyncapi.kotlinasyncapi.context.service.AsyncApiExtension
 import com.asyncapi.kotlinasyncapi.ktor.AsyncApiPlugin
@@ -10,7 +10,7 @@ fun Application.configureHTTP() {
         extension =
             AsyncApiExtension.builder {
                 info {
-                    title("Mikun PicHost")
+                    title("Mikun Pic")
                     version("0.0.1")
                 }
             }

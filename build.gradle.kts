@@ -1,5 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import io.ktor.plugin.OpenApiPreview
 
 val kotlin_version: String by project
 //val logback_version: String by project
@@ -29,6 +28,7 @@ dependencies {
     implementation("io.ktor:ktor-server-config-yaml")
     implementation("io.ktor:ktor-server-rate-limit")
     implementation("io.ktor:ktor-server-forwarded-header")
+    implementation("io.ktor:ktor-server-auth")
 
     implementation("org.apache.logging.log4j:log4j-api:2.25.3")
     implementation("org.apache.logging.log4j:log4j-core:2.25.3")

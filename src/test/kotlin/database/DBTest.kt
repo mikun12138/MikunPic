@@ -1,25 +1,30 @@
 package me.mikun.database
 
+import io.ktor.client.request.basicAuth
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 import io.ktor.util.Digest
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.streams.asInput
 import kotlinx.coroutines.runBlocking
-import me.mikun.mikunpichost.database.IllustratorEntity
-import me.mikun.mikunpichost.database.IllustratorTable
-import me.mikun.mikunpichost.database.Pic2TagTable
-import me.mikun.mikunpichost.database.PicEntity
-import me.mikun.mikunpichost.database.PicTable
-import me.mikun.mikunpichost.database.TagEntity
-import me.mikun.mikunpichost.database.TagTable
-import me.mikun.mikunpichost.storage.PicStorage
+import me.mikun.downloadFolder
+import me.mikun.mikunpic.database.IllustratorEntity
+import me.mikun.mikunpic.database.IllustratorTable
+import me.mikun.mikunpic.database.Pic2TagTable
+import me.mikun.mikunpic.database.PicEntity
+import me.mikun.mikunpic.database.PicTable
+import me.mikun.mikunpic.database.TagEntity
+import me.mikun.mikunpic.database.TagTable
+import me.mikun.mikunpic.storage.PicStorage
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -28,6 +33,8 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.sqlite.SQLiteConfig
 import java.io.File
+import kotlin.io.path.Path
+import kotlin.io.path.writeBytes
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -65,6 +72,9 @@ class DBTest {
         transaction {
             SchemaUtils.create(
                 PicTable,
+                IllustratorTable,
+                TagTable,
+                Pic2TagTable
             )
         }
     }
@@ -126,15 +136,16 @@ class DBTest {
 
     @Test
     fun uploadPicTest() = testApplication {
+        val config = ApplicationConfig("application.yaml")
         environment {
-            config = ApplicationConfig("application.yaml")
-        }
-        application {
-            PicStorage.configure(this)
+            this.config = ApplicationConfig("application.yaml")
         }
 
-
-        val response = client.post("/upload") {
+        val response = client.post("/manage/upload") {
+            basicAuth(
+                config.property("token").getString(),
+                config.property("token").getString()
+            )
             setBody(
                 MultiPartFormDataContent(
                     formData {
@@ -163,6 +174,24 @@ class DBTest {
             HttpStatusCode.Created,
             response.status
         )
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun downloadPicTest() = testApplication {
+        environment {
+            this.config = ApplicationConfig("application.yaml")
+        }
+        application {
+            PicStorage.configure(this)
+        }
+        client.get("/random") {
+
+        }.let {
+            Path(downloadFolder, "rua.jpg").writeBytes(
+                it.bodyAsBytes()
+            )
+        }
     }
 
 

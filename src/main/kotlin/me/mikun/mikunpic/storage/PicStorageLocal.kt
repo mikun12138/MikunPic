@@ -1,4 +1,4 @@
-package me.mikun.mikunpichost.storage
+package me.mikun.mikunpic.storage
 
 import io.ktor.server.application.*
 import kotlinx.coroutines.Dispatchers

@@ -1,4 +1,4 @@
-package me.mikun.mikunpichost.database
+package me.mikun.mikunpic.database
 
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.Table
