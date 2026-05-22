@@ -8,4 +8,20 @@ plugins {
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.ktor) apply false
+
+    alias(libs.plugins.spotless) apply false
+}
+
+subprojects {
+    apply(plugin = rootProject.libs.plugins.spotless.get().pluginId)
+
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        kotlin {
+            target("**/*.kt")
+
+            ktlint("1.8.0")
+                .editorConfigOverride(mapOf(
+                ))
+        }
+    }
 }
