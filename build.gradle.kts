@@ -1,72 +1,11 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
-val kotlin_version: String by project
-//val logback_version: String by project
-
 plugins {
-    kotlin("jvm") version "2.3.21"
-    id("io.ktor.plugin") version "3.4.3"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
-    id("com.diffplug.spotless") version "8.1.0"
-}
-
-group = "me.mikun"
-version = "0.0.1"
-
-application {
-    mainClass = "io.ktor.server.netty.EngineMain"
-}
-
-dependencies {
-    implementation("org.openfolder:kotlin-asyncapi-ktor:3.1.3")
-    implementation("io.ktor:ktor-server-core")
-    implementation("io.ktor:ktor-server-openapi")
-    implementation("io.ktor:ktor-server-content-negotiation")
-    implementation("io.ktor:ktor-serialization-kotlinx-json")
-    implementation("io.ktor:ktor-server-netty")
-//    implementation("ch.qos.logback:logback-classic:$logback_version")
-    implementation("io.ktor:ktor-server-config-yaml")
-    implementation("io.ktor:ktor-server-rate-limit")
-    implementation("io.ktor:ktor-server-forwarded-header")
-    implementation("io.ktor:ktor-server-auth")
-
-    implementation("org.apache.logging.log4j:log4j-api:2.25.3")
-    implementation("org.apache.logging.log4j:log4j-core:2.25.3")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3")
-
-    implementation("com.qcloud:cos_api:5.6.259")
-    implementation("com.qcloud:cos-sts_api:3.1.1")
-
-    implementation("org.jetbrains.exposed:exposed-core:1.3.0")
-    implementation("org.jetbrains.exposed:exposed-dao:1.3.0")
-    implementation("org.jetbrains.exposed:exposed-jdbc:1.3.0")
-
-    implementation("org.xerial:sqlite-jdbc:3.53.1.0")
-
-    testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    testImplementation(kotlin("test"))
-
-}
-
-configurations.all {
-    exclude(group = "ch.qos.logback")
-}
-
-tasks.withType<Jar> {
-    exclude("application.yaml")
-}
-
-tasks.withType<ShadowJar> {
-    exclude("application.yaml")
-}
-
-spotless {
-    kotlin {
-        target("src/**/*.kt")
-
-        ktlint("1.8.0")
-            .editorConfigOverride(mapOf(
-            ))
-    }
+    // this is necessary to avoid the plugins to be loaded multiple times
+    // in each subproject's classloader
+    alias(libs.plugins.androidApplication) apply false
+    alias(libs.plugins.androidMultiplatformLibrary) apply false
+    alias(libs.plugins.composeMultiplatform) apply false
+    alias(libs.plugins.composeCompiler) apply false
+    alias(libs.plugins.kotlinJvm) apply false
+    alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.ktor) apply false
 }
