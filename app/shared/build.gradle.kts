@@ -40,6 +40,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
         }
+        jvmMain.dependencies {
+        }
         commonMain.dependencies {
             api(projects.core)
             implementation(libs.compose.runtime)
@@ -50,6 +52,10 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
+            implementation(libs.ktor.client.cio)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

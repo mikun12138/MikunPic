@@ -25,3 +25,9 @@ subprojects {
         }
     }
 }
+
+tasks.register("runJsServer") {
+
+    dependsOn(":app:webApp:jsBrowserDevelopmentRun")
+    dependsOn(":server:run")
+}
