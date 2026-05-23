@@ -1,21 +1,32 @@
 package me.mikun.mikunpic
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.tooling.preview.Preview
-import me.mikun.mikunpic.component.PicCarousel
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.network.ktor3.KtorNetworkFetcherFactory
+import me.mikun.mikunpic.client.httpClient
+import me.mikun.mikunpic.view.Home
+
 
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
-        val imageUrls = listOf(
-            "http://127.0.0.1:8081/random",
-            "http://127.0.0.1:8081/random",
-            "http://127.0.0.1:8081/random",
-        )
-        PicCarousel(
-            imageUrls
-        )
+    LaunchedEffect(Unit) {
+        SingletonImageLoader.setSafe {
+            ImageLoader.Builder(it)
+                .components {
+                    add(
+                        KtorNetworkFetcherFactory(
+                            httpClient
+                        )
+                    )
+                }
+                .build()
+        }
     }
+
+    Home()
+
 }
