@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "me.mikun.mikunpic"
-version = "1.0.0"
+version = "0.1.0"
 application {
     mainClass = "me.mikun.mikunpic.ApplicationKt"
 }
@@ -56,5 +56,11 @@ tasks.withType<Jar> {
 
 tasks.withType<ShadowJar> {
     exclude("application.yaml")
+}
+
+ktor {
+    fatJar {
+        archiveFileName.set("mikunpic-$version.jar")
+    }
 }
 

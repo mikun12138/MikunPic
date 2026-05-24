@@ -1,14 +1,14 @@
 #!/bin/bash
 
-JAR_URL="https://github.com/mikun12138/MikunPic/releases/download/v0.0.1/MikunPic-0.0.1-all.jar"
-WORKING_DIR="/opt/mikun-pic"
-JAR_NAME="MikunPic.jar"
+JAR_URL="https://github.com/mikun12138/MikunPic/releases/download/v0.1.0/mikunpic-0.1.0.jar"
+WORKING_DIR="/opt/mikunpic"
+JAR_NAME="mikunpic.jar"
 
-SERVICE_FILE_URL="https://raw.githubusercontent.com/mikun12138/MikunPic/refs/heads/master/scripts/mikun-pic.service"
+SERVICE_FILE_URL="https://raw.githubusercontent.com/mikun12138/MikunPic/refs/heads/master/scripts/mikunpic.service"
 
-SERVICE_FILE_TEMP="mikun-pic.service"
+SERVICE_FILE_TEMP="mikunpic.service"
 
-SERVICE_NAME="mikun-pic"
+SERVICE_NAME="mikunpic"
 REAL_USER=${SUDO_USER:-$USER}
 REAL_GROUP=$(id -gn $REAL_USER)
 

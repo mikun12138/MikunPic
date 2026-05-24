@@ -1,5 +1,5 @@
 [Unit]
-Description=Mikun Pic Host Service
+Description=Mikun Pic Service
 After=network.target
 
 [Service]
