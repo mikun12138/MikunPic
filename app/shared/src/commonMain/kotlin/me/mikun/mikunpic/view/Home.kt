@@ -10,11 +10,17 @@ import me.mikun.mikunpic.view.home.PageApi
 import me.mikun.mikunpic.view.home.PagePicPreview
 
 @Composable
-fun Home() {
+fun Home(
+    onReady: () -> Unit,
+    startFadeInTrigger: Boolean
+) {
     MaterialTheme {
         val pages = listOf<@Composable () -> Unit>(
             {
-                PagePicPreview()
+                PagePicPreview(
+                    onReady,
+                    startFadeInTrigger
+                )
             },
             {
                 PageApi()

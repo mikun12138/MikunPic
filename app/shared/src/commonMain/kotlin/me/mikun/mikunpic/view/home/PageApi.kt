@@ -20,9 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -32,7 +34,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import mikunpic.app.shared.generated.resources.Res
+import mikunpic.app.shared.generated.resources.loli
 import mikunpic.app.shared.generated.resources.rua
+import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -79,7 +83,7 @@ fun PageApi() {
 
                                     Text(
                                         "-随机图-",
-                                        style = MaterialTheme.typography.headlineLarge
+                                        style = typography.headlineLarge,
                                     )
 
                                     Surface(
@@ -91,7 +95,7 @@ fun PageApi() {
                                                 text = "https://pic.mikun.icu/random",
                                                 modifier = Modifier.padding(16.dp),
                                                 fontFamily = FontFamily.Monospace,
-                                                style = MaterialTheme.typography.bodyLarge
+                                                style = typography.bodyLarge
                                             )
                                         }
                                     }

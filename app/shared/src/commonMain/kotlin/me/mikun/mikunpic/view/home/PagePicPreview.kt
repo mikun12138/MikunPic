@@ -9,15 +9,17 @@ import coil3.request.crossfade
 import me.mikun.mikunpic.component.PicCarousel
 
 @Composable
-fun PagePicPreview() {
-
+fun PagePicPreview(
+    onReady: () -> Unit,
+    startFadeInTrigger: Boolean
+) {
     val context = LocalPlatformContext.current
 
     val imageReqs = remember(context) {
         List(10) {
             ImageRequest.Builder(context)
                 .data(
-                    "http://127.0.0.1:8081/random"
+                    "http://127.0.0.1:8080/random"
                 )
                 .crossfade(true)
                 .memoryCacheKey(it.toString())
@@ -25,9 +27,24 @@ fun PagePicPreview() {
         }
     }
 
-    val painters = imageReqs.map {
-        rememberAsyncImagePainter(it)
+    val painters = imageReqs.mapIndexed { index, request ->
+        rememberAsyncImagePainter(
+            model = request,
+            onSuccess = {
+                if (index == 0) {
+                    onReady()
+                }
+            },
+            onError = {
+                if (index == 0) {
+                    onReady()
+                }
+            }
+        )
     }
 
-    PicCarousel(painters)
+    PicCarousel(
+        painters = painters,
+        startFadeInTrigger = startFadeInTrigger
+    )
 }

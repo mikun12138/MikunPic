@@ -36,6 +36,7 @@ import kotlin.math.abs
 @Composable
 fun PicCarousel(
     painters: List<Painter>,
+    startFadeInTrigger: Boolean,
 ) {
 
     val actualSize = painters.size
@@ -71,8 +72,11 @@ fun PicCarousel(
         ),
     )
 
-    LaunchedEffect(Unit) {
-        fadeIn = false
+    LaunchedEffect(startFadeInTrigger) {
+        println(startFadeInTrigger)
+        if (startFadeInTrigger) {
+            fadeIn = false
+        }
     }
 
     val clipShape = MaterialTheme.shapes.extraLarge

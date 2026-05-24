@@ -1,4 +1,6 @@
+import org.gradle.kotlin.dsl.named
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -25,4 +27,21 @@ kotlin {
             implementation(libs.compose.ui)
         }
     }
+}
+
+tasks.named<KotlinWebpack>("jsBrowserDevelopmentRun") {
+    devServerProperty.set(
+        devServerProperty.get().copy(
+            port = 8081
+        )
+    )
+}
+
+tasks.named<KotlinWebpack>("wasmJsBrowserDevelopmentRun") {
+    devServerProperty.set(
+        devServerProperty.get().copy(
+            port = 8081,
+            open = false
+        )
+    )
 }
