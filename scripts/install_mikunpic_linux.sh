@@ -4,7 +4,7 @@ JAR_URL="https://github.com/mikun12138/MikunPic/releases/download/v0.1.0/mikunpi
 WORKING_DIR="/opt/mikunpic"
 JAR_NAME="mikunpic.jar"
 
-SERVICE_FILE_URL="https://raw.githubusercontent.com/mikun12138/MikunPic/refs/heads/master/scripts/mikunpic.service"
+SERVICE_FILE_URL="https://raw.githubusercontent.com/mikun12138/MikunPic/refs/heads/main/scripts/mikunpic.service"
 
 SERVICE_FILE_TEMP="mikunpic.service"
 
