@@ -17,7 +17,7 @@ suspend fun uploadPic(
     val byteArray = byteChannel.readRemaining().readByteArray()
 
     val hash = Digest("md5").let {
-        it += byteChannel.readRemaining().readByteArray()
+        it += byteArray
         it.build()
     }.toHexString()
 

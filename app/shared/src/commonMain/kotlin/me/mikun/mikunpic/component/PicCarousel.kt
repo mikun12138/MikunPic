@@ -73,7 +73,6 @@ fun PicCarousel(
     )
 
     LaunchedEffect(startFadeInTrigger) {
-        println(startFadeInTrigger)
         if (startFadeInTrigger) {
             fadeIn = false
         }

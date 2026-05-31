@@ -48,8 +48,11 @@ fun Application.module() {
         anyHost()
 
         allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Options)
 
+        allowHeader(HttpHeaders.Authorization)
+        allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.CacheControl)
 
         allowNonSimpleContentTypes = true

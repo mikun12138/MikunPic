@@ -2,21 +2,13 @@ package me.mikun.mikunpic
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.LocalMaterialTheme
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -29,22 +21,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.network.ktor3.KtorNetworkFetcherFactory
+import io.ktor.client.request.get
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.client.httpClient
 import me.mikun.mikunpic.ui.theme.AppTheme
 import me.mikun.mikunpic.view.Home
+import me.mikun.mikunpic.view.LocalNavController
+import me.mikun.mikunpic.view.Nav
+import me.mikun.mikunpic.view.login.Login
+import me.mikun.mikunpic.view.manage.Manage
 import mikunpic.app.shared.generated.resources.Res
 import mikunpic.app.shared.generated.resources.rua
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 @Preview
-fun App() {
+fun App(
+    onNavHostReady: suspend (NavController) -> Unit = {},
+) {
 
     var loaded by remember { mutableStateOf(false) }
     // TODO:: make a timeline&trigger
@@ -108,6 +112,12 @@ fun App() {
         }
     }
 
+    val navController = rememberNavController()
+
+    LaunchedEffect(navController) {
+        onNavHostReady(navController)
+    }
+
     AppTheme {
         BoxWithConstraints(
             modifier = Modifier
@@ -119,12 +129,52 @@ fun App() {
                         this.alpha = mainPageAlpha.value
                     }
             ) {
-                Home(
-                    {
-                        loaded = true
-                    },
-                    startFadeInTrigger
-                )
+                CompositionLocalProvider(LocalNavController provides navController) {
+                    NavHost(
+                        navController = LocalNavController.current,
+                        startDestination = Nav.Home
+                    ) {
+                        composable<Nav.Home> {
+                            Home(
+                                {
+                                    loaded = true
+                                },
+                                startFadeInTrigger
+                            )
+                        }
+                        composable<Nav.Manage> {
+                            LaunchedEffect(Unit) {
+                                httpClient.get("http://127.0.0.1:8080/auth").let {
+                                    if (it.status == HttpStatusCode.Unauthorized) {
+                                        navController.navigate(Nav.Login) {
+                                            popUpTo(Nav.Manage) {
+                                                inclusive = true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Manage()
+                        }
+
+                        composable<Nav.Login> {
+                            LaunchedEffect(Unit) {
+                                httpClient.get("http://127.0.0.1:8080/auth").let {
+                                    if (it.status != HttpStatusCode.Unauthorized) {
+                                        navController.navigate(Nav.Manage) {
+                                            popUpTo(Nav.Login) {
+                                                inclusive = true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Login()
+                        }
+                    }
+                }
             }
 
             Box(

@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Surface
@@ -28,11 +29,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import me.mikun.mikunpic.view.LocalNavController
+import me.mikun.mikunpic.view.Nav
 import mikunpic.app.shared.generated.resources.Res
 import mikunpic.app.shared.generated.resources.loli
 import mikunpic.app.shared.generated.resources.rua
@@ -43,68 +47,92 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 @Preview
 fun PageApi() {
+    val navController = LocalNavController.current
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.95f)
+                .fillMaxWidth(0.98f)
                 .aspectRatio(maxWidth / maxHeight)
         ) {
-            ApiCards(
-                *Array(1) {
-                    {
-                        Card(
-                            modifier = Modifier
-                                .animateItem()
-                                .fillMaxWidth()
-                                .aspectRatio(0.66f)
-                        ) {
-
-                            Column(
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-
-                                Image(
-                                    painter = painterResource(Res.drawable.rua),
-                                    contentDescription = null,
+            Column {
+                Box(
+                    modifier = Modifier
+                        .weight(0.9f)
+                        .padding(8.dp)
+                ) {
+                    ApiCards(
+                        *Array(1) {
+                            {
+                                Card(
                                     modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxWidth(),
-                                    contentScale = ContentScale.Crop
-                                )
-
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                    modifier = Modifier
-                                        .padding(16.dp)
+                                        .animateItem()
+                                        .fillMaxWidth()
+                                        .aspectRatio(0.66f)
                                 ) {
 
-                                    Text(
-                                        "-随机图-",
-                                        style = typography.headlineLarge,
-                                    )
-
-                                    Surface(
-                                        color = MaterialTheme.colorScheme.surfaceContainer,
-                                        shape = RoundedCornerShape(12.dp),
+                                    Column(
+                                        modifier = Modifier.fillMaxSize()
                                     ) {
-                                        SelectionContainer {
+
+                                        Image(
+                                            painter = painterResource(Res.drawable.rua),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .fillMaxWidth(),
+                                            contentScale = ContentScale.Crop
+                                        )
+
+                                        Column(
+                                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                                            modifier = Modifier
+                                                .padding(16.dp)
+                                        ) {
+
                                             Text(
-                                                text = "https://pic.mikun.icu/random",
-                                                modifier = Modifier.padding(16.dp),
-                                                fontFamily = FontFamily.Monospace,
-                                                style = typography.bodyLarge
+                                                "-随机图-",
+                                                style = typography.headlineLarge,
                                             )
+
+                                            Surface(
+                                                color = MaterialTheme.colorScheme.surfaceContainer,
+                                                shape = RoundedCornerShape(12.dp),
+                                            ) {
+                                                SelectionContainer {
+                                                    Text(
+                                                        text = "https://pic.mikun.icu/random",
+                                                        modifier = Modifier.padding(16.dp),
+                                                        fontFamily = FontFamily.Monospace,
+                                                        style = typography.bodyLarge
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+                    )
+                }
+
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    ElevatedButton(
+                        onClick = {
+                            navController.navigate(Nav.Manage)
+                        },
+                    ) {
+                        Text("Manage")
                     }
                 }
-            )
+            }
         }
     }
 }

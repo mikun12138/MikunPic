@@ -1,6 +1,6 @@
 package me.mikun.mikunpic.database
 
-import io.ktor.client.request.basicAuth
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
@@ -135,9 +135,8 @@ class DBTest {
         }
 
         val response = client.post("/manage/upload") {
-            basicAuth(
-                config.property("token").getString(),
-                config.property("token").getString()
+            bearerAuth(
+                config.property("auth.bearer.token").getString()
             )
             setBody(
                 MultiPartFormDataContent(

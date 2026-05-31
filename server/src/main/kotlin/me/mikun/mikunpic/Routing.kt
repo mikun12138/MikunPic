@@ -1,5 +1,8 @@
 package me.mikun.mikunpic
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import io.ktor.client.request.request
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -29,14 +32,15 @@ fun Application.configureRouting() {
                 }
             } ?: call.respond(HttpStatusCode.NotFound)
         }
-        authenticate("basic") {
+        authenticate("bearer") {
+            get("/auth") { }
             route("/manage") {
                 post("/upload") {
                     val multipart = call.receiveMultipart()
 
                     var fileDescription: String? = null
                     var fileChannel: ByteReadChannel?
-                    var filename: String?
+                    var filename: String? = null
 
                     multipart.forEachPart { part ->
                         when (part) {
@@ -51,13 +55,16 @@ fun Application.configureRouting() {
                             }
 
                             is PartData.FormItem -> {
-                                fileDescription = part.value
+                                when (part.name) {
+                                    "description" -> fileDescription = part.value
+                                }
                             }
 
                             else -> part.dispose()
                         }
                     }
 
+                    fileDescription = fileDescription ?: filename
 
                     call.respond(
                         HttpStatusCode.Created,
