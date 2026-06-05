@@ -72,15 +72,25 @@ abstract class PicStorage {
             byteArray,
             filename
         )
+
+        suspend fun byName(
+            name: String
+        ): InputStream? = delegate.byName(name)
+
     }
 
     abstract fun init(application: Application)
 
     abstract suspend fun random(): InputStream?
 
+    abstract suspend fun byName(
+        name: String
+    ): InputStream?
+
     abstract suspend fun upload(
         byteArray: ByteArray,
         filename: String
     )
+
 
 }

@@ -79,6 +79,12 @@ class PicStorageCos : PicStorage() {
             cosClient.getObject(request)
         }.objectContent
 
+    override suspend fun byName(
+        name: String
+    ): InputStream? {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun upload(
         byteArray: ByteArray,
         filename: String

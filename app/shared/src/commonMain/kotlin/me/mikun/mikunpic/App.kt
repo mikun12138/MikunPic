@@ -33,7 +33,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import me.mikun.mikunpic.client.httpClient
+import me.mikun.mikunpic.client.Client.httpClient
 import me.mikun.mikunpic.ui.theme.AppTheme
 import me.mikun.mikunpic.view.Home
 import me.mikun.mikunpic.view.LocalNavController
@@ -144,7 +144,7 @@ fun App(
                         }
                         composable<Nav.Manage> {
                             LaunchedEffect(Unit) {
-                                httpClient.get("http://127.0.0.1:8080/auth").let {
+                                httpClient.get("/auth").let {
                                     if (it.status == HttpStatusCode.Unauthorized) {
                                         navController.navigate(Nav.Login) {
                                             popUpTo(Nav.Manage) {
@@ -160,7 +160,7 @@ fun App(
 
                         composable<Nav.Login> {
                             LaunchedEffect(Unit) {
-                                httpClient.get("http://127.0.0.1:8080/auth").let {
+                                httpClient.get("/auth").let {
                                     if (it.status != HttpStatusCode.Unauthorized) {
                                         navController.navigate(Nav.Manage) {
                                             popUpTo(Nav.Login) {

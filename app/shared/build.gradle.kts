@@ -44,7 +44,8 @@ kotlin {
         jvmMain.dependencies {
         }
         commonMain.dependencies {
-            api(projects.core)
+            implementation(projects.dto)
+
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -60,7 +61,9 @@ kotlin {
             implementation(libs.coil.network.ktor3)
             implementation(libs.ktor.client.cio)
             implementation(libs.ktor.client.auth)
+            implementation(libs.ktor.client.resources)
             implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.content.negotiation)
 
 
             implementation("io.github.vinceglb:filekit-core:0.14.1")

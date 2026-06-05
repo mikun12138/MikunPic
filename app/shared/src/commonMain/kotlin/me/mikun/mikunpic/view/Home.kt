@@ -17,26 +17,24 @@ fun Home(
     startFadeInTrigger: Boolean,
 ) {
 
-    MaterialTheme {
-        val pages = listOf<@Composable () -> Unit>(
-            {
-                PagePicPreview(
-                    onReady,
-                    startFadeInTrigger
-                )
-            },
-            {
-                PageApi()
-            },
-        )
+    val pages = listOf<@Composable () -> Unit>(
+        {
+            PagePicPreview(
+                onReady,
+                startFadeInTrigger
+            )
+        },
+        {
+            PageApi()
+        },
+    )
 
-        VerticalPager(
-            state = rememberPagerState { pages.size },
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            pages[it]()
-        }
+    VerticalPager(
+        state = rememberPagerState { pages.size },
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        pages[it]()
     }
 }
 

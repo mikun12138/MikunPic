@@ -72,9 +72,19 @@ class PicStorageLocal : PicStorage() {
         }
     }
 
+    override suspend fun byName(name: String): InputStream? {
+        return withContext(Dispatchers.IO) {
+            val file = File(
+                folderPath,
+                name
+            )
+            return@withContext if (file.exists()) file.inputStream() else null
+        }
+    }
+
     override suspend fun upload(
         byteArray: ByteArray,
-        filename: String
+        filename: String,
     ) {
         withContext(Dispatchers.IO) {
             File(folderPath, filename).apply {

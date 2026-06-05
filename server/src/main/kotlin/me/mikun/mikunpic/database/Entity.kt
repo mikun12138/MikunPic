@@ -1,5 +1,6 @@
 package me.mikun.mikunpic.database
 
+import me.mikun.mikunpic.dto.data.Pic
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
@@ -14,6 +15,15 @@ class PicEntity(id : EntityID<Int>): IntEntity(id) {
     var illustrator by IllustratorEntity optionalReferencedOn PicTable.illustratorId
 
     var tags by TagEntity via Pic2TagTable
+
+
+    fun toPic(): Pic {
+        return Pic(
+            this.filename,
+            this.illustrator?.name,
+            this.tags.map { it.name }
+        )
+    }
 }
 
 class IllustratorEntity(id : EntityID<Int>): IntEntity(id) {
@@ -29,4 +39,5 @@ class TagEntity(id: EntityID<Int>): IntEntity(id) {
     var name by TagTable.name
 
     var pics by PicEntity via Pic2TagTable
+
 }

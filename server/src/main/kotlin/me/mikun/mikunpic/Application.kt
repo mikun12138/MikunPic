@@ -10,6 +10,7 @@ import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.ratelimit.RateLimit
 import io.ktor.server.plugins.ratelimit.RateLimitName
+import io.ktor.server.resources.Resources
 import me.mikun.mikunpic.storage.PicStorage
 import kotlin.time.Duration.Companion.minutes
 
@@ -22,6 +23,7 @@ fun Application.module() {
     configureHTTP()
     configureSerialization()
     configureAuth()
+    configureResources()
     configureRouting()
     configureOpenApi()
     configureDatabase()

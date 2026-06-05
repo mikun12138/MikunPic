@@ -1,46 +1,61 @@
 package me.mikun.mikunpic.view.manage
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.ListItemDefaults.verticalAlignment
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import coil3.compose.AsyncImage
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.openFilePicker
 import io.github.vinceglb.filekit.name
-import io.github.vinceglb.filekit.path
 import io.github.vinceglb.filekit.readBytes
-import io.ktor.client.engine.ProxyBuilder.http
-import io.ktor.client.request.basicAuth
-import io.ktor.client.request.forms.formData
-import io.ktor.client.request.forms.submitFormWithBinaryData
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.http.Headers
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.core.Input
 import kotlinx.coroutines.launch
-import kotlinx.io.Buffer
-import kotlinx.io.Source
-import kotlinx.io.buffered
-import kotlinx.io.files.FileSystem
-import kotlinx.io.files.Path
-import kotlinx.io.files.SystemFileSystem
-import kotlinx.io.files.source
-import me.mikun.mikunpic.client.httpClient
-import me.mikun.mikunpic.view.LocalNavController
-import me.mikun.mikunpic.view.Nav
+import me.mikun.mikunpic.client.Client
+import me.mikun.mikunpic.dto.data.Pic
 
 @Composable
 @Preview(showBackground = true)
 fun Manage() {
+
+    val pages = listOf<@Composable () -> Unit>(
+        {
+            UploadPic()
+        },
+        {
+            EditTable()
+        }
+    )
+
+    VerticalPager(
+        state = rememberPagerState { pages.size },
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        pages[it]()
+    }
+}
+
+@Composable
+private fun UploadPic() {
     val scope = rememberCoroutineScope()
     Box(
         modifier = Modifier.fillMaxSize()
@@ -52,24 +67,9 @@ fun Manage() {
                 onClick = {
                     scope.launch {
                         FileKit.openFilePicker()?.let { file ->
-                            val byteArray = file.readBytes()
-                            httpClient.submitFormWithBinaryData(
-                                url = "http://127.0.0.1:8080/manage/upload",
-                                formData = formData {
-                                    appendInput(
-                                        "file",
-                                        Headers.build {
-                                            append(
-                                                HttpHeaders.ContentDisposition,
-                                                "filename=\"${file.name}\""
-                                            )
-                                        }
-                                    ) {
-                                        Buffer().apply {
-                                            write(byteArray)
-                                        }
-                                    }
-                                }
+                            Client.uploadPic(
+                                picName = file.name,
+                                picBytes = file.readBytes()
                             )
                         }
                     }
@@ -77,6 +77,84 @@ fun Manage() {
             ) {
                 Text("Upload")
             }
+        }
+    }
+}
+
+@Composable
+private fun EditTable() {
+
+    val coroutineContext = rememberCoroutineScope()
+
+    var picOnTable by remember { mutableStateOf<Pic?>(null) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ElevatedButton(
+                    onClick = {
+                        coroutineContext.launch {
+                            picOnTable = Client.randomPic(
+                                1,
+                            ).pics.firstOrNull()
+                        }
+                    }
+                ) {
+                    Text("No author")
+                }
+
+                ElevatedButton(
+                    onClick = {
+                        coroutineContext.launch {
+                            picOnTable = Client.randomPic(1).pics.firstOrNull()
+                        }
+                    }
+                ) {
+                    Text("No tag")
+                }
+            }
+
+            if (picOnTable != null) {
+                Box(
+                    modifier = Modifier
+                        .weight(0.8f)
+                ) {
+                    AsyncImage(
+                        "${Client.baseUrl}/pic/${picOnTable?.filename}",
+                        contentDescription = null
+                    )
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row {
+                        Text("illustrator: ")
+
+                        ElevatedAssistChip(
+                            onClick = { },
+                            label = {
+                                picOnTable?.illustrator?.let {
+                                    Text(it)
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+
+
         }
     }
 }
