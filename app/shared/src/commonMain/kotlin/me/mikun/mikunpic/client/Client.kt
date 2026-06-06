@@ -11,13 +11,19 @@ import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.plugins.resources.get
+import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.readRawBytes
+import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.io.Buffer
+import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 
 var localToken: String? = null
@@ -96,6 +102,35 @@ object Client {
             )
         ).let {
             it.body<OhMyRouting.Manage.Pic.Random.Response>()
+        }
+    }
+
+    suspend fun updatePic(
+        pic: Pic
+    ) {
+        httpClient.post(
+            OhMyRouting.Manage.Pic.Update()
+        ) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                OhMyRouting.Manage.Pic.Update.Body(
+                    pic = pic
+                )
+            )
+        }
+    }
+
+    suspend fun searchIllustrator(
+        count: Int,
+        keyword: String
+    ): OhMyRouting.Manage.Illustrator.Search.Response {
+        return httpClient.get(
+            OhMyRouting.Manage.Illustrator.Search(
+                count,
+                keyword
+            )
+        ).let {
+            it.body<OhMyRouting.Manage.Illustrator.Search.Response>()
         }
     }
 

@@ -6,19 +6,22 @@ import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class Test {
 
-    @Test
-    fun test() = testApplication {
+    private fun ohMyTest(
+        block: suspend ApplicationTestBuilder.() -> Unit,
+    ) = testApplication {
         val config = ApplicationConfig("application.yaml")
         environment {
             this.config = ApplicationConfig("application.yaml")
@@ -31,6 +34,11 @@ class Test {
             }
         }
 
+        block()
+    }
+
+    @Test
+    fun test() = ohMyTest {
         client.get(
             OhMyRouting.Manage.Illustrator.Random(
                 5
@@ -38,20 +46,7 @@ class Test {
         ).let {
             println(it.body<OhMyRouting.Manage.Illustrator.Random.Response>())
         }
-//
-//        client.post(
-//            OhMyRouting.Manage.Illustrator.Create()
-//        ) {
-//            contentType(ContentType.Application.Json)
-//
-//            setBody(
-//                OhMyRouting.Manage.Illustrator.Create.Body(
-//                    "L"
-//                )
-//            )
-//        }.let {
-//            println(it.call.request.call)
-//        }
+
 
         client.get(
             OhMyRouting.Manage.Pic.Random(
@@ -68,7 +63,57 @@ class Test {
         ).let {
             println(it.call.request.url)
         }
+    }
 
+    @Test
+    fun testIllustratorSearch() = ohMyTest {
+        client.get(
+            OhMyRouting.Manage.Illustrator.Search(
+                count = 5,
+                keyword = "a"
+            )
+        ).let {
+            println(it.body<OhMyRouting.Manage.Illustrator.Search.Response>())
+        }
+    }
 
+    @Test
+    fun testPicUpdate() = ohMyTest {
+        client.post(
+            OhMyRouting.Manage.Pic.Update()
+        ) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                OhMyRouting.Manage.Pic.Update.Body(
+                    pic = Pic(
+                        filename = "01_着衣版.png",
+                        illustrator = "aa",
+                    )
+                )
+            )
+        }.let {
+            println(it.status)
+        }
+    }
+
+    @Test
+    fun testIllustratorCreate() = ohMyTest {
+        val illustrators = generateSequence("a") { it + "a" }
+
+        illustrators.take(64).forEach { illustrator ->
+            client.post(
+                OhMyRouting.Manage.Illustrator.Create()
+            ) {
+                contentType(ContentType.Application.Json)
+
+                setBody(
+                    OhMyRouting.Manage.Illustrator.Create.Body(
+                        illustrator
+                    )
+                )
+            }.let {
+                println(it.call.request.call)
+            }
+        }
     }
 }

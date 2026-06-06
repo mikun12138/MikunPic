@@ -5,7 +5,6 @@ import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
 import me.mikun.mikunpic.database.IllustratorEntity
 import me.mikun.mikunpic.database.IllustratorTable
-import me.mikun.mikunpic.database.IllustratorTable.innerJoin
 import me.mikun.mikunpic.database.PicEntity
 import me.mikun.mikunpic.database.PicTable
 import me.mikun.mikunpic.database.TagEntity
@@ -18,8 +17,8 @@ import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
-import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -95,25 +94,36 @@ suspend fun randomPic(
     }
 }
 
-
 suspend fun updatePic(
-    filename: String,
-    illustrator: String?,
-    tags: List<String>,
+    pic: Pic,
 ) {
-    transaction {
-        PicEntity.find(PicTable.filename eq filename).firstOrNull()?.let {
-            it.illustrator = illustrator?.let {
-                IllustratorEntity.find { IllustratorTable.name eq it }.firstOrNull()
-                    ?: IllustratorEntity.new {
-                        this.name = it
-                    }
+    return transaction {
+        println(pic.filename)
+        PicEntity.findSingleByAndUpdate(PicTable.filename eq pic.filename) {
+            if (!pic.illustrator.isNullOrEmpty()) {
+                it.illustrator =
+                    IllustratorEntity.find { IllustratorTable.name eq pic.illustrator!! }.firstOrNull()
+                        ?: IllustratorEntity.new {
+                            this.name = pic.illustrator!!
+                        }
             }
-            it.tags = SizedCollection(tags.map {
-                TagEntity.find { TagTable.name eq it }.firstOrNull() ?: TagEntity.new {
-                    this.name = it
-                }
-            })
+            // TODO:: tags
+        }
+
+    }
+}
+
+suspend fun searchIllustrator(
+    count: Int,
+    keyword: String? = null,
+): List<String> {
+    return transaction {
+        if (!keyword.isNullOrEmpty()) {
+            IllustratorEntity.find { IllustratorTable.name like "%${keyword}%" }
+                .limit(count)
+                .map { it.name }
+        } else {
+            emptyList()
         }
     }
 }

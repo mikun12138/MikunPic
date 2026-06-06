@@ -18,6 +18,8 @@ import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.createIllustrator
 import me.mikun.mikunpic.operator.randomIllustrator
 import me.mikun.mikunpic.operator.randomPic
+import me.mikun.mikunpic.operator.searchIllustrator
+import me.mikun.mikunpic.operator.updatePic
 import me.mikun.mikunpic.operator.uploadPic
 import me.mikun.mikunpic.storage.PicStorage
 
@@ -106,11 +108,31 @@ private fun Route.manage() {
         )
     }
 
+    post<OhMyRouting.Manage.Pic.Update> {
+        val receive = call.receive<OhMyRouting.Manage.Pic.Update.Body>()
+        updatePic(receive.pic)
+
+        call.respond(HttpStatusCode.Created)
+    }
+
     get<OhMyRouting.Manage.Illustrator.Random> { req ->
 
         randomIllustrator(req.count).let {
             call.respond(
                 OhMyRouting.Manage.Illustrator.Random.Response(
+                    it
+                )
+            )
+        }
+    }
+
+    get<OhMyRouting.Manage.Illustrator.Search> { req ->
+        searchIllustrator(
+            count = req.count,
+            keyword = req.keyword
+        ).let {
+            call.respond(
+                OhMyRouting.Manage.Illustrator.Search.Response(
                     it
                 )
             )

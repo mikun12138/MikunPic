@@ -64,7 +64,7 @@ kotlin {
             implementation(libs.ktor.client.resources)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.content.negotiation)
-
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 
             implementation("io.github.vinceglb:filekit-core:0.14.1")
             implementation("io.github.vinceglb:filekit-dialogs:0.14.1")

@@ -8,7 +8,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -37,9 +36,9 @@ import me.mikun.mikunpic.client.Client.httpClient
 import me.mikun.mikunpic.ui.theme.AppTheme
 import me.mikun.mikunpic.view.Home
 import me.mikun.mikunpic.view.LocalNavController
+import me.mikun.mikunpic.view.Login
+import me.mikun.mikunpic.view.Manage
 import me.mikun.mikunpic.view.Nav
-import me.mikun.mikunpic.view.login.Login
-import me.mikun.mikunpic.view.manage.Manage
 import mikunpic.app.shared.generated.resources.Res
 import mikunpic.app.shared.generated.resources.rua
 import org.jetbrains.compose.resources.painterResource

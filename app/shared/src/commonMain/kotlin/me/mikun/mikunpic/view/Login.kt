@@ -1,4 +1,4 @@
-package me.mikun.mikunpic.view.login
+package me.mikun.mikunpic.view
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,8 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import me.mikun.mikunpic.client.localToken
-import me.mikun.mikunpic.view.LocalNavController
-import me.mikun.mikunpic.view.Nav
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
