@@ -41,25 +41,23 @@ class Test {
     fun test() = ohMyTest {
         client.get(
             OhMyRouting.Manage.Illustrator.Random(
-                5
-            )
+                5,
+            ),
         ).let {
             println(it.body<OhMyRouting.Manage.Illustrator.Random.Response>())
         }
 
-
         client.get(
             OhMyRouting.Manage.Pic.Random(
                 5,
-                null
-            )
+                null,
+            ),
         ).let {
             println(it.body<OhMyRouting.Manage.Pic.Random.Response>())
         }
 
-
         client.get(
-            OhMyRouting.Pic.Filename("1af516b5101fb83afe0bf5e1fa18108d.jpg")
+            OhMyRouting.Pic.Filename("1af516b5101fb83afe0bf5e1fa18108d.jpg"),
         ).let {
             println(it.call.request.url)
         }
@@ -70,8 +68,8 @@ class Test {
         client.get(
             OhMyRouting.Manage.Illustrator.Search(
                 count = 5,
-                keyword = "a"
-            )
+                keyword = "a",
+            ),
         ).let {
             println(it.body<OhMyRouting.Manage.Illustrator.Search.Response>())
         }
@@ -80,7 +78,7 @@ class Test {
     @Test
     fun testPicUpdate() = ohMyTest {
         client.post(
-            OhMyRouting.Manage.Pic.Update()
+            OhMyRouting.Manage.Pic.Update(),
         ) {
             contentType(ContentType.Application.Json)
             setBody(
@@ -88,8 +86,8 @@ class Test {
                     pic = Pic(
                         filename = "01_着衣版.png",
                         illustrator = "aa",
-                    )
-                )
+                    ),
+                ),
             )
         }.let {
             println(it.status)
@@ -102,14 +100,14 @@ class Test {
 
         illustrators.take(64).forEach { illustrator ->
             client.post(
-                OhMyRouting.Manage.Illustrator.Create()
+                OhMyRouting.Manage.Illustrator.Create(),
             ) {
                 contentType(ContentType.Application.Json)
 
                 setBody(
                     OhMyRouting.Manage.Illustrator.Create.Body(
-                        illustrator
-                    )
+                        illustrator,
+                    ),
                 )
             }.let {
                 println(it.call.request.call)

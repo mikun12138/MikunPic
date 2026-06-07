@@ -5,12 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
@@ -25,23 +22,16 @@ import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalProvider
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import me.mikun.mikunpic.shared.generated.resources.Res
+import me.mikun.mikunpic.shared.generated.resources.rua
 import me.mikun.mikunpic.view.LocalNavController
 import me.mikun.mikunpic.view.Nav
-import mikunpic.app.shared.generated.resources.Res
-import mikunpic.app.shared.generated.resources.loli
-import mikunpic.app.shared.generated.resources.rua
-import org.jetbrains.compose.resources.Font
-import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -50,18 +40,18 @@ fun PageApi() {
     val navController = LocalNavController.current
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.98f)
-                .aspectRatio(maxWidth / maxHeight)
+                .aspectRatio(maxWidth / maxHeight),
         ) {
             Column {
                 Box(
                     modifier = Modifier
                         .weight(0.9f)
-                        .padding(8.dp)
+                        .padding(8.dp),
                 ) {
                     ApiCards(
                         *Array(1) {
@@ -70,28 +60,25 @@ fun PageApi() {
                                     modifier = Modifier
                                         .animateItem()
                                         .fillMaxWidth()
-                                        .aspectRatio(0.66f)
+                                        .aspectRatio(0.66f),
                                 ) {
-
                                     Column(
-                                        modifier = Modifier.fillMaxSize()
+                                        modifier = Modifier.fillMaxSize(),
                                     ) {
-
                                         Image(
                                             painter = painterResource(Res.drawable.rua),
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .weight(1f)
                                                 .fillMaxWidth(),
-                                            contentScale = ContentScale.Crop
+                                            contentScale = ContentScale.Crop,
                                         )
 
                                         Column(
                                             verticalArrangement = Arrangement.spacedBy(16.dp),
                                             modifier = Modifier
-                                                .padding(16.dp)
+                                                .padding(16.dp),
                                         ) {
-
                                             Text(
                                                 "-随机图-",
                                                 style = typography.headlineLarge,
@@ -106,7 +93,7 @@ fun PageApi() {
                                                         text = "https://pic.mikun.icu/random",
                                                         modifier = Modifier.padding(16.dp),
                                                         fontFamily = FontFamily.Monospace,
-                                                        style = typography.bodyLarge
+                                                        style = typography.bodyLarge,
                                                     )
                                                 }
                                             }
@@ -114,10 +101,9 @@ fun PageApi() {
                                     }
                                 }
                             }
-                        }
+                        },
                     )
                 }
-
 
                 Box(
                     modifier = Modifier
@@ -141,7 +127,6 @@ fun PageApi() {
 private fun ApiCards(
     vararg contents: @Composable LazyGridItemScope.() -> Unit,
 ) {
-
     BoxWithConstraints {
         val desiredHeight =
             (maxHeight * 0.5f)
@@ -149,18 +134,19 @@ private fun ApiCards(
 
         LazyHorizontalGrid(
             rows =
-                if (contents.size < 4)
-                    GridCells.Fixed(1)
-                else
-                    GridCells.Adaptive(desiredHeight),
+            if (contents.size < 4) {
+                GridCells.Fixed(1)
+            } else {
+                GridCells.Adaptive(desiredHeight)
+            },
             horizontalArrangement =
-                Arrangement.spacedBy(16.dp),
+            Arrangement.spacedBy(16.dp),
 
             verticalArrangement =
-                Arrangement.spacedBy(16.dp),
+            Arrangement.spacedBy(16.dp),
         ) {
             items(
-                contents
+                contents,
             ) { content ->
                 content(this)
             }

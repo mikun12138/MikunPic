@@ -11,7 +11,7 @@ import me.mikun.mikunpic.component.PicCarousel
 @Composable
 fun PagePicPreview(
     onReady: () -> Unit,
-    startFadeInTrigger: Boolean
+    startFadeInTrigger: Boolean,
 ) {
     val context = LocalPlatformContext.current
 
@@ -19,7 +19,7 @@ fun PagePicPreview(
         List(10) {
             ImageRequest.Builder(context)
                 .data(
-                    "http://127.0.0.1:8080/random"
+                    "http://127.0.0.1:8080/random",
                 )
                 .crossfade(true)
                 .memoryCacheKey(it.toString())
@@ -39,12 +39,12 @@ fun PagePicPreview(
                 if (index == 0) {
                     onReady()
                 }
-            }
+            },
         )
     }
 
     PicCarousel(
         painters = painters,
-        startFadeInTrigger = startFadeInTrigger
+        startFadeInTrigger = startFadeInTrigger,
     )
 }

@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.resources.get
@@ -26,13 +27,12 @@ import me.mikun.mikunpic.storage.PicStorage
 @Suppress("ktlint:standard:kdoc")
 fun Application.configureRouting() {
     routing {
-
         public()
 
-        //        authenticate("bearer") {
+        authenticate("bearer") {
 //        get("/auth") { }
-        manage()
-        //        }
+            manage()
+        }
     }.let {
         println(it.getAllRoutes())
     }
@@ -60,13 +60,12 @@ private fun Route.public() {
 }
 
 private fun Route.manage() {
-
     get<OhMyRouting.Manage.Pic.Random> { req ->
         randomPic(req.count, req.illustrator).let {
             call.respond(
                 OhMyRouting.Manage.Pic.Random.Response(
-                    it
-                )
+                    it,
+                ),
             )
         }
     }
@@ -86,7 +85,7 @@ private fun Route.manage() {
 
                     uploadPic(
                         fileChannel,
-                        filename!!
+                        filename!!,
                     )
                 }
 
@@ -104,7 +103,7 @@ private fun Route.manage() {
 
         call.respond(
             HttpStatusCode.Created,
-            mapOf("message" to "$fileDescription Upload Success.")
+            mapOf("message" to "$fileDescription Upload Success."),
         )
     }
 
@@ -120,8 +119,8 @@ private fun Route.manage() {
         randomIllustrator(req.count).let {
             call.respond(
                 OhMyRouting.Manage.Illustrator.Random.Response(
-                    it
-                )
+                    it,
+                ),
             )
         }
     }
@@ -129,12 +128,12 @@ private fun Route.manage() {
     get<OhMyRouting.Manage.Illustrator.Search> { req ->
         searchIllustrator(
             count = req.count,
-            keyword = req.keyword
+            keyword = req.keyword,
         ).let {
             call.respond(
                 OhMyRouting.Manage.Illustrator.Search.Response(
-                    it
-                )
+                    it,
+                ),
             )
         }
     }
@@ -144,5 +143,4 @@ private fun Route.manage() {
 
         createIllustrator(receive.name)
     }
-
 }

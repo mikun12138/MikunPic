@@ -29,71 +29,70 @@ class CosTest {
     }
 
     @BeforeTest
-    fun preConfigTest() =
-        testApplication {
-            environment {
-                config = ApplicationConfig("application.yaml")
-                val statement =
-                    Statement().apply {
-                        setEffect("allow")
-                        addActions(
-                            arrayOf(
-                                "cos:*",
-                            ),
-                        )
-                        addResources(
-                            arrayOf(
-                                "*",
-                            ),
-                        )
-                    }
-
-                val policy =
-                    Policy().apply {
-                        addStatement(statement)
-                    }
-
-                testBucketName = config.property("storage.cos.bucket_name").getString()
-                val configMap =
-                    TreeMap<String, Any>().apply {
-                        putAll(
-                            mapOf(
-                                "secretId" to config.property("storage.cos.secretId").getString(),
-                                "secretKey" to config.property("storage.cos.secretKey").getString(),
-                                "durationSeconds" to 1800,
-                                "policy" to Jackson.toJsonPrettyString(policy),
-                            ),
-                        )
-                    }
-
-                val response =
-                    CosStsClient.getCredential(configMap)
-
-                val tmpSecretId =
-                    response.credentials.tmpSecretId
-                val tmpSecretKey =
-                    response.credentials.tmpSecretKey
-                val sessionToken =
-                    response.credentials.sessionToken
-
-                val cred =
-                    BasicSessionCredentials(
-                        tmpSecretId,
-                        tmpSecretKey,
-                        sessionToken,
-                    )
-
-                cosClient =
-                    COSClient(
-                        cred,
-                        ClientConfig(
-                            Region(
-                                config.property("storage.cos.region").getString(),
-                            ),
+    fun preConfigTest() = testApplication {
+        environment {
+            config = ApplicationConfig("application.yaml")
+            val statement =
+                Statement().apply {
+                    setEffect("allow")
+                    addActions(
+                        arrayOf(
+                            "cos:*",
                         ),
                     )
-            }
+                    addResources(
+                        arrayOf(
+                            "*",
+                        ),
+                    )
+                }
+
+            val policy =
+                Policy().apply {
+                    addStatement(statement)
+                }
+
+            testBucketName = config.property("storage.cos.bucket_name").getString()
+            val configMap =
+                TreeMap<String, Any>().apply {
+                    putAll(
+                        mapOf(
+                            "secretId" to config.property("storage.cos.secretId").getString(),
+                            "secretKey" to config.property("storage.cos.secretKey").getString(),
+                            "durationSeconds" to 1800,
+                            "policy" to Jackson.toJsonPrettyString(policy),
+                        ),
+                    )
+                }
+
+            val response =
+                CosStsClient.getCredential(configMap)
+
+            val tmpSecretId =
+                response.credentials.tmpSecretId
+            val tmpSecretKey =
+                response.credentials.tmpSecretKey
+            val sessionToken =
+                response.credentials.sessionToken
+
+            val cred =
+                BasicSessionCredentials(
+                    tmpSecretId,
+                    tmpSecretKey,
+                    sessionToken,
+                )
+
+            cosClient =
+                COSClient(
+                    cred,
+                    ClientConfig(
+                        Region(
+                            config.property("storage.cos.region").getString(),
+                        ),
+                    ),
+                )
         }
+    }
 
     @Test
     fun listBucketsTest() {

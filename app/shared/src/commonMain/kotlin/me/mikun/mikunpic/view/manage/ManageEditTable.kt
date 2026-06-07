@@ -48,21 +48,20 @@ fun EditTable() {
         var illustrator by remember(picOnTable) { mutableStateOf(picOnTable?.illustrator) }
         var isEdited by remember(
             picOnTable,
-            illustrator
+            illustrator,
         ) { mutableStateOf(picOnTable != null && picOnTable?.illustrator != illustrator) }
     }
 
     var showBottomSheet by remember { mutableStateOf(false) }
 
-
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -81,7 +80,7 @@ fun EditTable() {
                                         scope.launch {
                                             picOnTable = Client.randomPic(
                                                 1,
-                                                null
+                                                null,
                                             ).pics.firstOrNull()
                                         }
                                     },
@@ -116,27 +115,26 @@ fun EditTable() {
                 buttons.forEach {
                     it()
                 }
-
             }
 
             if (picOnTable != null) {
                 Box(
                     modifier = Modifier
-                        .weight(0.6f)
+                        .weight(0.6f),
                 ) {
                     AsyncImage(
                         "${Client.baseUrl}/pic/${picOnTable?.filename}",
-                        contentDescription = null
+                        contentDescription = null,
                     )
                 }
 
                 Column(
                     verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text("illustrator: ")
 
@@ -146,7 +144,7 @@ fun EditTable() {
                                 editContext.illustrator?.let {
                                     Text(it)
                                 }
-                            }
+                            },
                         )
 
                         ElevatedButton(
@@ -154,7 +152,7 @@ fun EditTable() {
                                 scope.launch {
                                     showBottomSheet = true
                                 }
-                            }
+                            },
                         ) {
                             Text("Edit")
                         }
@@ -166,16 +164,16 @@ fun EditTable() {
                                 picOnTable = Pic(
                                     picOnTable!!.filename,
                                     editContext.illustrator,
-                                    emptyList()
+                                    emptyList(),
                                 )
 
                                 scope.launch {
                                     Client.updatePic(
-                                        picOnTable!!
+                                        picOnTable!!,
                                     )
                                 }
                             }
-                        }
+                        },
                     ) {
                         Text("Apply")
                     }
@@ -190,10 +188,9 @@ fun EditTable() {
             },
             onEditIllustrator = {
                 editContext.illustrator = it
-            }
+            },
         )
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -207,7 +204,6 @@ fun SearchBottomSheet(
 
     val bottomSheetState = rememberModalBottomSheetState()
     if (showBottomSheet) {
-
         ModalBottomSheet(
             modifier = Modifier
                 .fillMaxHeight(),
@@ -220,7 +216,6 @@ fun SearchBottomSheet(
             },
             sheetState = bottomSheetState,
         ) {
-
             val textFieldState = rememberTextFieldState()
             val searchBarState = rememberContainedSearchBarState()
             val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
@@ -239,8 +234,8 @@ fun SearchBottomSheet(
                                 searchResults.addAll(
                                     Client.searchIllustrator(
                                         count = 100,
-                                        keyword = textFieldState.text.toString()
-                                    ).illustrators
+                                        keyword = textFieldState.text.toString(),
+                                    ).illustrators,
                                 )
                             }
                         },
@@ -255,12 +250,12 @@ fun SearchBottomSheet(
 
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 searchResults.forEach {
                     ElevatedAssistChip(
                         onClick = { onEditIllustrator(it) },
-                        label = { Text(it) }
+                        label = { Text(it) },
                     )
                 }
             }

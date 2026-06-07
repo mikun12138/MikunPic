@@ -38,13 +38,12 @@ fun PicCarousel(
     painters: List<Painter>,
     startFadeInTrigger: Boolean,
 ) {
-
     val actualSize = painters.size
 
     val carouselState = rememberCarouselState(
         initialItem =
-            Int.MAX_VALUE / 2 -
-                    (Int.MAX_VALUE / 2) % actualSize
+        Int.MAX_VALUE / 2 -
+            (Int.MAX_VALUE / 2) % actualSize,
     ) {
         Int.MAX_VALUE
     }
@@ -56,7 +55,11 @@ fun PicCarousel(
     val blurRadius by animateDpAsState(
         targetValue = if (
             carouselState.isScrollInProgress || fadeIn
-        ) 0.dp else 20.dp,
+        ) {
+            0.dp
+        } else {
+            20.dp
+        },
 
         animationSpec = tween(600),
     )
@@ -64,7 +67,11 @@ fun PicCarousel(
     val foregroundAlpha by animateFloatAsState(
         targetValue = if (
             carouselState.isScrollInProgress || fadeIn
-        ) 0f else 1f,
+        ) {
+            0f
+        } else {
+            1f
+        },
 
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -82,14 +89,11 @@ fun PicCarousel(
 
     val currentItem = carouselState.currentItem
 
-    fun shouldLoad(index: Int): Boolean {
-        return abs(index - currentItem) <= 2
-    }
+    fun shouldLoad(index: Int): Boolean = abs(index - currentItem) <= 2
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
-
         HorizontalCenteredHeroCarousel(
             state = carouselState,
             modifier = Modifier

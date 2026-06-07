@@ -1,11 +1,9 @@
 package me.mikun.mikunpic
 
 object Sandbox {
-    const val base = "./sandbox"
+    val base = "./sandbox"
 
-    const val temp = "${base}/temp"
+    val temp = "$base/temp"
 
-    const val data = "${base}/data"
-
+    val data = "$base/data"
 }
-

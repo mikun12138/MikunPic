@@ -15,6 +15,7 @@ interface Nav {
     object Manage : Nav
 }
 
-val LocalNavController = compositionLocalOf<NavHostController> {
-    error("LocalNavController not provided")
-}
+val LocalNavController =
+    compositionLocalOf<NavHostController> {
+        error("LocalNavController not provided")
+    }

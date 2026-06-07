@@ -1,6 +1,4 @@
 plugins {
-    // this is necessary to avoid the plugins to be loaded multiple times
-    // in each subproject's classloader
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.androidMultiplatformLibrary) apply false
     alias(libs.plugins.composeMultiplatform) apply false
@@ -13,6 +11,11 @@ plugins {
     alias(libs.plugins.android.lint) apply false
 }
 
+allprojects {
+    group = "me.mikun.mikunpic"
+    version = "0.1.0"
+}
+
 subprojects {
     apply(plugin = rootProject.libs.plugins.spotless.get().pluginId)
 
@@ -22,6 +25,9 @@ subprojects {
 
             ktlint("1.8.0")
                 .editorConfigOverride(mapOf(
+                    "ktlint_function_naming_ignore_when_annotated_with" to "Composable",
+                    "ktlint_standard_filename" to "disabled",
+                    "ktlint_standard_kdoc" to "disabled"
                 ))
         }
     }

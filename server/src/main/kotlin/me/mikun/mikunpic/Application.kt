@@ -36,7 +36,7 @@ fun Application.module() {
         register(RateLimitName("with_ip")) {
             rateLimiter(
                 limit = 60,
-                refillPeriod = 1.minutes
+                refillPeriod = 1.minutes,
             )
             requestKey { call -> call.request.origin.remoteHost }
         }

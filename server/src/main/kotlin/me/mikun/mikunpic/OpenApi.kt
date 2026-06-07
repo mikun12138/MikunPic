@@ -10,13 +10,15 @@ import io.ktor.server.routing.routingRoot
 fun Application.configureOpenApi() {
     routing {
         openAPI(path = "/") {
-            info = OpenApiInfo(
-                "mikun pic",
-                "0.0.1"
-            )
-            source = OpenApiDocSource.Routing {
-                routingRoot.descendants()
-            }
+            info =
+                OpenApiInfo(
+                    "mikun pic",
+                    "0.0.1",
+                )
+            source =
+                OpenApiDocSource.Routing {
+                    routingRoot.descendants()
+                }
         }
     }
 }

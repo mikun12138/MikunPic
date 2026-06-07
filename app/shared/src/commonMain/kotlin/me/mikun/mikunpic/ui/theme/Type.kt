@@ -3,8 +3,8 @@ package me.mikun.mikunpic.ui.theme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
-import mikunpic.app.shared.generated.resources.Res
-import mikunpic.app.shared.generated.resources.loli
+import me.mikun.mikunpic.shared.generated.resources.Res
+import me.mikun.mikunpic.shared.generated.resources.loli
 import org.jetbrains.compose.resources.Font
 
 lateinit var loliFont: FontFamily
@@ -15,13 +15,12 @@ val AppTypography: Typography
         val font = Font(Res.font.loli)
         loliFont =
             FontFamily(
-                font
+                font,
             )
 
         val bodyFontFamily = loliFont
 
         val displayFontFamily = loliFont
-
 
 // Default Material 3 typography values
         val baseline = Typography()
@@ -44,4 +43,3 @@ val AppTypography: Typography
             labelSmall = baseline.labelSmall.copy(fontFamily = bodyFontFamily),
         )
     }
-

@@ -20,10 +20,10 @@ import me.mikun.mikunpic.client.Client
 fun UploadPic() {
     val scope = rememberCoroutineScope()
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         ElevatedCard(
-            modifier = Modifier.align(Alignment.Center)
+            modifier = Modifier.align(Alignment.Center),
         ) {
             ElevatedButton(
                 onClick = {
@@ -31,11 +31,11 @@ fun UploadPic() {
                         FileKit.openFilePicker()?.let { file ->
                             Client.uploadPic(
                                 picName = file.name,
-                                picBytes = file.readBytes()
+                                picBytes = file.readBytes(),
                             )
                         }
                     }
-                }
+                },
             ) {
                 Text("Upload")
             }

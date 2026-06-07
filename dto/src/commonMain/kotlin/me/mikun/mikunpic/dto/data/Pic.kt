@@ -10,5 +10,5 @@ data class Pic(
     @SerialName("illustrator")
     val illustrator: String?,
     @SerialName("tags")
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
 )

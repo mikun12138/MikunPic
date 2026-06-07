@@ -1,6 +1,7 @@
 package me.mikun.mikunpic.storage
 
-import io.ktor.server.application.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -76,7 +77,7 @@ class PicStorageLocal : PicStorage() {
         return withContext(Dispatchers.IO) {
             val file = File(
                 folderPath,
-                name
+                name,
             )
             return@withContext if (file.exists()) file.inputStream() else null
         }

@@ -39,24 +39,20 @@ import me.mikun.mikunpic.view.manage.UploadPic
 
 @Composable
 fun Manage() {
-
     val pages = listOf<@Composable () -> Unit>(
         {
             UploadPic()
         },
         {
             EditTable()
-        }
+        },
     )
 
     VerticalPager(
         state = rememberPagerState { pages.size },
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         pages[it]()
     }
 }
-
-
-

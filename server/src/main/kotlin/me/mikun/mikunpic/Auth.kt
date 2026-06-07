@@ -11,8 +11,7 @@ fun Application.configureAuth() {
     install(Authentication) {
         bearer("bearer") {
             realm = "/manage"
-            authenticate {
-                    tokenCredential ->
+            authenticate { tokenCredential ->
                 if (tokenCredential.token == token) {
                     UserIdPrincipal("")
                 } else {

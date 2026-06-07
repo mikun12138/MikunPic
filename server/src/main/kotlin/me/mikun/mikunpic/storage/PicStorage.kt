@@ -8,20 +8,22 @@ import java.util.concurrent.CopyOnWriteArraySet
 abstract class PicStorage {
     protected val picKeys =
         object : CopyOnWriteArraySet<String>() {
-            private val extensions = listOf(
-                ".jpg",
-                ".jpeg",
-                ".png",
-                ".gif",
-                ".jfif"
-            )
-
-            private fun isValid(e: String?): Boolean = e != null && extensions.any {
-                e.endsWith(
-                    it,
-                    ignoreCase = true
+            private val extensions =
+                listOf(
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".gif",
+                    ".jfif",
                 )
-            }
+
+            private fun isValid(e: String?): Boolean = e != null &&
+                extensions.any {
+                    e.endsWith(
+                        it,
+                        ignoreCase = true,
+                    )
+                }
 
             override fun add(e: String?): Boolean = isValid(e) && super.add(e)
 
@@ -67,30 +69,23 @@ abstract class PicStorage {
 
         suspend fun upload(
             byteArray: ByteArray,
-            filename: String
+            filename: String,
         ) = delegate.upload(
             byteArray,
-            filename
+            filename,
         )
 
-        suspend fun byName(
-            name: String
-        ): InputStream? = delegate.byName(name)
-
+        suspend fun byName(name: String): InputStream? = delegate.byName(name)
     }
 
     abstract fun init(application: Application)
 
     abstract suspend fun random(): InputStream?
 
-    abstract suspend fun byName(
-        name: String
-    ): InputStream?
+    abstract suspend fun byName(name: String): InputStream?
 
     abstract suspend fun upload(
         byteArray: ByteArray,
-        filename: String
+        filename: String,
     )
-
-
 }

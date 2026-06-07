@@ -1,7 +1,8 @@
 package me.mikun.mikunpic.operator
 
-import io.ktor.util.*
-import io.ktor.utils.io.*
+import io.ktor.util.Digest
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import me.mikun.mikunpic.database.IllustratorEntity
 import me.mikun.mikunpic.database.IllustratorTable
@@ -37,7 +38,7 @@ suspend fun uploadPic(
 
     PicStorage.upload(
         byteArray,
-        filename
+        filename,
     )
 
     transaction {
@@ -48,11 +49,13 @@ suspend fun uploadPic(
                 }
         }
 
-        val tags = SizedCollection(tags.map {
-            TagEntity.find { TagTable.name eq it }.firstOrNull() ?: TagEntity.new {
-                this.name = it
-            }
-        })
+        val tags = SizedCollection(
+            tags.map {
+                TagEntity.find { TagTable.name eq it }.firstOrNull() ?: TagEntity.new {
+                    this.name = it
+                }
+            },
+        )
 
         PicEntity.new {
             this.filename = filename
@@ -60,7 +63,6 @@ suspend fun uploadPic(
             this.illustrator = illustrator
             this.tags = tags
         }
-
     }
 }
 
@@ -68,66 +70,58 @@ suspend fun randomPic(
     count: Int,
     illustrator: String?,
 //    tags: List<String>? = null,
-): List<Pic> {
-    return transaction {
-        if (illustrator == null) {
-            PicEntity.find { PicTable.illustratorId.isNull() }
-        } else {
-            if (illustrator.isNotEmpty()) {
-                PicEntity.wrapRows(
-                    PicTable.join(
-                        otherTable = IllustratorTable,
-                        joinType = JoinType.INNER,
-                        onColumn = PicTable.illustratorId,
-                        otherColumn = IllustratorTable.id
-                    )
-                        .selectAll()
-                        .where { IllustratorTable.name eq illustrator }
+): List<Pic> = transaction {
+    if (illustrator == null) {
+        PicEntity.find { PicTable.illustratorId.isNull() }
+    } else {
+        if (illustrator.isNotEmpty()) {
+            PicEntity.wrapRows(
+                PicTable.join(
+                    otherTable = IllustratorTable,
+                    joinType = JoinType.INNER,
+                    onColumn = PicTable.illustratorId,
+                    otherColumn = IllustratorTable.id,
                 )
-            } else {
-                PicEntity.all()
-            }
+                    .selectAll()
+                    .where { IllustratorTable.name eq illustrator },
+            )
+        } else {
+            PicEntity.all()
         }
-            .limit(count)
-            .orderBy(Random() to SortOrder.ASC)
-            .map { it.toPic() }
     }
+        .limit(count)
+        .orderBy(Random() to SortOrder.ASC)
+        .map { it.toPic() }
 }
 
 suspend fun updatePic(
     pic: Pic,
-) {
-    return transaction {
-        println(pic.filename)
-        PicEntity.findSingleByAndUpdate(PicTable.filename eq pic.filename) {
-            if (!pic.illustrator.isNullOrEmpty()) {
-                it.illustrator =
-                    IllustratorEntity.find { IllustratorTable.name eq pic.illustrator!! }.firstOrNull()
-                        ?: IllustratorEntity.new {
-                            this.name = pic.illustrator!!
-                        }
-            }
-            // TODO:: tags
+) = transaction {
+    println(pic.filename)
+    PicEntity.findSingleByAndUpdate(PicTable.filename eq pic.filename) {
+        if (!pic.illustrator.isNullOrEmpty()) {
+            it.illustrator =
+                IllustratorEntity.find { IllustratorTable.name eq pic.illustrator!! }.firstOrNull()
+                    ?: IllustratorEntity.new {
+                        this.name = pic.illustrator!!
+                    }
         }
-
+        // TODO:: tags
     }
 }
 
 suspend fun searchIllustrator(
     count: Int,
     keyword: String? = null,
-): List<String> {
-    return transaction {
-        if (!keyword.isNullOrEmpty()) {
-            IllustratorEntity.find { IllustratorTable.name like "%${keyword}%" }
-                .limit(count)
-                .map { it.name }
-        } else {
-            emptyList()
-        }
+): List<String> = transaction {
+    if (!keyword.isNullOrEmpty()) {
+        IllustratorEntity.find { IllustratorTable.name like "%$keyword%" }
+            .limit(count)
+            .map { it.name }
+    } else {
+        emptyList()
     }
 }
-
 
 suspend fun createIllustrator(
     illustrator: String?,
@@ -143,12 +137,9 @@ suspend fun createIllustrator(
 
 suspend fun randomIllustrator(
     count: Int,
-): List<String> {
-    return transaction {
-
-        IllustratorEntity.find { IllustratorTable.name.isNotNull() }
-            .orderBy(Random() to SortOrder.ASC)
-            .limit(count)
-            .map { it.name }
-    }
+): List<String> = transaction {
+    IllustratorEntity.find { IllustratorTable.name.isNotNull() }
+        .orderBy(Random() to SortOrder.ASC)
+        .limit(count)
+        .map { it.name }
 }

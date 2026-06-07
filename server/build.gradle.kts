@@ -6,8 +6,6 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
 }
 
-group = "me.mikun.mikunpic"
-version = "0.1.0"
 application {
     mainClass = "me.mikun.mikunpic.ApplicationKt"
 }

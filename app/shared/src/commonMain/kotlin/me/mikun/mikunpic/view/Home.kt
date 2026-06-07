@@ -13,12 +13,11 @@ fun Home(
     onReady: () -> Unit,
     startFadeInTrigger: Boolean,
 ) {
-
     val pages = listOf<@Composable () -> Unit>(
         {
             PagePicPreview(
                 onReady,
-                startFadeInTrigger
+                startFadeInTrigger,
             )
         },
         {
@@ -29,9 +28,8 @@ fun Home(
     VerticalPager(
         state = rememberPagerState { pages.size },
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         pages[it]()
     }
 }
-

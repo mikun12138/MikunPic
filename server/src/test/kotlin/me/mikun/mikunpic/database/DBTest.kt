@@ -33,7 +33,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class DBTest {
-
     companion object {
         lateinit var testPic: PicEntity
         lateinit var testIllustrator: IllustratorEntity
@@ -54,12 +53,13 @@ class DBTest {
             "jdbc:sqlite:${Sandbox.data}/databases/pic.db",
             driver = "org.sqlite.JDBC",
             setupConnection = { connection ->
-                SQLiteConfig().apply {
-                    enforceForeignKeys(true)
-                }.apply(
-                    connection
-                )
-            }
+                SQLiteConfig()
+                    .apply {
+                        enforceForeignKeys(true)
+                    }.apply(
+                        connection,
+                    )
+            },
         )
 
         transaction {
@@ -67,7 +67,7 @@ class DBTest {
                 PicTable,
                 IllustratorTable,
                 TagTable,
-                Pic2TagTable
+                Pic2TagTable,
             )
         }
     }
@@ -79,47 +79,54 @@ class DBTest {
                 PicTable,
                 IllustratorTable,
                 TagTable,
-                Pic2TagTable
+                Pic2TagTable,
             )
 
             /*
                 use dao api
              */
             testIllustrator = IllustratorEntity.new { name = "test_illustrator" }
-            val hashString = runBlocking {
-                Digest("md5").let {
-                    it += this::class.java.classLoader.getResourceAsStream("test/rua.jpg").readBytes()
-                    it.build()
-                }.toHexString()
-            }
-            testPic = PicEntity.new {
-                filename = "test/rua.jpg"
-                illustrator = testIllustrator
-                hash = hashString
-            }
+            val hashString =
+                runBlocking {
+                    Digest("md5")
+                        .let {
+                            it +=
+                                this::class.java.classLoader
+                                    .getResourceAsStream("test/rua.jpg")
+                                    .readBytes()
+                            it.build()
+                        }.toHexString()
+                }
+            testPic =
+                PicEntity.new {
+                    filename = "test/rua.jpg"
+                    illustrator = testIllustrator
+                    hash = hashString
+                }
 
             testTag = TagEntity.new { name = "test_tag" }
             testTag2 = TagEntity.new { name = "test_tag2" }
             testTag3 = TagEntity.new { name = "test_tag3" }
 
-
-            testPic.tags = SizedCollection(
-                listOf(
-                    testTag,
-                    testTag2,
-                    testTag3,
+            testPic.tags =
+                SizedCollection(
+                    listOf(
+                        testTag,
+                        testTag2,
+                        testTag3,
+                    ),
                 )
-            )
 
-            PicEntity.wrapRows(
-                (PicTable innerJoin Pic2TagTable innerJoin TagTable)
-                    .select(PicTable.id)
-                    .where { TagTable.name eq "test_tag" }
-                    .withDistinct()
-            ).forEach {
-                println(it)
-                it.tags = SizedCollection(it.tags - TagEntity.find { TagTable.name eq "test_tag2" })
-            }
+            PicEntity
+                .wrapRows(
+                    (PicTable innerJoin Pic2TagTable innerJoin TagTable)
+                        .select(PicTable.id)
+                        .where { TagTable.name eq "test_tag" }
+                        .withDistinct(),
+                ).forEach {
+                    println(it)
+                    it.tags = SizedCollection(it.tags - TagEntity.find { TagTable.name eq "test_tag2" })
+                }
 
             TagEntity.findSingleByAndUpdate(TagTable.name eq "test_tag3") {
                 it.delete()
@@ -134,37 +141,41 @@ class DBTest {
             this.config = ApplicationConfig("application.yaml")
         }
 
-        val response = client.post("/manage/upload") {
-            bearerAuth(
-                config.property("auth.bearer.token").getString()
-            )
-            setBody(
-                MultiPartFormDataContent(
-                    formData {
-                        append(
-                            "description",
-                            "rua.jpg"
-                        )
-
-                        appendInput(
-                            key = "pic",
-                            headers = Headers.build {
-                                append(
-                                    HttpHeaders.ContentDisposition,
-                                    "filename=\"rua.jpg\""
-                                )
-                            }
-                        ) {
-                            this::class.java.classLoader.getResourceAsStream("rua.jpg").asInput()
-                        }
-                    }
+        val response =
+            client.post("/manage/upload") {
+                bearerAuth(
+                    config.property("auth.bearer.token").getString(),
                 )
-            )
-        }
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            append(
+                                "description",
+                                "rua.jpg",
+                            )
+
+                            appendInput(
+                                key = "pic",
+                                headers =
+                                Headers.build {
+                                    append(
+                                        HttpHeaders.ContentDisposition,
+                                        "filename=\"rua.jpg\"",
+                                    )
+                                },
+                            ) {
+                                this::class.java.classLoader
+                                    .getResourceAsStream("rua.jpg")
+                                    .asInput()
+                            }
+                        },
+                    ),
+                )
+            }
 
         assertEquals(
             HttpStatusCode.Created,
-            response.status
+            response.status,
         )
     }
 
@@ -177,14 +188,12 @@ class DBTest {
         application {
             PicStorage.configure(this)
         }
-        client.get("/random") {
-
-        }.let {
-            Path(Sandbox.temp, "rua.jpg").writeBytes(
-                it.bodyAsBytes()
-            )
-        }
+        client
+            .get("/random") {
+            }.let {
+                Path(Sandbox.temp, "rua.jpg").writeBytes(
+                    it.bodyAsBytes(),
+                )
+            }
     }
-
-
 }

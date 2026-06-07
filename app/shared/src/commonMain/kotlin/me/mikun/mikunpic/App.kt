@@ -33,14 +33,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.client.Client.httpClient
+import me.mikun.mikunpic.shared.generated.resources.Res
+import me.mikun.mikunpic.shared.generated.resources.rua
 import me.mikun.mikunpic.ui.theme.AppTheme
 import me.mikun.mikunpic.view.Home
 import me.mikun.mikunpic.view.LocalNavController
 import me.mikun.mikunpic.view.Login
 import me.mikun.mikunpic.view.Manage
 import me.mikun.mikunpic.view.Nav
-import mikunpic.app.shared.generated.resources.Res
-import mikunpic.app.shared.generated.resources.rua
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -48,7 +48,6 @@ import org.jetbrains.compose.resources.painterResource
 fun App(
     onNavHostReady: suspend (NavController) -> Unit = {},
 ) {
-
     var loaded by remember { mutableStateOf(false) }
     // TODO:: make a timeline&trigger
     var startFadeInTrigger by remember { mutableStateOf(false) }
@@ -67,8 +66,8 @@ fun App(
                 1f,
                 tween(
                     durationMillis = 500,
-                    easing = FastOutSlowInEasing
-                )
+                    easing = FastOutSlowInEasing,
+                ),
             )
         }
         delay(1000)
@@ -81,8 +80,8 @@ fun App(
                 1f,
                 tween(
                     500,
-                    easing = FastOutSlowInEasing
-                )
+                    easing = FastOutSlowInEasing,
+                ),
             )
             startFadeInTrigger = true
         }
@@ -91,8 +90,8 @@ fun App(
                 0f,
                 tween(
                     500,
-                    easing = FastOutSlowInEasing
-                )
+                    easing = FastOutSlowInEasing,
+                ),
             )
         }
     }
@@ -103,8 +102,8 @@ fun App(
                 .components {
                     add(
                         KtorNetworkFetcherFactory(
-                            httpClient
-                        )
+                            httpClient,
+                        ),
                     )
                 }
                 .build()
@@ -120,25 +119,25 @@ fun App(
     AppTheme {
         BoxWithConstraints(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(),
         ) {
             Box(
                 modifier = Modifier
                     .graphicsLayer {
                         this.alpha = mainPageAlpha.value
-                    }
+                    },
             ) {
                 CompositionLocalProvider(LocalNavController provides navController) {
                     NavHost(
                         navController = LocalNavController.current,
-                        startDestination = Nav.Home
+                        startDestination = Nav.Home,
                     ) {
                         composable<Nav.Home> {
                             Home(
                                 {
                                     loaded = true
                                 },
-                                startFadeInTrigger
+                                startFadeInTrigger,
                             )
                         }
                         composable<Nav.Manage> {
@@ -180,10 +179,10 @@ fun App(
                 modifier = Modifier
                     .graphicsLayer {
                         this.alpha = splashAlpha.value
-                    }
+                    },
             ) {
                 SplashScreen(
-                    loaded
+                    loaded,
                 )
             }
         }
@@ -207,9 +206,8 @@ fun SplashScreen(
                 0f at 0
 
                 380f at 400 using FastOutSlowInEasing
-            }
+            },
         )
-
     }
 
     LaunchedEffect(loaded) {
@@ -222,14 +220,14 @@ fun SplashScreen(
                     380f at 0
 
                     (-40f) at 400 using FastOutSlowInEasing
-                }
+                },
             )
         }
     }
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Image(
             painter = painterResource(Res.drawable.rua),
@@ -237,9 +235,7 @@ fun SplashScreen(
             modifier = Modifier
                 .graphicsLayer {
                     rotationZ = rotation.value
-                }
+                },
         )
     }
 }
-
-

@@ -29,122 +29,113 @@ import me.mikun.mikunpic.dto.data.api.OhMyRouting
 var localToken: String? = null
 
 object Client {
-
     val baseUrl = "http://127.0.0.1:8080"
 
-     val httpClient = HttpClient {
-        install(HttpRequestRetry) {
-            maxRetries = 3
+    val httpClient =
+        HttpClient {
+            install(HttpRequestRetry) {
+                maxRetries = 3
 
-            exponentialDelay()
+                exponentialDelay()
 
-            retryOnExceptionIf { _, _ ->
-                true
-            }
-        }
-
-        install(DefaultRequest) {
-            url(baseUrl)
-            header(
-                HttpHeaders.CacheControl,
-                "no-cache"
-            )
-        }
-
-        install(Auth) {
-            bearer {
-                loadTokens {
-                    localToken?.let { BearerTokens(it, null) }
+                retryOnExceptionIf { _, _ ->
+                    true
                 }
             }
+
+            install(DefaultRequest) {
+                url(baseUrl)
+                header(
+                    HttpHeaders.CacheControl,
+                    "no-cache",
+                )
+            }
+
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        localToken?.let { BearerTokens(it, null) }
+                    }
+                }
+            }
+
+            install(Resources)
+
+            install(ContentNegotiation) {
+                json()
+            }
         }
-
-         install(Resources)
-
-         install(ContentNegotiation) {
-             json()
-         }
-
-    }
 
     suspend fun uploadPic(
         picName: String,
-        picBytes: ByteArray
+        picBytes: ByteArray,
     ) {
         httpClient.submitFormWithBinaryData(
             url = "/manage/pic/upload",
-            formData = formData {
+            formData =
+            formData {
                 appendInput(
                     "file",
                     Headers.build {
                         append(
                             HttpHeaders.ContentDisposition,
-                            "filename=\"${picName}\""
+                            "filename=\"${picName}\"",
                         )
-                    }
+                    },
                 ) {
                     Buffer().apply {
                         write(picBytes)
                     }
                 }
-            }
+            },
         )
     }
 
     suspend fun randomPic(
         count: Int = 1,
-        illustrator: String? = ""
-    ): OhMyRouting.Manage.Pic.Random.Response {
-        return httpClient.get(
+        illustrator: String? = "",
+    ): OhMyRouting.Manage.Pic.Random.Response = httpClient
+        .get(
             OhMyRouting.Manage.Pic.Random(
                 count = count,
-                illustrator = illustrator
-            )
+                illustrator = illustrator,
+            ),
         ).let {
             it.body<OhMyRouting.Manage.Pic.Random.Response>()
         }
-    }
 
-    suspend fun updatePic(
-        pic: Pic
-    ) {
+    suspend fun updatePic(pic: Pic) {
         httpClient.post(
-            OhMyRouting.Manage.Pic.Update()
+            OhMyRouting.Manage.Pic.Update(),
         ) {
             contentType(ContentType.Application.Json)
             setBody(
                 OhMyRouting.Manage.Pic.Update.Body(
-                    pic = pic
-                )
+                    pic = pic,
+                ),
             )
         }
     }
 
     suspend fun searchIllustrator(
         count: Int,
-        keyword: String
-    ): OhMyRouting.Manage.Illustrator.Search.Response {
-        return httpClient.get(
+        keyword: String,
+    ): OhMyRouting.Manage.Illustrator.Search.Response = httpClient
+        .get(
             OhMyRouting.Manage.Illustrator.Search(
                 count,
-                keyword
-            )
+                keyword,
+            ),
         ).let {
             it.body<OhMyRouting.Manage.Illustrator.Search.Response>()
         }
-    }
 
-    suspend fun randomIllustrator(
-        count: Int = 1
-    ): OhMyRouting.Manage.Illustrator.Random.Response {
-        return httpClient.get(
+    suspend fun randomIllustrator(count: Int = 1): OhMyRouting.Manage.Illustrator.Random.Response = httpClient
+        .get(
             OhMyRouting.Manage.Illustrator.Random(
-                count
-            )
+                count,
+            ),
         ).let {
             it.body<OhMyRouting.Manage.Illustrator.Random.Response>()
         }
-    }
-
-
 }

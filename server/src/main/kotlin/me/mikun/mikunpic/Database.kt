@@ -21,7 +21,7 @@ fun Application.configureDatabase() {
             PicTable,
             IllustratorTable,
             TagTable,
-            Pic2TagTable
+            Pic2TagTable,
         )
     }
 }

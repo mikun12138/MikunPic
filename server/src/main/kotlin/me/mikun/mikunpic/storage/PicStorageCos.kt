@@ -5,9 +5,15 @@ import com.qcloud.cos.ClientConfig
 import com.qcloud.cos.auth.BasicCOSCredentials
 import com.qcloud.cos.auth.COSCredentials
 import com.qcloud.cos.http.HttpProtocol
-import com.qcloud.cos.model.*
+import com.qcloud.cos.model.Bucket
+import com.qcloud.cos.model.CannedAccessControlList
+import com.qcloud.cos.model.CreateBucketRequest
+import com.qcloud.cos.model.GetObjectRequest
+import com.qcloud.cos.model.ListObjectsRequest
+import com.qcloud.cos.model.ObjectMetadata
+import com.qcloud.cos.model.PutObjectRequest
 import com.qcloud.cos.region.Region
-import io.ktor.server.application.*
+import io.ktor.server.application.Application
 import java.io.InputStream
 
 class PicStorageCos : PicStorage() {
@@ -20,7 +26,7 @@ class PicStorageCos : PicStorage() {
                 fun initClient() {
                     val cred: COSCredentials = BasicCOSCredentials(
                         config.property("storage.cos.secretId").getString(),
-                        config.property("storage.cos.secretKey").getString()
+                        config.property("storage.cos.secretKey").getString(),
                     )
                     val region = Region(config.property("storage.cos.region").getString())
                     val clientConfig = ClientConfig(region)
@@ -28,7 +34,7 @@ class PicStorageCos : PicStorage() {
 
                     cosClient = COSClient(
                         cred,
-                        clientConfig
+                        clientConfig,
                     )
                 }
                 initClient()
@@ -71,23 +77,22 @@ class PicStorageCos : PicStorage() {
         }
     }
 
-    override suspend fun random(): InputStream? =
-        GetObjectRequest(
-            bucket.name,
-            picKeys.random(),
-        ).let { request ->
-            cosClient.getObject(request)
-        }.objectContent
+    override suspend fun random(): InputStream? = GetObjectRequest(
+        bucket.name,
+        picKeys.random(),
+    ).let { request ->
+        cosClient.getObject(request)
+    }.objectContent
 
     override suspend fun byName(
-        name: String
+        name: String,
     ): InputStream? {
         TODO("Not yet implemented")
     }
 
     override suspend fun upload(
         byteArray: ByteArray,
-        filename: String
+        filename: String,
     ) {
         val metadata = ObjectMetadata().apply {
             contentLength = byteArray.size.toLong()
@@ -97,10 +102,9 @@ class PicStorageCos : PicStorage() {
             bucket.name,
             filename,
             byteArray.inputStream(),
-            metadata
+            metadata,
         )
 
         cosClient.putObject(request)
-
     }
 }
