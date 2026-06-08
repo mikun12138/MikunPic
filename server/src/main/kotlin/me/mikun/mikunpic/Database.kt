@@ -1,10 +1,10 @@
 package me.mikun.mikunpic
 
 import io.ktor.server.application.Application
-import me.mikun.mikunpic.database.IllustratorTable
-import me.mikun.mikunpic.database.Pic2TagTable
-import me.mikun.mikunpic.database.PicTable
-import me.mikun.mikunpic.database.TagTable
+import me.mikun.mikunpic.database.table.IllustratorTable
+import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
+import me.mikun.mikunpic.database.table.PicTable
+import me.mikun.mikunpic.database.table.TagTable
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -21,7 +21,7 @@ fun Application.configureDatabase() {
             PicTable,
             IllustratorTable,
             TagTable,
-            Pic2TagTable,
+            Pic2TagsTable,
         )
     }
 }

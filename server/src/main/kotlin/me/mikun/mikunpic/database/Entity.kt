@@ -1,5 +1,10 @@
 package me.mikun.mikunpic.database
 
+import me.mikun.mikunpic.database.table.IllustratorTable
+import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
+import me.mikun.mikunpic.database.table.PicTable
+import me.mikun.mikunpic.database.table.TagTable
+import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
 import me.mikun.mikunpic.dto.data.Pic
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.dao.IntEntity
@@ -14,9 +19,9 @@ class PicEntity(
 
     var hash by PicTable.hash
 
-    var illustrator by IllustratorEntity optionalReferencedOn PicTable.illustratorId
+    val illustrator by IllustratorEntity optionalBackReferencedOn Pic2IllustratorTable
 
-    var tags by TagEntity via Pic2TagTable
+    var tags by TagEntity via Pic2TagsTable
 
     fun toPic(): Pic = Pic(
         this.filename,
@@ -34,7 +39,7 @@ class IllustratorEntity(
 
     // TODO:: make platform-keys to unique by not by name
 
-    val pics by PicEntity optionalReferrersOn PicTable.illustratorId
+    val pics by PicEntity via Pic2IllustratorTable
 }
 
 class TagEntity(
@@ -44,5 +49,5 @@ class TagEntity(
 
     var name by TagTable.name
 
-    var pics by PicEntity via Pic2TagTable
+    var pics by PicEntity via Pic2TagsTable
 }

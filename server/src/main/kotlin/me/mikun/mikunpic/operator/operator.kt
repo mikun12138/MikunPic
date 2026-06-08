@@ -5,11 +5,11 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import me.mikun.mikunpic.database.IllustratorEntity
-import me.mikun.mikunpic.database.IllustratorTable
 import me.mikun.mikunpic.database.PicEntity
-import me.mikun.mikunpic.database.PicTable
 import me.mikun.mikunpic.database.TagEntity
-import me.mikun.mikunpic.database.TagTable
+import me.mikun.mikunpic.database.table.IllustratorTable
+import me.mikun.mikunpic.database.table.PicTable
+import me.mikun.mikunpic.database.table.TagTable
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.storage.PicStorage
 import org.jetbrains.exposed.v1.core.JoinType
@@ -60,7 +60,7 @@ suspend fun uploadPic(
         PicEntity.new {
             this.filename = filename
             this.hash = hash
-            this.illustrator = illustrator
+//            this.illustrator = illustrator
             this.tags = tags
         }
     }

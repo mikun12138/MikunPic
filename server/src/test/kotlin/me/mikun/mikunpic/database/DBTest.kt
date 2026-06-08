@@ -17,6 +17,10 @@ import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.streams.asInput
 import kotlinx.coroutines.runBlocking
 import me.mikun.mikunpic.Sandbox
+import me.mikun.mikunpic.database.table.IllustratorTable
+import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
+import me.mikun.mikunpic.database.table.PicTable
+import me.mikun.mikunpic.database.table.TagTable
 import me.mikun.mikunpic.storage.PicStorage
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -67,7 +71,7 @@ class DBTest {
                 PicTable,
                 IllustratorTable,
                 TagTable,
-                Pic2TagTable,
+                Pic2TagsTable,
             )
         }
     }
@@ -79,7 +83,7 @@ class DBTest {
                 PicTable,
                 IllustratorTable,
                 TagTable,
-                Pic2TagTable,
+                Pic2TagsTable,
             )
 
             /*
@@ -119,7 +123,7 @@ class DBTest {
 
             PicEntity
                 .wrapRows(
-                    (PicTable innerJoin Pic2TagTable innerJoin TagTable)
+                    (PicTable innerJoin Pic2TagsTable innerJoin TagTable)
                         .select(PicTable.id)
                         .where { TagTable.name eq "test_tag" }
                         .withDistinct(),
