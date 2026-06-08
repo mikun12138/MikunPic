@@ -5,6 +5,7 @@ import me.mikun.mikunpic.database.table.IllustratorTable
 import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
 import me.mikun.mikunpic.database.table.PicTable
 import me.mikun.mikunpic.database.table.TagTable
+import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -21,6 +22,7 @@ fun Application.configureDatabase() {
             PicTable,
             IllustratorTable,
             TagTable,
+            Pic2IllustratorTable,
             Pic2TagsTable,
         )
     }

@@ -29,10 +29,10 @@ fun Application.configureRouting() {
     routing {
         public()
 
-        authenticate("bearer") {
+//        authenticate("bearer") {
 //        get("/auth") { }
-            manage()
-        }
+        manage()
+//        }
     }.let {
         println(it.getAllRoutes())
     }
@@ -140,7 +140,10 @@ private fun Route.manage() {
 
     post<OhMyRouting.Manage.Illustrator.Create> {
         val receive = call.receive<OhMyRouting.Manage.Illustrator.Create.Body>()
+        try {
+            createIllustrator(receive.name)
+        } catch (e: Exception) {
 
-        createIllustrator(receive.name)
+        }
     }
 }

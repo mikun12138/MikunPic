@@ -15,7 +15,7 @@ abstract class MOIntIdTable<C1, C2>(
     protected abstract val c2: Column<C2>
 
     init {
-        uniqueIndex(c1)
+//        uniqueIndex(c1)
     }
 }
 
@@ -26,6 +26,6 @@ abstract class MMIntIdTable<C1, C2>(
     protected abstract val c2: Column<C2>
 
     init {
-        uniqueIndex(c1, c2)
+//        uniqueIndex(c1, c2)
     }
 }

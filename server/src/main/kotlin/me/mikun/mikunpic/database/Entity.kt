@@ -9,6 +9,7 @@ import me.mikun.mikunpic.dto.data.Pic
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
+import org.jetbrains.exposed.v1.jdbc.SizedCollection
 
 class PicEntity(
     id: EntityID<Int>,
@@ -19,7 +20,12 @@ class PicEntity(
 
     var hash by PicTable.hash
 
-    val illustrator by IllustratorEntity optionalBackReferencedOn Pic2IllustratorTable
+    var illustrators by IllustratorEntity via Pic2IllustratorTable
+    var illustrator: IllustratorEntity?
+        get() = illustrators.firstOrNull()
+        set(value) {
+            illustrators = SizedCollection(listOfNotNull(value))
+        }
 
     var tags by TagEntity via Pic2TagsTable
 

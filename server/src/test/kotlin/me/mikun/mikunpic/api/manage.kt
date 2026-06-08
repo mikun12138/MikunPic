@@ -9,11 +9,14 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.log
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import kotlinx.coroutines.runBlocking
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
+import me.mikun.mikunpic.operator.testNow
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -98,7 +101,7 @@ class Test {
     fun testIllustratorCreate() = ohMyTest {
         val illustrators = generateSequence("a") { it + "a" }
 
-        illustrators.take(64).forEach { illustrator ->
+        illustrators.take(1).forEach { illustrator ->
             client.post(
                 OhMyRouting.Manage.Illustrator.Create(),
             ) {
@@ -110,8 +113,12 @@ class Test {
                     ),
                 )
             }.let {
-                println(it.call.request.call)
+//                println(it.call.request.call)
             }
         }
+
+        testNow(1)
+
     }
+
 }

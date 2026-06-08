@@ -1,5 +1,6 @@
 package me.mikun.mikunpic.operator
 
+import com.sun.tools.javac.code.Lint
 import io.ktor.util.Digest
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
@@ -10,6 +11,8 @@ import me.mikun.mikunpic.database.TagEntity
 import me.mikun.mikunpic.database.table.IllustratorTable
 import me.mikun.mikunpic.database.table.PicTable
 import me.mikun.mikunpic.database.table.TagTable
+import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
+import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable.illustratorId
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.storage.PicStorage
 import org.jetbrains.exposed.v1.core.JoinType
@@ -60,8 +63,36 @@ suspend fun uploadPic(
         PicEntity.new {
             this.filename = filename
             this.hash = hash
-//            this.illustrator = illustrator
+            this.illustrator = illustrator
             this.tags = tags
+        }
+    }
+}
+
+suspend fun testNow(
+    illustratorIds: List<Int?>
+) {
+    transaction {
+        PicEntity.wrapRows(
+            PicTable.join(
+                otherTable = Pic2IllustratorTable,
+                joinType = JoinType.LEFT,
+                onColumn = PicTable.id,
+                otherColumn = Pic2IllustratorTable.picId,
+            )
+                .join(
+                    otherTable = IllustratorTable,
+                    joinType = JoinType.LEFT,
+                    onColumn = Pic2IllustratorTable.illustratorId,
+                    otherColumn = IllustratorTable.id
+                )
+                .selectAll()
+                .where { Pic2IllustratorTable.illustratorId eq illustratorId }
+
+        ).let {
+            it.forEach {
+                println("test: " + it.id)
+            }
         }
     }
 }
@@ -71,33 +102,64 @@ suspend fun randomPic(
     illustrator: String?,
 //    tags: List<String>? = null,
 ): List<Pic> = transaction {
+    PicEntity.wrapRows(
+        PicTable.join(
+            otherTable = Pic2IllustratorTable,
+            joinType = JoinType.LEFT,
+            onColumn = PicTable.id,
+            otherColumn = Pic2IllustratorTable.picId,
+        )
+            .selectAll()
+    )
+
     if (illustrator == null) {
-        PicEntity.find { PicTable.illustratorId.isNull() }
+        PicEntity.find { Pic2IllustratorTable.illustratorId.isNull() }
     } else {
-        if (illustrator.isNotEmpty()) {
-            PicEntity.wrapRows(
-                PicTable.join(
-                    otherTable = IllustratorTable,
-                    joinType = JoinType.INNER,
-                    onColumn = PicTable.illustratorId,
-                    otherColumn = IllustratorTable.id,
-                )
-                    .selectAll()
-                    .where { IllustratorTable.name eq illustrator },
-            )
-        } else {
-            PicEntity.all()
-        }
+//        if (illustrator.isNotEmpty()) {
+//            PicEntity.wrapRows(
+//                PicTable.join(
+//                    otherTable = IllustratorTable,
+//                    joinType = JoinType.INNER,
+//                    onColumn = PicTable.illustratorId,
+//                    otherColumn = IllustratorTable.id,
+//                )
+//                    .selectAll()
+//                    .where { IllustratorTable.name eq illustrator },
+//            )
+//        } else {
+        PicEntity.all()
+//        }
     }
         .limit(count)
         .orderBy(Random() to SortOrder.ASC)
         .map { it.toPic() }
+
+//    if (illustrator == null) {
+//        PicEntity.find { PicTable.illustratorId.isNull() }
+//    } else {
+//        if (illustrator.isNotEmpty()) {
+//            PicEntity.wrapRows(
+//                PicTable.join(
+//                    otherTable = IllustratorTable,
+//                    joinType = JoinType.INNER,
+//                    onColumn = PicTable.illustratorId,
+//                    otherColumn = IllustratorTable.id,
+//                )
+//                    .selectAll()
+//                    .where { IllustratorTable.name eq illustrator },
+//            )
+//        } else {
+//            PicEntity.all()
+//        }
+//    }
+//        .limit(count)
+//        .orderBy(Random() to SortOrder.ASC)
+//        .map { it.toPic() }
 }
 
 suspend fun updatePic(
     pic: Pic,
 ) = transaction {
-    println(pic.filename)
     PicEntity.findSingleByAndUpdate(PicTable.filename eq pic.filename) {
         if (!pic.illustrator.isNullOrEmpty()) {
             it.illustrator =
