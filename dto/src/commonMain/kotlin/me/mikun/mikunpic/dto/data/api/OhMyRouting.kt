@@ -42,8 +42,8 @@ interface OhMyRouting {
                  * null -> ignore this
                  * [""] -> query where isNull
                  */
-                val illustrators: QueryParameterList<String> = null,
-                val tags: QueryParameterList<String> = null,
+                val illustrators: QueryParameterList<String> = emptyList(),
+                val tags: QueryParameterList<String> = emptyList(),
             ) : OhMyRouting {
                 override val parent = Pic()
 

@@ -130,7 +130,7 @@ suspend fun randomPic(
 
     )
         .limit(count)
-//        .orderBy(Random() to SortOrder.ASC)
+        .orderBy(Random() to SortOrder.ASC)
         .map { it.toPic() }
 }
 

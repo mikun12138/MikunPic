@@ -113,13 +113,11 @@ class Test {
         client.get(
             OhMyRouting.Manage.Pic.Random(
                 114514,
-//                listOf("")
-                null
-//                emptyList()
-//                lisfOf("")
-
+                listOf("", "a"),
+                emptyList()
             ),
         ).let {
+            println(it.call.request.url)
             it.body<OhMyRouting.Manage.Pic.Random.Response>().let {
                 println(it.pics.map { it.illustrator })
             }

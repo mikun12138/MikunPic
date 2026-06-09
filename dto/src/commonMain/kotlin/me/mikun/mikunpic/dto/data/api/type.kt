@@ -1,7 +1,7 @@
 package me.mikun.mikunpic.dto.data.api
 
 /**
- * null -> ignore this
+ * [] -> ignore this
  * [""] -> query where isNull
  */
-typealias QueryParameterList<T> = List<T>?
+internal typealias QueryParameterList<T> = List<T>

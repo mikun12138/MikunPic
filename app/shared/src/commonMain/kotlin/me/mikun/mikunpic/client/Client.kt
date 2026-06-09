@@ -101,9 +101,7 @@ object Client {
                 tags = tags
             ),
         ).let {
-            it.body<OhMyRouting.Manage.Pic.Random.Response>().also {
-                println(it)
-            }
+            it.body<OhMyRouting.Manage.Pic.Random.Response>()
         }
 
     suspend fun updatePic(pic: Pic) {
@@ -130,6 +128,19 @@ object Client {
             ),
         ).let {
             it.body<OhMyRouting.Manage.Illustrator.Search.Response>()
+        }
+
+    suspend fun searchTag(
+        count: Int,
+        keyword: String,
+    ): OhMyRouting.Manage.Tag.Search.Response = httpClient
+        .get(
+            OhMyRouting.Manage.Tag.Search(
+                count,
+                keyword,
+            ),
+        ).let {
+            it.body<OhMyRouting.Manage.Tag.Search.Response>()
         }
 
     suspend fun randomIllustrator(count: Int = 1): OhMyRouting.Manage.Illustrator.Random.Response = httpClient

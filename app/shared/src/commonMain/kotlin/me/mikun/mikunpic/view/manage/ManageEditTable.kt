@@ -3,6 +3,7 @@ package me.mikun.mikunpic.view.manage
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -30,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -46,6 +48,7 @@ fun EditTable() {
     var picOnTable by remember { mutableStateOf<Pic?>(null) }
     val editContext = object {
         var illustrator by remember(picOnTable) { mutableStateOf(picOnTable?.illustrator) }
+        var tags = remember(picOnTable) { picOnTable?.tags?.toMutableStateList() }
         var isEdited by remember(
             picOnTable,
             illustrator,
@@ -80,6 +83,7 @@ fun EditTable() {
                                         scope.launch {
                                             picOnTable = Client.randomPic(
                                                 1,
+                                                illustrators = listOf("")
 
                                             ).pics.firstOrNull()
                                         }
@@ -95,11 +99,10 @@ fun EditTable() {
                                     onCheckedChange = {
                                         selectedIndex = index
                                         scope.launch {
-                                            // TODO::
-//                                            picOnTable = Client.randomPic(
-//                                                1,
-//                                                null
-//                                            ).pics.firstOrNull()
+                                            picOnTable = Client.randomPic(
+                                                1,
+                                                tags = listOf("")
+                                            ).pics.firstOrNull()
                                         }
                                     },
                                 ) {
@@ -154,7 +157,33 @@ fun EditTable() {
                                 }
                             },
                         ) {
-                            Text("Edit")
+                            Text("Edit Illustrator")
+                        }
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("tags: ")
+
+                        editContext.tags?.forEach { tag ->
+                            ElevatedAssistChip(
+                                onClick = { },
+                                label = {
+                                    Text(tag)
+                                },
+                            )
+                        }
+
+                        ElevatedButton(
+                            onClick = {
+                                scope.launch {
+                                    showBottomSheet = true
+                                }
+                            },
+                        ) {
+                            Text("Edit Tags")
                         }
                     }
 
@@ -164,7 +193,7 @@ fun EditTable() {
                                 picOnTable = Pic(
                                     picOnTable!!.filename,
                                     editContext.illustrator,
-                                    emptyList(),
+                                    editContext.tags?.toList() ?: emptyList(),
                                 )
 
                                 scope.launch {
@@ -186,10 +215,13 @@ fun EditTable() {
             onCloseSheet = {
                 showBottomSheet = false
             },
-            onEditIllustrator = {
-                editContext.illustrator = it
-            },
-        )
+        ) {
+            EditIllustratorSheet(
+                onEditIllustrator = {
+                    editContext.illustrator = it
+                }
+            )
+        }
     }
 }
 
@@ -198,7 +230,7 @@ fun EditTable() {
 fun SearchBottomSheet(
     showBottomSheet: Boolean,
     onCloseSheet: () -> Unit,
-    onEditIllustrator: (String) -> Unit,
+    innerEditSheet: @Composable ColumnScope.() -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
@@ -216,49 +248,112 @@ fun SearchBottomSheet(
             },
             sheetState = bottomSheetState,
         ) {
-            val textFieldState = rememberTextFieldState()
-            val searchBarState = rememberContainedSearchBarState()
-            val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+            innerEditSheet()
+        }
+    }
+}
 
-            val searchResults = remember { mutableStateListOf<String>() }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ColumnScope.EditIllustratorSheet(
+    onEditIllustrator: (String) -> Unit
+) {
+    val scope = rememberCoroutineScope()
 
-            val inputField =
-                @Composable {
-                    SearchBarDefaults.InputField(
-                        textFieldState = textFieldState,
-                        searchBarState = searchBarState,
-                        onSearch = {
-                            scope.launch { searchBarState.animateToCollapsed() }
-                            scope.launch {
-                                searchResults.clear()
-                                searchResults.addAll(
-                                    Client.searchIllustrator(
-                                        count = 100,
-                                        keyword = textFieldState.text.toString(),
-                                    ).illustrators,
-                                )
-                            }
-                        },
-                    )
-                }
+    val textFieldState = rememberTextFieldState()
+    val searchBarState = rememberContainedSearchBarState()
+    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
 
-            AppBarWithSearch(
-                scrollBehavior = scrollBehavior,
-                state = searchBarState,
-                inputField = inputField,
+    val searchResults = remember { mutableStateListOf<String>() }
+
+    val inputField =
+        @Composable {
+            SearchBarDefaults.InputField(
+                textFieldState = textFieldState,
+                searchBarState = searchBarState,
+                onSearch = {
+                    scope.launch { searchBarState.animateToCollapsed() }
+                    scope.launch {
+                        searchResults.clear()
+                        searchResults.addAll(
+                            Client.searchIllustrator(
+                                count = 100,
+                                keyword = textFieldState.text.toString(),
+                            ).illustrators,
+                        )
+                    }
+                },
             )
+        }
 
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                searchResults.forEach {
-                    ElevatedAssistChip(
-                        onClick = { onEditIllustrator(it) },
-                        label = { Text(it) },
-                    )
-                }
-            }
+    AppBarWithSearch(
+        scrollBehavior = scrollBehavior,
+        state = searchBarState,
+        inputField = inputField,
+    )
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        searchResults.forEach {
+            ElevatedAssistChip(
+                onClick = { onEditIllustrator(it) },
+                label = { Text(it) },
+            )
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ColumnScope.EditTagsSheet(
+    onEditIllustrator: (String) -> Unit
+) {
+    val scope = rememberCoroutineScope()
+
+    val textFieldState = rememberTextFieldState()
+    val searchBarState = rememberContainedSearchBarState()
+    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+
+    val searchResults = remember { mutableStateListOf<String>() }
+
+    val inputField =
+        @Composable {
+            SearchBarDefaults.InputField(
+                textFieldState = textFieldState,
+                searchBarState = searchBarState,
+                onSearch = {
+                    scope.launch { searchBarState.animateToCollapsed() }
+                    scope.launch {
+                        searchResults.clear()
+                        searchResults.addAll(
+                            Client.searchIllustrator(
+                                count = 100,
+                                keyword = textFieldState.text.toString(),
+                            ).illustrators,
+                        )
+                    }
+                },
+            )
+        }
+
+    AppBarWithSearch(
+        scrollBehavior = scrollBehavior,
+        state = searchBarState,
+        inputField = inputField,
+    )
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        searchResults.forEach {
+            ElevatedAssistChip(
+                onClick = { onEditIllustrator(it) },
+                label = { Text(it) },
+            )
         }
     }
 }
