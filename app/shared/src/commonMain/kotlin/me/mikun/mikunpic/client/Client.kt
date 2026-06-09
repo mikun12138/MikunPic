@@ -1,6 +1,5 @@
 package me.mikun.mikunpic.client
 
-import androidx.navigation.Navigation
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.DefaultRequest
@@ -16,7 +15,6 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -93,15 +91,19 @@ object Client {
 
     suspend fun randomPic(
         count: Int = 1,
-        illustrator: String? = "",
+        illustrators: List<String> = emptyList(),
+        tags: List<String> = emptyList()
     ): OhMyRouting.Manage.Pic.Random.Response = httpClient
         .get(
             OhMyRouting.Manage.Pic.Random(
                 count = count,
-                illustrator = illustrator,
+                illustrators = illustrators,
+                tags = tags
             ),
         ).let {
-            it.body<OhMyRouting.Manage.Pic.Random.Response>()
+            it.body<OhMyRouting.Manage.Pic.Random.Response>().also {
+                println(it)
+            }
         }
 
     suspend fun updatePic(pic: Pic) {

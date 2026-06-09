@@ -1,6 +1,5 @@
 package me.mikun.mikunpic.operator
 
-import com.sun.tools.javac.code.Lint
 import io.ktor.util.Digest
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
@@ -12,17 +11,22 @@ import me.mikun.mikunpic.database.table.IllustratorTable
 import me.mikun.mikunpic.database.table.PicTable
 import me.mikun.mikunpic.database.table.TagTable
 import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
-import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable.illustratorId
+import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.storage.PicStorage
 import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.Random
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
+import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -69,92 +73,65 @@ suspend fun uploadPic(
     }
 }
 
-suspend fun testNow(
-    illustratorIds: List<Int?>
-) {
-    transaction {
-        PicEntity.wrapRows(
-            PicTable.join(
-                otherTable = Pic2IllustratorTable,
-                joinType = JoinType.LEFT,
-                onColumn = PicTable.id,
-                otherColumn = Pic2IllustratorTable.picId,
-            )
-                .join(
-                    otherTable = IllustratorTable,
-                    joinType = JoinType.LEFT,
-                    onColumn = Pic2IllustratorTable.illustratorId,
-                    otherColumn = IllustratorTable.id
-                )
-                .selectAll()
-                .where { Pic2IllustratorTable.illustratorId eq illustratorId }
-
-        ).let {
-            it.forEach {
-                println("test: " + it.id)
-            }
-        }
-    }
-}
-
 suspend fun randomPic(
     count: Int,
-    illustrator: String?,
-//    tags: List<String>? = null,
+    illustrators: Set<String?>,
+    tags: Set<String?> = setOf(),
 ): List<Pic> = transaction {
     PicEntity.wrapRows(
         PicTable.join(
             otherTable = Pic2IllustratorTable,
             joinType = JoinType.LEFT,
             onColumn = PicTable.id,
-            otherColumn = Pic2IllustratorTable.picId,
+            otherColumn = Pic2IllustratorTable.picId
+        ).join(
+            otherTable = IllustratorTable,
+            joinType = JoinType.LEFT,
+            onColumn = Pic2IllustratorTable.illustratorId,
+            otherColumn = IllustratorTable.id
+        ).join( // TODO:: make it separate
+            otherTable = Pic2TagsTable,
+            joinType = JoinType.LEFT,
+            onColumn = PicTable.id,
+            otherColumn = Pic2TagsTable.picId
+        ).join(
+            otherTable = TagTable,
+            joinType = JoinType.LEFT,
+            onColumn = Pic2TagsTable.tagId,
+            otherColumn = TagTable.id
         )
-            .selectAll()
+            .select(PicTable.columns)
+            .apply { // with effect so
+                if (illustrators.isNotEmpty()) {
+                    andWhere {
+                        var op: Op<Boolean> =
+                            (IllustratorTable.name inList illustrators.filterNotNull())
+
+                        if (illustrators.contains(null))
+                            op = op or IllustratorTable.name.isNull()
+
+                        op
+                    }
+                }
+
+                if (tags.isNotEmpty()) {
+                    andWhere {
+                        var op: Op<Boolean> =
+                            TagTable.name inList tags.filterNotNull()
+
+                        if (tags.contains(null))
+                            op = op or TagTable.name.isNull()
+
+                        op
+                    }
+                }
+            }
+            .withDistinct()
+
     )
-
-    if (illustrator == null) {
-        PicEntity.find { Pic2IllustratorTable.illustratorId.isNull() }
-    } else {
-//        if (illustrator.isNotEmpty()) {
-//            PicEntity.wrapRows(
-//                PicTable.join(
-//                    otherTable = IllustratorTable,
-//                    joinType = JoinType.INNER,
-//                    onColumn = PicTable.illustratorId,
-//                    otherColumn = IllustratorTable.id,
-//                )
-//                    .selectAll()
-//                    .where { IllustratorTable.name eq illustrator },
-//            )
-//        } else {
-        PicEntity.all()
-//        }
-    }
         .limit(count)
-        .orderBy(Random() to SortOrder.ASC)
-        .map { it.toPic() }
-
-//    if (illustrator == null) {
-//        PicEntity.find { PicTable.illustratorId.isNull() }
-//    } else {
-//        if (illustrator.isNotEmpty()) {
-//            PicEntity.wrapRows(
-//                PicTable.join(
-//                    otherTable = IllustratorTable,
-//                    joinType = JoinType.INNER,
-//                    onColumn = PicTable.illustratorId,
-//                    otherColumn = IllustratorTable.id,
-//                )
-//                    .selectAll()
-//                    .where { IllustratorTable.name eq illustrator },
-//            )
-//        } else {
-//            PicEntity.all()
-//        }
-//    }
-//        .limit(count)
 //        .orderBy(Random() to SortOrder.ASC)
-//        .map { it.toPic() }
+        .map { it.toPic() }
 }
 
 suspend fun updatePic(

@@ -6,18 +6,16 @@ import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.application.log
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
-import kotlinx.coroutines.runBlocking
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
-import me.mikun.mikunpic.operator.testNow
-import kotlin.test.BeforeTest
+import me.mikun.mikunpic.operator.randomPic
 import kotlin.test.Test
 
 class Test {
@@ -48,15 +46,6 @@ class Test {
             ),
         ).let {
             println(it.body<OhMyRouting.Manage.Illustrator.Random.Response>())
-        }
-
-        client.get(
-            OhMyRouting.Manage.Pic.Random(
-                5,
-                null,
-            ),
-        ).let {
-            println(it.body<OhMyRouting.Manage.Pic.Random.Response>())
         }
 
         client.get(
@@ -117,8 +106,24 @@ class Test {
             }
         }
 
-        testNow(1)
+    }
 
+    @Test
+    fun testPicRandom() = ohMyTest {
+        client.get(
+            OhMyRouting.Manage.Pic.Random(
+                114514,
+//                listOf("")
+                null
+//                emptyList()
+//                lisfOf("")
+
+            ),
+        ).let {
+            it.body<OhMyRouting.Manage.Pic.Random.Response>().let {
+                println(it.pics.map { it.illustrator })
+            }
+        }
     }
 
 }

@@ -38,8 +38,12 @@ interface OhMyRouting {
             @Resource("/random")
             data class Random(
                 val count: Int,
-                val illustrator: String? = null,
-                val tags: List<String>? = null,
+                /**
+                 * null -> ignore this
+                 * [""] -> query where isNull
+                 */
+                val illustrators: QueryParameterList<String> = null,
+                val tags: QueryParameterList<String> = null,
             ) : OhMyRouting {
                 override val parent = Pic()
 

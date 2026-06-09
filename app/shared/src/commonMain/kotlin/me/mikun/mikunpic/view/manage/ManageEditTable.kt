@@ -80,7 +80,7 @@ fun EditTable() {
                                         scope.launch {
                                             picOnTable = Client.randomPic(
                                                 1,
-                                                null,
+
                                             ).pics.firstOrNull()
                                         }
                                     },

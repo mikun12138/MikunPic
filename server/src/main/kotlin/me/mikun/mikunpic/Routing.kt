@@ -1,17 +1,21 @@
 package me.mikun.mikunpic
 
+import io.ktor.client.utils.EmptyContent.contentType
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
-import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.resources.get
 import io.ktor.server.resources.post
+import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.contentType
 import io.ktor.server.routing.getAllRoutes
 import io.ktor.server.routing.routing
 import io.ktor.utils.io.ByteReadChannel
@@ -23,6 +27,7 @@ import me.mikun.mikunpic.operator.searchIllustrator
 import me.mikun.mikunpic.operator.updatePic
 import me.mikun.mikunpic.operator.uploadPic
 import me.mikun.mikunpic.storage.PicStorage
+import me.mikun.mikunpic.utils.mapToNullable
 
 @Suppress("ktlint:standard:kdoc")
 fun Application.configureRouting() {
@@ -61,11 +66,15 @@ private fun Route.public() {
 
 private fun Route.manage() {
     get<OhMyRouting.Manage.Pic.Random> { req ->
-        randomPic(req.count, req.illustrator).let {
+        randomPic(
+            req.count,
+            req.illustrators.mapToNullable().toSet(),
+            req.tags.mapToNullable().toSet(),
+        ).let {
             call.respond(
                 OhMyRouting.Manage.Pic.Random.Response(
                     it,
-                ),
+                )
             )
         }
     }
@@ -140,10 +149,7 @@ private fun Route.manage() {
 
     post<OhMyRouting.Manage.Illustrator.Create> {
         val receive = call.receive<OhMyRouting.Manage.Illustrator.Create.Body>()
-        try {
-            createIllustrator(receive.name)
-        } catch (e: Exception) {
 
-        }
+        createIllustrator(receive.name)
     }
 }
