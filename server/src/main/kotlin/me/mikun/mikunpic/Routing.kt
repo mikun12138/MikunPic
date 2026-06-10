@@ -21,9 +21,11 @@ import io.ktor.server.routing.routing
 import io.ktor.utils.io.ByteReadChannel
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.createIllustrator
+import me.mikun.mikunpic.operator.createTag
 import me.mikun.mikunpic.operator.randomIllustrator
 import me.mikun.mikunpic.operator.randomPic
 import me.mikun.mikunpic.operator.searchIllustrator
+import me.mikun.mikunpic.operator.searchTag
 import me.mikun.mikunpic.operator.updatePic
 import me.mikun.mikunpic.operator.uploadPic
 import me.mikun.mikunpic.storage.PicStorage
@@ -152,4 +154,25 @@ private fun Route.manage() {
 
         createIllustrator(receive.name)
     }
+
+    post<OhMyRouting.Manage.Tag.Create> {
+        val receive = call.receive<OhMyRouting.Manage.Tag.Create.Body>()
+
+        createTag(receive.name)
+    }
+
+    get<OhMyRouting.Manage.Tag.Search> { req ->
+        searchTag(
+            count = req.count,
+            keyword = req.keyword,
+        ).let {
+            call.respond(
+                OhMyRouting.Manage.Tag.Search.Response(
+                    it,
+                ),
+            )
+        }
+    }
+
+
 }

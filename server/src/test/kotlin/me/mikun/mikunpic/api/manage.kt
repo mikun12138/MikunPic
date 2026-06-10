@@ -16,6 +16,7 @@ import io.ktor.server.testing.testApplication
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.randomPic
+import kotlin.sequences.forEach
 import kotlin.test.Test
 
 class Test {
@@ -101,11 +102,29 @@ class Test {
                         illustrator,
                     ),
                 )
-            }.let {
-//                println(it.call.request.call)
             }
         }
 
+    }
+
+    @Test
+    fun testPicCreate() = ohMyTest {
+        val tags = generateSequence("oi") { it + "oi" }
+
+
+        tags.take(16).forEach { tag ->
+            client.post(
+                OhMyRouting.Manage.Tag.Create(),
+            ) {
+                contentType(ContentType.Application.Json)
+
+                setBody(
+                    OhMyRouting.Manage.Tag.Create.Body(
+                        tag,
+                    ),
+                )
+            }
+        }
     }
 
     @Test

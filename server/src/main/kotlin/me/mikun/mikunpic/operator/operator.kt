@@ -27,7 +27,6 @@ import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 suspend fun uploadPic(
@@ -137,15 +136,30 @@ suspend fun randomPic(
 suspend fun updatePic(
     pic: Pic,
 ) = transaction {
-    PicEntity.findSingleByAndUpdate(PicTable.filename eq pic.filename) {
+    PicEntity.findSingleByAndUpdate(PicTable.filename eq pic.filename) { picEntity ->
         if (!pic.illustrator.isNullOrEmpty()) {
-            it.illustrator =
+            picEntity.illustrator =
                 IllustratorEntity.find { IllustratorTable.name eq pic.illustrator!! }.firstOrNull()
                     ?: IllustratorEntity.new {
                         this.name = pic.illustrator!!
                     }
         }
-        // TODO:: tags
+
+        println(pic.tags)
+
+        val tagsInTable = TagEntity.find { TagTable.name inList pic.tags }
+
+        val newTags = (pic.tags - tagsInTable.map { it.name }.toSet()).map {
+            TagEntity.new {
+                this.name = it
+            }
+        }
+
+        tagsInTable.forEach { println(it.name) }
+        newTags.forEach { println(it.name) }
+
+        picEntity.tags = SizedCollection(tagsInTable + newTags)
+
     }
 }
 
@@ -182,3 +196,31 @@ suspend fun randomIllustrator(
         .limit(count)
         .map { it.name }
 }
+
+
+suspend fun createTag(
+    tag: String?,
+) {
+    transaction {
+        tag?.let {
+            TagEntity.new {
+                this.name = tag
+            }
+        }
+    }
+}
+
+suspend fun searchTag(
+    count: Int,
+    keyword: String? = null,
+): List<String> = transaction {
+    if (!keyword.isNullOrEmpty()) {
+        TagEntity.find { TagTable.name like "%$keyword%" }
+            .limit(count)
+            .map { it.name }
+    } else {
+        emptyList()
+    }
+}
+
+

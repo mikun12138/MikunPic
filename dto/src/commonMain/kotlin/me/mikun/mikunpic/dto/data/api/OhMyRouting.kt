@@ -75,6 +75,17 @@ interface OhMyRouting {
         class Illustrator : OhMyRouting {
             override val parent = Manage()
 
+            @Resource("/create")
+            class Create : OhMyRouting {
+                override val parent = Illustrator()
+
+                @Serializable
+                data class Body(
+                    @SerialName("name")
+                    val name: String,
+                )
+            }
+
             @Resource("/random")
             data class Random(
                 val count: Int,
@@ -102,14 +113,33 @@ interface OhMyRouting {
                 )
             }
 
+        }
+
+        @Resource("/tag")
+        class Tag: OhMyRouting {
+            override val parent = Manage()
+
             @Resource("/create")
             class Create : OhMyRouting {
-                override val parent = Illustrator()
+                override val parent = Tag()
 
                 @Serializable
                 data class Body(
                     @SerialName("name")
                     val name: String,
+                )
+            }
+            @Resource("/search")
+            class Search(
+                val count: Int,
+                val keyword: String,
+            ) : OhMyRouting {
+                override val parent = Tag()
+
+                @Serializable
+                data class Response(
+                    @SerialName("tags")
+                    val tags: List<String>,
                 )
             }
         }

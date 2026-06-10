@@ -21,13 +21,14 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.io.Buffer
+import me.mikun.mikunpic.Config
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 
 var localToken: String? = null
 
 object Client {
-    val baseUrl = "http://127.0.0.1:8080"
+    val baseUrl = Config.server
 
     val httpClient =
         HttpClient {
@@ -71,28 +72,28 @@ object Client {
         httpClient.submitFormWithBinaryData(
             url = "/manage/pic/upload",
             formData =
-            formData {
-                appendInput(
-                    "file",
-                    Headers.build {
-                        append(
-                            HttpHeaders.ContentDisposition,
-                            "filename=\"${picName}\"",
-                        )
-                    },
-                ) {
-                    Buffer().apply {
-                        write(picBytes)
+                formData {
+                    appendInput(
+                        "file",
+                        Headers.build {
+                            append(
+                                HttpHeaders.ContentDisposition,
+                                "filename=\"${picName}\"",
+                            )
+                        },
+                    ) {
+                        Buffer().apply {
+                            write(picBytes)
+                        }
                     }
-                }
-            },
+                },
         )
     }
 
     suspend fun randomPic(
         count: Int = 1,
         illustrators: List<String> = emptyList(),
-        tags: List<String> = emptyList()
+        tags: List<String> = emptyList(),
     ): OhMyRouting.Manage.Pic.Random.Response = httpClient
         .get(
             OhMyRouting.Manage.Pic.Random(
@@ -141,14 +142,5 @@ object Client {
             ),
         ).let {
             it.body<OhMyRouting.Manage.Tag.Search.Response>()
-        }
-
-    suspend fun randomIllustrator(count: Int = 1): OhMyRouting.Manage.Illustrator.Random.Response = httpClient
-        .get(
-            OhMyRouting.Manage.Illustrator.Random(
-                count,
-            ),
-        ).let {
-            it.body<OhMyRouting.Manage.Illustrator.Random.Response>()
         }
 }

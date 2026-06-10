@@ -34,7 +34,11 @@ subprojects {
 }
 
 tasks.register("runJsServer") {
-
     dependsOn(":app:webApp:jsBrowserDevelopmentRun")
+    dependsOn(":server:run")
+}
+
+tasks.register("runDesktopServer") {
+    dependsOn(":app:desktopApp:run")
     dependsOn(":server:run")
 }

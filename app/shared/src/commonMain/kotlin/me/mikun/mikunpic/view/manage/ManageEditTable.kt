@@ -1,44 +1,54 @@
 package me.mikun.mikunpic.view.manage
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AppBarWithSearch
-import androidx.compose.material3.ButtonGroup
-import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
+import me.mikun.mikunpic.Config
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.view.LocalNavController
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -46,16 +56,46 @@ fun EditTable() {
     val scope = rememberCoroutineScope()
 
     var picOnTable by remember { mutableStateOf<Pic?>(null) }
+    LaunchedEffect(Unit) {
+        picOnTable = Client.randomPic(
+            1,
+        ).pics.firstOrNull()
+    }
     val editContext = object {
         var illustrator by remember(picOnTable) { mutableStateOf(picOnTable?.illustrator) }
-        var tags = remember(picOnTable) { picOnTable?.tags?.toMutableStateList() }
-        var isEdited by remember(
+        var tags =
+            remember(picOnTable) { picOnTable?.tags?.toMutableStateList() ?: mutableStateListOf() }
+        var isEdited = remember(
             picOnTable,
             illustrator,
-        ) { mutableStateOf(picOnTable != null && picOnTable?.illustrator != illustrator) }
+            tags
+        ) {
+            derivedStateOf {
+                picOnTable != null
+                        && (
+                        picOnTable?.illustrator != illustrator
+                                || picOnTable?.tags?.toSet() != tags.toSet()
+                        )
+            }
+        }
     }
 
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showBottomSheetIllustrator by remember { mutableStateOf(false) }
+    var showBottomSheetTag by remember { mutableStateOf(false) }
+
+    AsyncImage(
+        Config.Bg.Manage.EditTable,
+        null,
+        modifier = Modifier.fillMaxSize()
+        ,
+        contentScale = ContentScale.Crop
+    )
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.3f))
+    )
 
     Box(
         modifier = Modifier
@@ -70,7 +110,7 @@ fun EditTable() {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                var selectedIndex by remember { mutableStateOf(0) }
+                var selectedIndex by remember { mutableStateOf<Int?>(null) }
 
                 val buttons = List<@Composable () -> Unit>(2) { index ->
                     {
@@ -153,7 +193,7 @@ fun EditTable() {
                         ElevatedButton(
                             onClick = {
                                 scope.launch {
-                                    showBottomSheet = true
+                                    showBottomSheetIllustrator = true
                                 }
                             },
                         ) {
@@ -167,7 +207,7 @@ fun EditTable() {
                     ) {
                         Text("tags: ")
 
-                        editContext.tags?.forEach { tag ->
+                        editContext.tags.forEach { tag ->
                             ElevatedAssistChip(
                                 onClick = { },
                                 label = {
@@ -179,7 +219,7 @@ fun EditTable() {
                         ElevatedButton(
                             onClick = {
                                 scope.launch {
-                                    showBottomSheet = true
+                                    showBottomSheetTag = true
                                 }
                             },
                         ) {
@@ -189,11 +229,11 @@ fun EditTable() {
 
                     ElevatedButton(
                         onClick = {
-                            if (editContext.isEdited) {
+                            if (editContext.isEdited.value) {
                                 picOnTable = Pic(
                                     picOnTable!!.filename,
                                     editContext.illustrator,
-                                    editContext.tags?.toList() ?: emptyList(),
+                                    editContext.tags.toList(),
                                 )
 
                                 scope.launch {
@@ -211,15 +251,32 @@ fun EditTable() {
         }
 
         SearchBottomSheet(
-            showBottomSheet,
+            showBottomSheetIllustrator,
             onCloseSheet = {
-                showBottomSheet = false
+                showBottomSheetIllustrator = false
             },
         ) {
             EditIllustratorSheet(
                 onEditIllustrator = {
                     editContext.illustrator = it
-                }
+                },
+            )
+        }
+
+        SearchBottomSheet(
+            showBottomSheetTag,
+            onCloseSheet = {
+                showBottomSheetTag = false
+            },
+        ) {
+            EditTagsSheet(
+                onEditTag = {
+                    editContext.tags.apply {
+                        remove(it) || add(it)
+                    }
+                },
+                picTags = picOnTable?.tags,
+                editContextTags = editContext.tags
             )
         }
     }
@@ -230,7 +287,7 @@ fun EditTable() {
 fun SearchBottomSheet(
     showBottomSheet: Boolean,
     onCloseSheet: () -> Unit,
-    innerEditSheet: @Composable ColumnScope.() -> Unit
+    innerEditSheet: @Composable ColumnScope.() -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -238,7 +295,8 @@ fun SearchBottomSheet(
     if (showBottomSheet) {
         ModalBottomSheet(
             modifier = Modifier
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .padding(8.dp),
             onDismissRequest = {
                 scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                     if (!bottomSheetState.isVisible) {
@@ -255,8 +313,8 @@ fun SearchBottomSheet(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ColumnScope.EditIllustratorSheet(
-    onEditIllustrator: (String) -> Unit
+private fun ColumnScope.EditIllustratorSheet(
+    onEditIllustrator: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -308,8 +366,10 @@ fun ColumnScope.EditIllustratorSheet(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ColumnScope.EditTagsSheet(
-    onEditIllustrator: (String) -> Unit
+private fun ColumnScope.EditTagsSheet(
+    onEditTag: (String) -> Unit,
+    picTags: List<String>?,
+    editContextTags: SnapshotStateList<String>,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -329,10 +389,10 @@ fun ColumnScope.EditTagsSheet(
                     scope.launch {
                         searchResults.clear()
                         searchResults.addAll(
-                            Client.searchIllustrator(
+                            Client.searchTag(
                                 count = 100,
                                 keyword = textFieldState.text.toString(),
-                            ).illustrators,
+                            ).tags,
                         )
                     }
                 },
@@ -349,9 +409,63 @@ fun ColumnScope.EditTagsSheet(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        searchResults.forEach {
+        if (picTags.isNullOrEmpty()) {
             ElevatedAssistChip(
-                onClick = { onEditIllustrator(it) },
+                onClick = {  },
+                label = {  },
+                modifier = Modifier.alpha(0.0f)
+            )
+        } else {
+
+            /*
+                unchange
+             */
+            picTags.intersect(editContextTags.toSet()).forEach {
+                ElevatedAssistChip(
+                    onClick = { onEditTag(it) },
+                    label = { Text(it) },
+                )
+            }
+
+            /*
+                toAdd
+             */
+            (editContextTags - picTags.toSet()).forEach {
+                ElevatedAssistChip(
+                    onClick = { onEditTag(it) },
+                    label = { Text(it) },
+                    colors = AssistChipDefaults.elevatedAssistChipColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    )
+                )
+            }
+
+            /*
+                toRemove
+             */
+            (picTags - editContextTags.toSet()).forEach {
+                ElevatedAssistChip(
+                    onClick = { onEditTag(it) },
+                    label = { Text(it) },
+                    colors = AssistChipDefaults.elevatedAssistChipColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                )
+            }
+
+
+        }
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        (searchResults - editContextTags).forEach {
+            ElevatedAssistChip(
+                onClick = { onEditTag(it) },
                 label = { Text(it) },
             )
         }
