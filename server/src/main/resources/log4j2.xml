@@ -3,21 +3,30 @@
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout
-                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %highlight{%-5level} %style{%logger{36}}{cyan} - %msg%n"
-                    disableAnsi="false" />
+                disableAnsi="false"
+                pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %highlight{%-5level} %style{%logger{36}}{cyan} - %msg%n" />
         </Console>
+
+        <File name="File" append="false" bufferedIO="false" fileName="mikunpic.log"
+            immediateFlush="true">
+            <PatternLayout
+                pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+        </File>
     </Appenders>
 
     <Loggers>
-        <Logger name="org.eclipse.jetty" level="WARN" additivity="false">
-            <AppenderRef ref="Console"/>
+        <Logger name="org.eclipse.jetty" additivity="false" level="WARN">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="File" />
         </Logger>
-        <Logger name="io.netty" level="WARN" additivity="false">
-            <AppenderRef ref="Console"/>
+        <Logger name="io.netty" additivity="false" level="WARN">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="File" />
         </Logger>
 
         <Root level="INFO">
-            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="File" />
         </Root>
     </Loggers>
 </Configuration>

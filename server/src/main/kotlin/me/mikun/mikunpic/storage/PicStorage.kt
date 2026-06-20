@@ -2,10 +2,12 @@ package me.mikun.mikunpic.storage
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.log
+import kotlinx.coroutines.flow.Flow
+import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import java.io.InputStream
 import java.util.concurrent.CopyOnWriteArraySet
 
-abstract class PicStorage {
+sealed class PicStorage {
     protected val picKeys =
         object : CopyOnWriteArraySet<String>() {
             private val extensions =
@@ -18,12 +20,12 @@ abstract class PicStorage {
                 )
 
             private fun isValid(e: String?): Boolean = e != null &&
-                extensions.any {
-                    e.endsWith(
-                        it,
-                        ignoreCase = true,
-                    )
-                }
+                    extensions.any {
+                        e.endsWith(
+                            it,
+                            ignoreCase = true,
+                        )
+                    }
 
             override fun add(e: String?): Boolean = isValid(e) && super.add(e)
 
@@ -35,6 +37,9 @@ abstract class PicStorage {
 
     companion object {
         lateinit var delegate: PicStorage
+
+        val picKeys
+            get() = delegate.picKeys
 
         fun configure(application: Application) {
             with(application) {
@@ -75,17 +80,27 @@ abstract class PicStorage {
             filename,
         )
 
-        suspend fun byName(name: String): InputStream? = delegate.byName(name)
+        suspend fun byName(
+            name: String,
+            thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Orig,
+        ): InputStream? = delegate.byName(
+            name,
+            thumbnail
+        )
     }
 
     abstract fun init(application: Application)
 
     abstract suspend fun random(): InputStream?
 
-    abstract suspend fun byName(name: String): InputStream?
+    abstract suspend fun byName(
+        name: String,
+        thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Orig,
+    ): InputStream?
 
     abstract suspend fun upload(
         byteArray: ByteArray,
         filename: String,
     )
+
 }

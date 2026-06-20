@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import coil3.compose.LocalPlatformContext
 import coil3.compose.rememberAsyncImagePainter
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import me.mikun.mikunpic.component.PicCarousel
@@ -22,6 +23,7 @@ fun PagePicPreview(
                     "http://127.0.0.1:8080/random",
                 )
                 .crossfade(true)
+                .diskCachePolicy(CachePolicy.DISABLED)
                 .memoryCacheKey(it.toString())
                 .build()
         }

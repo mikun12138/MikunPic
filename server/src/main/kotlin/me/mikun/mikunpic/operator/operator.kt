@@ -1,7 +1,11 @@
 package me.mikun.mikunpic.operator
 
+import io.ktor.server.application.log
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.application
 import io.ktor.util.Digest
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import me.mikun.mikunpic.database.IllustratorEntity
@@ -12,8 +16,13 @@ import me.mikun.mikunpic.database.table.PicTable
 import me.mikun.mikunpic.database.table.TagTable
 import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
 import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
+import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.dto.data.api.OhMyRouting
+import me.mikun.mikunpic.modules.db
 import me.mikun.mikunpic.storage.PicStorage
+import me.mikun.mikunpic.storage.PicStorageCos
+import me.mikun.mikunpic.storage.PicStorageLocal
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.Random
@@ -28,48 +37,60 @@ import org.jetbrains.exposed.v1.jdbc.SizedCollection
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import java.sql.Connection
 
-suspend fun uploadPic(
+suspend fun Route.uploadPic(
     byteChannel: ByteReadChannel,
     filename: String,
     illustratorName: String? = null,
     tags: List<String> = emptyList(),
+    uploadFile: Boolean = true,
 ) {
-    val byteArray = byteChannel.readRemaining().readByteArray()
 
-    val hash = Digest("md5").let {
-        it += byteArray
-        it.build()
-    }.toHexString()
+    try {
+        val byteArray = byteChannel.readRemaining().readByteArray()
 
-    PicStorage.upload(
-        byteArray,
-        filename,
-    )
+        val hash = Digest("md5").let {
+            it += byteArray
+            it.build()
+        }.toHexString()
 
-    transaction {
-        val illustrator = illustratorName?.let {
-            IllustratorEntity.find { IllustratorTable.name eq it }.firstOrNull()
-                ?: IllustratorEntity.new {
-                    this.name = it
-                }
+        if (uploadFile) {
+            PicStorage.upload(
+                byteArray,
+                filename,
+            )
         }
 
-        val tags = SizedCollection(
-            tags.map {
-                TagEntity.find { TagTable.name eq it }.firstOrNull() ?: TagEntity.new {
-                    this.name = it
-                }
-            },
-        )
+        transaction {
+            val illustrator = illustratorName?.let {
+                IllustratorEntity.find { IllustratorTable.name eq it }.firstOrNull()
+                    ?: IllustratorEntity.new {
+                        this.name = it
+                    }
+            }
 
-        PicEntity.new {
-            this.filename = filename
-            this.hash = hash
-            this.illustrator = illustrator
-            this.tags = tags
+            val tags = SizedCollection(
+                tags.map {
+                    TagEntity.find { TagTable.name eq it }.firstOrNull() ?: TagEntity.new {
+                        this.name = it
+                    }
+                },
+            )
+
+            PicEntity.new {
+                this.filename = filename
+                this.hash = hash
+                this.illustrator = illustrator
+                this.tags = tags
+            }
         }
+
+        application.log.info("upload pic $filename")
+    } catch (e: Exception) {
+        application.log.error("failed to upload pic $filename : $e")
     }
+
 }
 
 suspend fun randomPic(
@@ -145,8 +166,6 @@ suspend fun updatePic(
                     }
         }
 
-        println(pic.tags)
-
         val tagsInTable = TagEntity.find { TagTable.name inList pic.tags }
 
         val newTags = (pic.tags - tagsInTable.map { it.name }.toSet()).map {
@@ -166,13 +185,32 @@ suspend fun updatePic(
 suspend fun searchIllustrator(
     count: Int,
     keyword: String? = null,
-): List<String> = transaction {
+    page: Int = 0
+): List<Illustrator> = transaction {
+    val offset = (page.coerceAtLeast(0) * count).toLong()
     if (!keyword.isNullOrEmpty()) {
         IllustratorEntity.find { IllustratorTable.name like "%$keyword%" }
+            .orderBy(IllustratorTable.id to SortOrder.ASC)
             .limit(count)
-            .map { it.name }
+            .offset(offset)
+            .map {
+                Illustrator(
+                    id = it.id.value,
+                    name = it.name
+                )
+            }
     } else {
-        emptyList()
+        IllustratorEntity
+            .all()
+            .orderBy(IllustratorTable.id to SortOrder.ASC)
+            .limit(count)
+            .offset(offset)
+            .map {
+                Illustrator(
+                    id = it.id.value,
+                    name = it.name
+                )
+            }
     }
 }
 
@@ -197,6 +235,18 @@ suspend fun randomIllustrator(
         .map { it.name }
 }
 
+suspend fun selectIllustrator(
+    illustratorId: Int,
+): Illustrator? {
+    return transaction {
+        IllustratorEntity.findById(illustratorId)?.let {
+            Illustrator(
+                id = illustratorId,
+                name = it.name
+            )
+        }
+    }
+}
 
 suspend fun createTag(
     tag: String?,
@@ -223,4 +273,35 @@ suspend fun searchTag(
     }
 }
 
+suspend fun backup() {
+    (db.connector().connection as Connection).use { connection ->
+        connection.createStatement().use { statement ->
+            val sql = "VACUUM INTO './data/databases/pic.db.bak'"
+            statement.executeUpdate(sql)
+        }
+    }
+}
+
+suspend fun Route.sync() {
+    when (PicStorage.delegate) {
+        is PicStorageCos ->
+            PicStorage.picKeys.forEach {
+                uploadPic(
+                    byteChannel = PicStorage.byName(it)!!.toByteReadChannel(),
+                    filename = it,
+                    uploadFile = false
+                )
+            }
+
+        is PicStorageLocal -> {
+            PicStorage.picKeys.forEach {
+                uploadPic(
+                    byteChannel = PicStorage.byName(it)!!.toByteReadChannel(),
+                    filename = it,
+                    uploadFile = false
+                )
+            }
+        }
+    }
+}
 

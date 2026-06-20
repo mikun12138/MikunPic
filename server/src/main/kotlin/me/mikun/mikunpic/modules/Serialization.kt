@@ -1,4 +1,4 @@
-package me.mikun.mikunpic
+package me.mikun.mikunpic.modules
 
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application

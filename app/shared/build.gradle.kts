@@ -16,10 +16,10 @@ kotlin {
         browser()
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-    }
+//    @OptIn(ExperimentalWasmDsl::class)
+//    wasmJs {
+//        browser()
+//    }
 
     androidLibrary {
        namespace = "me.mikun.mikunpic.app.shared"
@@ -56,6 +56,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             api(libs.androidx.navigation.navigationCompose)
 //            implementation("org.jetbrains.compose.ui:ui-text-google-fonts:1.11.1")
+            implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
 
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
@@ -65,6 +66,9 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.content.negotiation)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+            implementation("com.russhwolf:multiplatform-settings:1.3.0")
+            implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
+            implementation("com.russhwolf:multiplatform-settings-serialization:1.3.0")
 
             implementation("io.github.vinceglb:filekit-core:0.14.1")
             implementation("io.github.vinceglb:filekit-dialogs:0.14.1")

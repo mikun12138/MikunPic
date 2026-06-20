@@ -48,6 +48,7 @@ import org.jetbrains.compose.resources.painterResource
 fun App(
     onNavHostReady: suspend (NavController) -> Unit = {},
 ) {
+
     var loaded by remember { mutableStateOf(false) }
     // TODO:: make a timeline&trigger
     var startFadeInTrigger by remember { mutableStateOf(false) }

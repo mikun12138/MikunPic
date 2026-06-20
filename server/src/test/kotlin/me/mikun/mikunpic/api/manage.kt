@@ -6,18 +6,19 @@ import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import kotlinx.coroutines.delay
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
-import me.mikun.mikunpic.operator.randomPic
 import kotlin.sequences.forEach
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class Test {
 
@@ -62,6 +63,7 @@ class Test {
             OhMyRouting.Manage.Illustrator.Search(
                 count = 5,
                 keyword = "a",
+                page = 0
             ),
         ).let {
             println(it.body<OhMyRouting.Manage.Illustrator.Search.Response>())
@@ -91,7 +93,7 @@ class Test {
     fun testIllustratorCreate() = ohMyTest {
         val illustrators = generateSequence("a") { it + "a" }
 
-        illustrators.take(1).forEach { illustrator ->
+        illustrators.take(32).forEach { illustrator ->
             client.post(
                 OhMyRouting.Manage.Illustrator.Create(),
             ) {
@@ -108,7 +110,7 @@ class Test {
     }
 
     @Test
-    fun testPicCreate() = ohMyTest {
+    fun testTagCreate() = ohMyTest {
         val tags = generateSequence("oi") { it + "oi" }
 
 
@@ -141,6 +143,23 @@ class Test {
                 println(it.pics.map { it.illustrator })
             }
         }
+    }
+
+    @Test
+    fun testBackup() = ohMyTest {
+        client.post(
+            OhMyRouting.Manage.Backup()
+        )
+    }
+
+    @Test
+    fun testSync() = ohMyTest {
+        // TODO:: fix 1 min limit
+        client.post(
+            OhMyRouting.Manage.Sync()
+        )
+
+        delay(1000 * 60 * 5)
     }
 
 }

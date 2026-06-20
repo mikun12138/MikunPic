@@ -39,6 +39,6 @@ tasks.register("runJsServer") {
 }
 
 tasks.register("runDesktopServer") {
-    dependsOn(":app:desktopApp:run")
+    dependsOn(":app:desktopApp:hotRun")
     dependsOn(":server:run")
 }

@@ -1,18 +1,21 @@
 package me.mikun.mikunpic
 
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.netty.EngineMain
-import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
-import io.ktor.server.plugins.origin
-import io.ktor.server.plugins.ratelimit.RateLimit
-import io.ktor.server.plugins.ratelimit.RateLimitName
-import io.ktor.server.resources.Resources
+import io.ktor.util.logging.Logger
+import me.mikun.mikunpic.modules.configureApiOnly
+import me.mikun.mikunpic.modules.configureAuth
+import me.mikun.mikunpic.modules.configureCORS
+import me.mikun.mikunpic.modules.configureDatabase
+import me.mikun.mikunpic.modules.configureHTTP
+import me.mikun.mikunpic.modules.configureOpenApi
+import me.mikun.mikunpic.modules.configureRateLimit
+import me.mikun.mikunpic.modules.configureResources
+import me.mikun.mikunpic.modules.routing.configureRouting
+import me.mikun.mikunpic.modules.configureSerialization
 import me.mikun.mikunpic.storage.PicStorage
-import kotlin.time.Duration.Companion.minutes
 
 fun main(args: Array<String>) {
     EngineMain
@@ -28,36 +31,13 @@ fun Application.module() {
     configureOpenApi()
     configureDatabase()
 
-    if (environment.config.property("api_only").getString() == "true") {
-        install(ApiOnlyPlugin)
-    }
+    configureRateLimit()
+    configureApiOnly()
 
-    install(RateLimit) {
-        register(RateLimitName("with_ip")) {
-            rateLimiter(
-                limit = 60,
-                refillPeriod = 1.minutes,
-            )
-            requestKey { call -> call.request.origin.remoteHost }
-        }
-    }
+    configureCORS()
 
     install(XForwardedHeaders) {
         skipLastProxies(1)
-    }
-
-    install(CORS) {
-        anyHost()
-
-        allowMethod(HttpMethod.Get)
-        allowMethod(HttpMethod.Post)
-        allowMethod(HttpMethod.Options)
-
-        allowHeader(HttpHeaders.Authorization)
-        allowHeader(HttpHeaders.ContentType)
-        allowHeader(HttpHeaders.CacheControl)
-
-        allowNonSimpleContentTypes = true
     }
 
     PicStorage.configure(this)

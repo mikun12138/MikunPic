@@ -1,13 +1,20 @@
-package me.mikun.mikunpic
+package me.mikun.mikunpic.modules
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
 import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.application.install
 import io.ktor.server.request.uri
 import io.ktor.server.response.respondText
 import kotlin.text.contains
 
-// TODO::
-val ApiOnlyPlugin =
+fun Application.configureApiOnly() {
+    if (environment.config.property("api_only").getString() == "true") {
+        install(ApiOnlyPlugin)
+    }
+}
+
+private val ApiOnlyPlugin =
     createApplicationPlugin(name = "ApiOnlyPlugin") {
         onCall { call ->
             val isDocPath =

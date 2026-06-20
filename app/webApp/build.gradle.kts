@@ -14,11 +14,11 @@ kotlin {
         binaries.executable()
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-        binaries.executable()
-    }
+//    @OptIn(ExperimentalWasmDsl::class)
+//    wasmJs {
+//        browser()
+//        binaries.executable()
+//    }
 
     sourceSets {
         commonMain.dependencies {
@@ -37,11 +37,11 @@ tasks.named<KotlinWebpack>("jsBrowserDevelopmentRun") {
     )
 }
 
-tasks.named<KotlinWebpack>("wasmJsBrowserDevelopmentRun") {
-    devServerProperty.set(
-        devServerProperty.get().copy(
-            port = 8081,
-            open = false
-        )
-    )
-}
+//tasks.named<KotlinWebpack>("wasmJsBrowserDevelopmentRun") {
+//    devServerProperty.set(
+//        devServerProperty.get().copy(
+//            port = 8081,
+//            open = false
+//        )
+//    )
+//}

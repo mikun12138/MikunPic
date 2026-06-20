@@ -5,6 +5,7 @@ import io.ktor.server.application.log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -73,7 +74,11 @@ class PicStorageLocal : PicStorage() {
         }
     }
 
-    override suspend fun byName(name: String): InputStream? {
+    override suspend fun byName(
+        name: String,
+        // TODO::
+        thumbnail: OhMyRouting.Pic.Filename.Thumbnail,
+    ): InputStream? {
         return withContext(Dispatchers.IO) {
             val file = File(
                 folderPath,

@@ -59,6 +59,10 @@ tasks.withType<ShadowJar> {
     exclude("application.yaml")
 }
 
+tasks.withType<Test> {
+    systemProperty("kotlinx.coroutines.test.default_timeout", "10m")
+}
+
 ktor {
     fatJar {
         archiveFileName.set("mikunpic-$version.jar")

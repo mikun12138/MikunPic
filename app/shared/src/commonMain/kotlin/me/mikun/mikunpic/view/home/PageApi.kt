@@ -25,14 +25,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import me.mikun.mikunpic.Config
+import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.shared.generated.resources.Res
 import me.mikun.mikunpic.shared.generated.resources.rua
 import me.mikun.mikunpic.view.LocalNavController
@@ -40,7 +39,6 @@ import me.mikun.mikunpic.view.Nav
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-@Preview
 fun PageApi() {
     val navController = LocalNavController.current
     BoxWithConstraints(
@@ -48,7 +46,7 @@ fun PageApi() {
         contentAlignment = Alignment.Center,
     ) {
         AsyncImage(
-            Config.Bg.Home.Api,
+            LocalConfig.bg.home.api,
             null,
             modifier = Modifier.fillMaxSize()
             ,

@@ -7,5 +7,6 @@ object IllustratorTable : IntIdTable("illustrator") {
         varchar(
             "name",
             128,
-        ).uniqueIndex()
+        )
+
 }

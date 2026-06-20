@@ -1,4 +1,4 @@
-package me.mikun.mikunpic
+package me.mikun.mikunpic.modules
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

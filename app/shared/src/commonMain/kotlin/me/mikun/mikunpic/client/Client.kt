@@ -15,20 +15,24 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.readBytes
+import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.io.Buffer
-import me.mikun.mikunpic.Config
+import me.mikun.mikunpic.LocalConfig
+import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 
 var localToken: String? = null
 
 object Client {
-    val baseUrl = Config.server
+    val baseUrl = LocalConfig.server
 
     val httpClient =
         HttpClient {
@@ -90,6 +94,21 @@ object Client {
         )
     }
 
+    suspend fun sync(
+    ) = httpClient.post(OhMyRouting.Manage.Sync())
+
+    suspend fun fetchPic(
+        filename: String,
+        thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Thumb,
+    ) = httpClient.get(
+        OhMyRouting.Pic.Filename(
+            filename,
+            thumbnail
+        )
+    ).let {
+        it.readRawBytes()
+    }
+
     suspend fun randomPic(
         count: Int = 1,
         illustrators: List<String> = emptyList(),
@@ -120,12 +139,14 @@ object Client {
 
     suspend fun searchIllustrator(
         count: Int,
-        keyword: String,
+        keyword: String = "",
+        page: Int = 0
     ): OhMyRouting.Manage.Illustrator.Search.Response = httpClient
         .get(
             OhMyRouting.Manage.Illustrator.Search(
-                count,
-                keyword,
+                count = count,
+                keyword = keyword,
+                page = page
             ),
         ).let {
             it.body<OhMyRouting.Manage.Illustrator.Search.Response>()
@@ -143,4 +164,15 @@ object Client {
         ).let {
             it.body<OhMyRouting.Manage.Tag.Search.Response>()
         }
+
+    suspend fun selectIllustrator(id: Int): Illustrator? =
+        httpClient
+            .get(
+                OhMyRouting.Manage.Illustrator.IllustratorId(id)
+            ).let {
+                when (it.status) {
+                    HttpStatusCode.OK -> it.body<OhMyRouting.Manage.Illustrator.IllustratorId.Response>().illustrator
+                    else -> null
+                }
+            }
 }

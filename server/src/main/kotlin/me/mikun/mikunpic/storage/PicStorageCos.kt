@@ -14,6 +14,7 @@ import com.qcloud.cos.model.ObjectMetadata
 import com.qcloud.cos.model.PutObjectRequest
 import com.qcloud.cos.region.Region
 import io.ktor.server.application.Application
+import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import java.io.InputStream
 
 class PicStorageCos : PicStorage() {
@@ -86,8 +87,16 @@ class PicStorageCos : PicStorage() {
 
     override suspend fun byName(
         name: String,
+        thumbnail: OhMyRouting.Pic.Filename.Thumbnail,
     ): InputStream? {
-        TODO("Not yet implemented")
+        val reqKey = "$name${thumbnail.asParam()}"
+        println(reqKey)
+        return cosClient.getObject(
+            GetObjectRequest(
+                bucket.name,
+                reqKey
+            )
+        ).objectContent
     }
 
     override suspend fun upload(
@@ -106,5 +115,15 @@ class PicStorageCos : PicStorage() {
         )
 
         cosClient.putObject(request)
+    }
+
+    private fun OhMyRouting.Pic.Filename.Thumbnail.asParam(): String {
+        return when(this) {
+            OhMyRouting.Pic.Filename.Thumbnail.Thumb -> "/thumb"
+            OhMyRouting.Pic.Filename.Thumbnail.Small -> "/small"
+            OhMyRouting.Pic.Filename.Thumbnail.Medium -> "/medium"
+            OhMyRouting.Pic.Filename.Thumbnail.Large -> "/large"
+            OhMyRouting.Pic.Filename.Thumbnail.Orig -> ""
+        }
     }
 }
