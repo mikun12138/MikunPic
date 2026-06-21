@@ -10,10 +10,13 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import me.mikun.mikunpic.database.IllustratorEntity
 import me.mikun.mikunpic.database.PicEntity
+import me.mikun.mikunpic.database.PlatformKeyEntity
 import me.mikun.mikunpic.database.TagEntity
 import me.mikun.mikunpic.database.table.IllustratorTable
 import me.mikun.mikunpic.database.table.PicTable
+import me.mikun.mikunpic.database.table.PlatformKeyTable
 import me.mikun.mikunpic.database.table.TagTable
+import me.mikun.mikunpic.database.table.relation.Illustrator2PlatformKeysTable
 import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
 import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
 import me.mikun.mikunpic.dto.data.Illustrator
@@ -27,6 +30,7 @@ import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.Random
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNotNull
@@ -35,21 +39,20 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
 import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.orWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.sql.Connection
 
 suspend fun Route.uploadPic(
-    byteChannel: ByteReadChannel,
+    byteArray: ByteArray,
     filename: String,
-    illustratorName: String? = null,
+    illustrator: Illustrator? = null,
     tags: List<String> = emptyList(),
     uploadFile: Boolean = true,
 ) {
 
     try {
-        val byteArray = byteChannel.readRemaining().readByteArray()
-
         val hash = Digest("md5").let {
             it += byteArray
             it.build()
@@ -62,12 +65,48 @@ suspend fun Route.uploadPic(
             )
         }
 
+        application.log.error(illustrator.toString())
+
         transaction {
-            val illustrator = illustratorName?.let {
-                IllustratorEntity.find { IllustratorTable.name eq it }.firstOrNull()
-                    ?: IllustratorEntity.new {
-                        this.name = it
+            val illustratorEntity: IllustratorEntity? = illustrator?.let {
+                it.id?.let { id ->
+                    IllustratorEntity.findById(id)
+                } ?: it.platformKeyMap.takeIf { it.isNotEmpty() }?.let { platformKeyMap ->
+                    IllustratorEntity.wrapRows(
+                        IllustratorTable.join(
+                            otherTable = Illustrator2PlatformKeysTable,
+                            joinType = JoinType.LEFT,
+                            onColumn = IllustratorTable.id,
+                            otherColumn = Illustrator2PlatformKeysTable.illustrator
+                        ).join(
+                            otherTable = PlatformKeyTable,
+                            joinType = JoinType.LEFT,
+                            onColumn = Illustrator2PlatformKeysTable.platformkey,
+                            otherColumn = PlatformKeyTable.id
+                        ).select(IllustratorTable.columns)
+                            .apply {
+                                platformKeyMap.forEach { (platform, key) ->
+                                    orWhere {
+                                        (PlatformKeyTable.platform eq platform
+                                                ) and (PlatformKeyTable.key eq key)
+                                    }
+                                }
+                            }
+                    ).firstOrNull()
+                } ?: illustrator.name?.let { name ->
+                    IllustratorEntity.new {
+                        this.name = name
+                        this.platformKeys =
+                            SizedCollection(
+                                illustrator.platformKeyMap.map { (platform, key) ->
+                                    PlatformKeyEntity.new {
+                                        this.platform = platform
+                                        this.key = key
+                                    }
+                                }
+                            )
                     }
+                }
             }
 
             val tags = SizedCollection(
@@ -81,7 +120,7 @@ suspend fun Route.uploadPic(
             PicEntity.new {
                 this.filename = filename
                 this.hash = hash
-                this.illustrator = illustrator
+                this.illustrator = illustratorEntity
                 this.tags = tags
             }
         }
@@ -185,7 +224,7 @@ suspend fun updatePic(
 suspend fun searchIllustrator(
     count: Int,
     keyword: String? = null,
-    page: Int = 0
+    page: Int = 0,
 ): List<Illustrator> = transaction {
     val offset = (page.coerceAtLeast(0) * count).toLong()
     if (!keyword.isNullOrEmpty()) {
@@ -196,7 +235,9 @@ suspend fun searchIllustrator(
             .map {
                 Illustrator(
                     id = it.id.value,
-                    name = it.name
+                    name = it.name,
+                    // TODO:: return platform key
+                    emptyMap()
                 )
             }
     } else {
@@ -208,7 +249,9 @@ suspend fun searchIllustrator(
             .map {
                 Illustrator(
                     id = it.id.value,
-                    name = it.name
+                    name = it.name,
+                    // TODO:: return platform key
+                    emptyMap()
                 )
             }
     }
@@ -242,7 +285,9 @@ suspend fun selectIllustrator(
         IllustratorEntity.findById(illustratorId)?.let {
             Illustrator(
                 id = illustratorId,
-                name = it.name
+                name = it.name,
+                // TODO:: return platform key
+                emptyMap()
             )
         }
     }
@@ -283,25 +328,12 @@ suspend fun backup() {
 }
 
 suspend fun Route.sync() {
-    when (PicStorage.delegate) {
-        is PicStorageCos ->
-            PicStorage.picKeys.forEach {
-                uploadPic(
-                    byteChannel = PicStorage.byName(it)!!.toByteReadChannel(),
-                    filename = it,
-                    uploadFile = false
-                )
-            }
-
-        is PicStorageLocal -> {
-            PicStorage.picKeys.forEach {
-                uploadPic(
-                    byteChannel = PicStorage.byName(it)!!.toByteReadChannel(),
-                    filename = it,
-                    uploadFile = false
-                )
-            }
-        }
+    PicStorage.picKeys.forEach {
+        uploadPic(
+            byteArray = PicStorage.byName(it)!!.toByteReadChannel().readRemaining().readByteArray(),
+            filename = it,
+            uploadFile = false
+        )
     }
 }
 

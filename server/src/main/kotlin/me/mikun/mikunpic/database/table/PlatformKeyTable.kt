@@ -1,5 +1,6 @@
 package me.mikun.mikunpic.database.table
 
+import me.mikun.mikunpic.dto.data.Platform
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 
 object PlatformKeyTable: IntIdTable("platform_key") {
@@ -16,8 +17,4 @@ object PlatformKeyTable: IntIdTable("platform_key") {
         uniqueIndex(platform, key)
     }
 
-    enum class Platform {
-        PIXIV,
-        TWITTER,
-    }
 }

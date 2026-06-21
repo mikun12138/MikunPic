@@ -22,8 +22,9 @@ class PicStorageLocal : PicStorage() {
                 folderPath = it
             } ?: throw IllegalArgumentException("Please config: [storage.local.path] firstly!")
 
-            require(File(folderPath).exists()) {
-                "storage folder could not be found: $folderPath"
+            File(folderPath).apply {
+                exists() || mkdirs()
+                isDirectory || error("$folderPath is not a dir!")
             }
 
             flashStorage()

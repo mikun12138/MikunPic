@@ -11,6 +11,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
+import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
@@ -24,6 +25,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.io.Buffer
+import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
@@ -72,26 +74,44 @@ object Client {
     suspend fun uploadPic(
         picName: String,
         picBytes: ByteArray,
+        illustrator: Illustrator?,
     ) {
-        httpClient.submitFormWithBinaryData(
-            url = "/manage/pic/upload",
-            formData =
-                formData {
-                    appendInput(
-                        "file",
-                        Headers.build {
+        httpClient.post(
+            OhMyRouting.Manage.Pic.Upload()
+        ) {
+            setBody(
+                MultiPartFormDataContent(
+                    formData {
+                        appendInput(
+                            "file",
+                            Headers.build {
+                                append(
+                                    HttpHeaders.ContentDisposition,
+                                    """form-data; name="file"; filename="$picName""""
+                                )
+                            },
+                        ) {
+                            Buffer().apply {
+                                write(picBytes)
+                            }
+                        }
+
+                        illustrator?.let {
                             append(
-                                HttpHeaders.ContentDisposition,
-                                "filename=\"${picName}\"",
+                                "illustrator",
+                                Json.encodeToString(illustrator),
+                                headers = Headers.build {
+                                    append(
+                                        HttpHeaders.ContentType,
+                                        ContentType.Application.Json.toString()
+                                    )
+                                }
                             )
-                        },
-                    ) {
-                        Buffer().apply {
-                            write(picBytes)
                         }
                     }
-                },
-        )
+                )
+            )
+        }
     }
 
     suspend fun sync(
@@ -140,7 +160,7 @@ object Client {
     suspend fun searchIllustrator(
         count: Int,
         keyword: String = "",
-        page: Int = 0
+        page: Int = 0,
     ): OhMyRouting.Manage.Illustrator.Search.Response = httpClient
         .get(
             OhMyRouting.Manage.Illustrator.Search(

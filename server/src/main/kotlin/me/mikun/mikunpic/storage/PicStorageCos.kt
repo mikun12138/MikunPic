@@ -90,7 +90,6 @@ class PicStorageCos : PicStorage() {
         thumbnail: OhMyRouting.Pic.Filename.Thumbnail,
     ): InputStream? {
         val reqKey = "$name${thumbnail.asParam()}"
-        println(reqKey)
         return cosClient.getObject(
             GetObjectRequest(
                 bucket.name,

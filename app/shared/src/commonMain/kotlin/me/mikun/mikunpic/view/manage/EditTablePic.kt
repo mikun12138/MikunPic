@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.AssistChipDefaults
@@ -20,12 +22,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -38,8 +42,15 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ContentScale.Companion
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import coil3.size.Precision
+import coil3.size.Size
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.data.Pic
@@ -49,6 +60,8 @@ import me.mikun.mikunpic.dto.data.Pic
 @Composable
 fun EditTablePic() {
     val scope = rememberCoroutineScope()
+
+    val localPlatformContext = LocalPlatformContext.current
 
     var picOnTable by remember { mutableStateOf<Pic?>(null) }
     val editContext = object {
@@ -73,94 +86,56 @@ fun EditTablePic() {
     var showBottomSheetIllustrator by remember { mutableStateOf(false) }
     var showBottomSheetTag by remember { mutableStateOf(false) }
 
-
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                var selectedIndex by remember { mutableStateOf<Int?>(null) }
 
-                val buttons = List<@Composable () -> Unit>(2) { index ->
-                    {
-                        when (index) {
-                            0 -> {
-                                ToggleButton(
-                                    checked = selectedIndex == index,
-                                    onCheckedChange = {
-                                        selectedIndex = index
-                                        scope.launch {
-                                            picOnTable = Client.randomPic(
-                                                1,
-                                                illustrators = listOf("")
+            HeaderSelection(
+                onSelectionNoAuthor = {
+                    scope.launch {
+                        picOnTable = Client.randomPic(
+                            1,
+                            illustrators = listOf("")
 
-                                            ).pics.firstOrNull()
-                                        }
-                                    },
-                                ) {
-                                    Text("No author")
-                                }
-                            }
-
-                            1 -> {
-                                ToggleButton(
-                                    checked = selectedIndex == index,
-                                    onCheckedChange = {
-                                        selectedIndex = index
-                                        scope.launch {
-                                            picOnTable = Client.randomPic(
-                                                1,
-                                                tags = listOf("")
-                                            ).pics.firstOrNull()
-                                        }
-                                    },
-                                ) {
-                                    Text("No tag")
-                                }
-                            }
-
-                            2 -> {
-                                ToggleButton(
-                                    checked = selectedIndex == index,
-                                    onCheckedChange = {
-                                        selectedIndex = index
-                                        scope.launch {
-                                            picOnTable = Client.randomPic(
-                                                1,
-                                            ).pics.firstOrNull()
-                                        }
-                                    },
-                                ) {
-                                    Text("Random")
-                                }
-                            }
-
-                            else -> error("")
-                        }
+                        ).pics.firstOrNull()
+                    }
+                },
+                onSelectionNoTag = {
+                    scope.launch {
+                        picOnTable = Client.randomPic(
+                            1,
+                            tags = listOf("")
+                        ).pics.firstOrNull()
+                    }
+                },
+                onSelectionRandom = {
+                    scope.launch {
+                        picOnTable = Client.randomPic(
+                            1,
+                        ).pics.firstOrNull()
                     }
                 }
-
-                buttons.forEach {
-                    it()
-                }
-            }
+            )
 
             if (picOnTable != null) {
                 Box(
                     modifier = Modifier
                         .weight(0.6f),
                 ) {
-                    AsyncImage(
-                        "${Client.baseUrl}/pic/${picOnTable?.filename}",
-                        contentDescription = null,
+                    PicShowingTable(
+                        ImageRequest.Builder(localPlatformContext)
+                            .data("${Client.baseUrl}/pic/${picOnTable?.filename}")
+                            .size(Size.ORIGINAL)
+//                            .precision(Precision.EXACT)
+                            .build()
                     )
                 }
 
@@ -312,37 +287,36 @@ private fun ColumnScope.EditPicIllustratorSheet(
 ) {
     val scope = rememberCoroutineScope()
 
-    val textFieldState = rememberTextFieldState()
-    val searchBarState = rememberContainedSearchBarState()
-    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
-
     val searchResults = remember { mutableStateListOf<String>() }
 
-    val inputField =
-        @Composable {
-            SearchBarDefaults.InputField(
-                textFieldState = textFieldState,
-                searchBarState = searchBarState,
-                onSearch = {
-                    scope.launch { searchBarState.animateToCollapsed() }
-                    scope.launch {
-                        searchResults.clear()
-                        searchResults.addAll(
-                            Client.searchIllustrator(
-                                count = 100,
-                                keyword = textFieldState.text.toString(),
-                            ).illustrators.map { it.name },
-                        )
-                    }
-                },
-            )
-        }
+    val searchBarState = rememberContainedSearchBarState()
 
-    AppBarWithSearch(
-        scrollBehavior = scrollBehavior,
-        state = searchBarState,
-        inputField = inputField,
-    )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        SearchBar(
+            searchBarState,
+            inputField = {
+                SearchBarDefaults.InputField(
+                    textFieldState = rememberTextFieldState(),
+                    searchBarState = searchBarState,
+                    onSearch = { text ->
+                        scope.launch {
+                            searchResults.clear()
+                            searchResults.addAll(
+                                Client.searchIllustrator(
+                                    count = 100,
+                                    keyword = text,
+                                ).illustrators.map { it.name ?: "" },
+                            )
+                        }
+                    },
+                )
+            }
+        )
+    }
 
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -465,3 +439,81 @@ private fun ColumnScope.EditPicTagsSheet(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun HeaderSelection(
+    onSelectionNoAuthor: () -> Unit,
+    onSelectionNoTag: () -> Unit,
+    onSelectionRandom: () -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        var selectedIndex by remember { mutableStateOf(0) }
+
+        val buttons = List<@Composable () -> Unit>(3) { index ->
+            {
+                when (index) {
+                    0 -> {
+                        ToggleButton(
+                            checked = selectedIndex == index,
+                            onCheckedChange = {
+                                selectedIndex = index
+                                onSelectionNoAuthor()
+                            },
+                        ) {
+                            Text("No author")
+                        }
+                    }
+
+                    1 -> {
+                        ToggleButton(
+                            checked = selectedIndex == index,
+                            onCheckedChange = {
+                                selectedIndex = index
+                                onSelectionNoTag()
+                            },
+                        ) {
+                            Text("No tag")
+                        }
+                    }
+
+                    2 -> {
+                        ToggleButton(
+                            checked = selectedIndex == index,
+                            onCheckedChange = {
+                                selectedIndex = index
+                                onSelectionRandom()
+                            },
+                        ) {
+                            Text("Random")
+                        }
+                    }
+
+                    else -> error("")
+                }
+            }
+        }
+
+        buttons.forEach {
+            it()
+        }
+    }
+
+}
+
+@Composable
+private fun PicShowingTable(
+    model: Any,
+) {
+    AsyncImage(
+        model,
+        contentDescription = null,
+        modifier = Modifier
+            .fillMaxSize(),
+        contentScale = ContentScale.Fit
+    )
+}
+

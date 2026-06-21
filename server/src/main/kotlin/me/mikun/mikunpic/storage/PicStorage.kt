@@ -3,6 +3,7 @@ package me.mikun.mikunpic.storage
 import io.ktor.server.application.Application
 import io.ktor.server.application.log
 import kotlinx.coroutines.flow.Flow
+import me.mikun.mikunpic.dto.awesome.FileExtension
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import java.io.InputStream
 import java.util.concurrent.CopyOnWriteArraySet
@@ -10,17 +11,9 @@ import java.util.concurrent.CopyOnWriteArraySet
 sealed class PicStorage {
     protected val picKeys =
         object : CopyOnWriteArraySet<String>() {
-            private val extensions =
-                listOf(
-                    ".jpg",
-                    ".jpeg",
-                    ".png",
-                    ".gif",
-                    ".jfif",
-                )
 
             private fun isValid(e: String?): Boolean = e != null &&
-                    extensions.any {
+                    FileExtension.image.any {
                         e.endsWith(
                             it,
                             ignoreCase = true,

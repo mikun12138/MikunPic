@@ -10,8 +10,11 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.application
-import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.launch
+import kotlinx.io.readByteArray
+import kotlinx.serialization.json.Json
+import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.sync
 import me.mikun.mikunpic.operator.backup
@@ -32,25 +35,20 @@ fun Route.manage() {
         post<OhMyRouting.Manage.Pic.Upload> {
             val multipart = call.receiveMultipart()
 
-            var fileDescription: String? = null
-            var fileChannel: ByteReadChannel?
+            var byteArray: ByteArray? = null
             var filename: String? = null
-
+            var illustrator: Illustrator? = null
             multipart.forEachPart { part ->
                 when (part) {
                     is PartData.FileItem -> {
-                        fileChannel = part.provider()
+                        byteArray = part.provider().readRemaining().readByteArray()
                         filename = part.originalFileName
 
-                        uploadPic(
-                            fileChannel,
-                            filename!!,
-                        )
                     }
 
                     is PartData.FormItem -> {
-                        when (part.name) {
-                            "description" -> fileDescription = part.value
+                        if (part.name == "illustrator") {
+                            illustrator = Json.decodeFromString(part.value)
                         }
                     }
 
@@ -58,11 +56,23 @@ fun Route.manage() {
                 }
             }
 
-            fileDescription = fileDescription ?: filename
+            if (byteArray == null || filename == null) {
+                call.respond(
+                    HttpStatusCode.BadGateway,
+                )
+                return@post
+            }
+
+            uploadPic(
+                byteArray,
+                filename!!,
+                illustrator,
+                // TODO:: temp test
+                uploadFile = false
+            )
 
             call.respond(
                 HttpStatusCode.Created,
-                mapOf("message" to "$fileDescription Upload Success."),
             )
         }
 
