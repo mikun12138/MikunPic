@@ -25,10 +25,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -36,6 +38,7 @@ import kotlinx.coroutines.withContext
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.dto.data.api.OhMyRouting
 
 private class PageContext(
     val illustratorContexts: List<IllustratorContext?>,
@@ -50,54 +53,56 @@ private class IllustratorContext(
 @Composable
 fun EditTableIllustrator() {
     val illustratorCount = 20
-    val picPreIllustrator = 2
+    val picPreIllustrator = 5
     var pageIndex by remember { mutableStateOf(0) }
 
     val localPlatformContext = LocalPlatformContext.current
     val pageContext by produceState(
         initialValue = PageContext(List(illustratorCount) { null }),
-        pageIndex
+        pageIndex,
     ) {
         value = PageContext(List(illustratorCount) { null })
 
         val illustrators = Client.searchIllustrator(
             count = illustratorCount,
-            page = pageIndex
+            page = pageIndex,
         ).illustrators
 
         val contexts = MutableList<IllustratorContext?>(illustrators.size) {
             IllustratorContext(
                 illustrator = illustrators[it],
                 pics = emptyList(),
-                picCaches = emptyList()
+                picCaches = emptyList(),
             )
         }
 
         value = PageContext(contexts.toList())
 
         supervisorScope {
-
             illustrators.forEachIndexed { index, illustrator ->
                 launch {
                     val pics = Client.randomPic(
                         picPreIllustrator,
-                        // TODO:: for test
-//                    illustrators = listOf(illustrator.name)
+                        illustrators = listOf(illustrator)
                     ).pics
 
                     val picCaches = pics.map { pic ->
-                        val bytes = Client.fetchPic(pic.filename)
+                        val bytes = Client.fetchPic(
+                            pic.filename,
+                            OhMyRouting.Pic.Filename.Thumbnail.Thumb
+                        )
 
                         ImageRequest.Builder(localPlatformContext)
                             .data(bytes)
                             .memoryCacheKey(pic.filename)
+                            .crossfade(true)
                             .build()
                     }
 
                     val context = IllustratorContext(
                         illustrator = illustrator,
                         pics = pics,
-                        picCaches = picCaches
+                        picCaches = picCaches,
                     )
 
                     contexts[index] = context
@@ -108,22 +113,22 @@ fun EditTableIllustrator() {
         }
     }
 
-
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp),
     ) {
-
         LazyVerticalGrid(
             columns = GridCells.Fixed(4),
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(
                 items = pageContext.illustratorContexts,
             ) {
                 IllustratorCard(
-                    it
+                    it,
                 )
             }
         }
@@ -137,17 +142,21 @@ private fun IllustratorCard(
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1f)
+            .aspectRatio(1f),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(
+                8.dp,
+                alignment = Alignment.CenterVertically
+            ),
         ) {
             Box(
-                modifier = Modifier.weight(0.4f)
+                modifier = Modifier.weight(0.4f),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = illustratorContext?.illustrator?.name ?: "Loading...",
@@ -156,22 +165,23 @@ private fun IllustratorCard(
             }
 
             Box(
-                modifier = Modifier.weight(0.6f)
+                modifier = Modifier.weight(0.6f),
+                contentAlignment = Alignment.Center
             ) {
                 LazyRow(
                     modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     items(
-                        illustratorContext?.picCaches.orEmpty()
+                        illustratorContext?.picCaches.orEmpty(),
                     ) { cacheReq ->
                         AsyncImage(
                             cacheReq,
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .clip(RoundedCornerShape(8.dp))
-
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
                         )
                     }
                 }
@@ -179,4 +189,3 @@ private fun IllustratorCard(
         }
     }
 }
-

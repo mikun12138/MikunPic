@@ -31,6 +31,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.shared.generated.resources.Res
 import me.mikun.mikunpic.shared.generated.resources.rua
@@ -45,20 +47,6 @@ fun PageApi() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        AsyncImage(
-            LocalConfig.bg.home.api,
-            null,
-            modifier = Modifier.fillMaxSize()
-            ,
-            contentScale = ContentScale.Crop
-        )
-
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.3f))
-        )
-
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.98f)

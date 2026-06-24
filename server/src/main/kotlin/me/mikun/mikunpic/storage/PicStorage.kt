@@ -13,12 +13,12 @@ sealed class PicStorage {
         object : CopyOnWriteArraySet<String>() {
 
             private fun isValid(e: String?): Boolean = e != null &&
-                    FileExtension.image.any {
-                        e.endsWith(
-                            it,
-                            ignoreCase = true,
-                        )
-                    }
+                FileExtension.image.any {
+                    e.endsWith(
+                        it,
+                        ignoreCase = true,
+                    )
+                }
 
             override fun add(e: String?): Boolean = isValid(e) && super.add(e)
 
@@ -78,7 +78,7 @@ sealed class PicStorage {
             thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Orig,
         ): InputStream? = delegate.byName(
             name,
-            thumbnail
+            thumbnail,
         )
     }
 
@@ -95,5 +95,4 @@ sealed class PicStorage {
         byteArray: ByteArray,
         filename: String,
     )
-
 }

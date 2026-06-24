@@ -4,7 +4,6 @@ import io.ktor.server.application.log
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.application
 import io.ktor.util.Digest
-import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
@@ -21,11 +20,8 @@ import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
 import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
-import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.modules.db
 import me.mikun.mikunpic.storage.PicStorage
-import me.mikun.mikunpic.storage.PicStorageCos
-import me.mikun.mikunpic.storage.PicStorageLocal
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.Random
@@ -51,7 +47,6 @@ suspend fun Route.uploadPic(
     tags: List<String> = emptyList(),
     uploadFile: Boolean = true,
 ) {
-
     try {
         val hash = Digest("md5").let {
             it += byteArray
@@ -65,8 +60,6 @@ suspend fun Route.uploadPic(
             )
         }
 
-        application.log.error(illustrator.toString())
-
         transaction {
             val illustratorEntity: IllustratorEntity? = illustrator?.let {
                 it.id?.let { id ->
@@ -77,21 +70,20 @@ suspend fun Route.uploadPic(
                             otherTable = Illustrator2PlatformKeysTable,
                             joinType = JoinType.LEFT,
                             onColumn = IllustratorTable.id,
-                            otherColumn = Illustrator2PlatformKeysTable.illustrator
+                            otherColumn = Illustrator2PlatformKeysTable.illustrator,
                         ).join(
                             otherTable = PlatformKeyTable,
                             joinType = JoinType.LEFT,
                             onColumn = Illustrator2PlatformKeysTable.platformkey,
-                            otherColumn = PlatformKeyTable.id
+                            otherColumn = PlatformKeyTable.id,
                         ).select(IllustratorTable.columns)
                             .apply {
                                 platformKeyMap.forEach { (platform, key) ->
                                     orWhere {
-                                        (PlatformKeyTable.platform eq platform
-                                                ) and (PlatformKeyTable.key eq key)
+                                        (PlatformKeyTable.platform eq platform) and (PlatformKeyTable.key eq key)
                                     }
                                 }
-                            }
+                            },
                     ).firstOrNull()
                 } ?: illustrator.name?.let { name ->
                     IllustratorEntity.new {
@@ -103,7 +95,7 @@ suspend fun Route.uploadPic(
                                         this.platform = platform
                                         this.key = key
                                     }
-                                }
+                                },
                             )
                     }
                 }
@@ -129,12 +121,11 @@ suspend fun Route.uploadPic(
     } catch (e: Exception) {
         application.log.error("failed to upload pic $filename : $e")
     }
-
 }
 
 suspend fun randomPic(
     count: Int,
-    illustrators: Set<String?>,
+    illustratorIds: Set<Int?>,
     tags: Set<String?> = setOf(),
 ): List<Pic> = transaction {
     PicEntity.wrapRows(
@@ -142,32 +133,34 @@ suspend fun randomPic(
             otherTable = Pic2IllustratorTable,
             joinType = JoinType.LEFT,
             onColumn = PicTable.id,
-            otherColumn = Pic2IllustratorTable.picId
+            otherColumn = Pic2IllustratorTable.picId,
         ).join(
             otherTable = IllustratorTable,
             joinType = JoinType.LEFT,
             onColumn = Pic2IllustratorTable.illustratorId,
-            otherColumn = IllustratorTable.id
+            otherColumn = IllustratorTable.id,
         ).join(
             otherTable = Pic2TagsTable,
             joinType = JoinType.LEFT,
             onColumn = PicTable.id,
-            otherColumn = Pic2TagsTable.picId
+            otherColumn = Pic2TagsTable.picId,
         ).join(
             otherTable = TagTable,
             joinType = JoinType.LEFT,
             onColumn = Pic2TagsTable.tagId,
-            otherColumn = TagTable.id
+            otherColumn = TagTable.id,
         )
             .select(PicTable.columns)
-            .apply { // with effect so
-                if (illustrators.isNotEmpty()) {
+            .apply {
+                // with effect so
+                if (illustratorIds.isNotEmpty()) {
                     andWhere {
                         var op: Op<Boolean> =
-                            (IllustratorTable.name inList illustrators.filterNotNull())
+                            (IllustratorTable.id inList illustratorIds.filterNotNull())
 
-                        if (illustrators.contains(null))
-                            op = op or IllustratorTable.name.isNull()
+                        if (illustratorIds.contains(null)) {
+                            op = op or IllustratorTable.id.isNull()
+                        }
 
                         op
                     }
@@ -178,14 +171,15 @@ suspend fun randomPic(
                         var op: Op<Boolean> =
                             TagTable.name inList tags.filterNotNull()
 
-                        if (tags.contains(null))
+                        if (tags.contains(null)) {
                             op = op or TagTable.name.isNull()
+                        }
 
                         op
                     }
                 }
             }
-            .withDistinct()
+            .withDistinct(),
 
     )
         .limit(count)
@@ -217,7 +211,6 @@ suspend fun updatePic(
         newTags.forEach { println(it.name) }
 
         picEntity.tags = SizedCollection(tagsInTable + newTags)
-
     }
 }
 
@@ -237,7 +230,7 @@ suspend fun searchIllustrator(
                     id = it.id.value,
                     name = it.name,
                     // TODO:: return platform key
-                    emptyMap()
+                    emptyMap(),
                 )
             }
     } else {
@@ -251,7 +244,7 @@ suspend fun searchIllustrator(
                     id = it.id.value,
                     name = it.name,
                     // TODO:: return platform key
-                    emptyMap()
+                    emptyMap(),
                 )
             }
     }
@@ -280,16 +273,14 @@ suspend fun randomIllustrator(
 
 suspend fun selectIllustrator(
     illustratorId: Int,
-): Illustrator? {
-    return transaction {
-        IllustratorEntity.findById(illustratorId)?.let {
-            Illustrator(
-                id = illustratorId,
-                name = it.name,
-                // TODO:: return platform key
-                emptyMap()
-            )
-        }
+): Illustrator? = transaction {
+    IllustratorEntity.findById(illustratorId)?.let {
+        Illustrator(
+            id = illustratorId,
+            name = it.name,
+            // TODO:: return platform key
+            emptyMap(),
+        )
     }
 }
 
@@ -332,8 +323,7 @@ suspend fun Route.sync() {
         uploadPic(
             byteArray = PicStorage.byName(it)!!.toByteReadChannel().readRemaining().readByteArray(),
             filename = it,
-            uploadFile = false
+            uploadFile = false,
         )
     }
 }
-

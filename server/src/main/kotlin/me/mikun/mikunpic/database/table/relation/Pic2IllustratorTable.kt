@@ -8,11 +8,11 @@ import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 object Pic2IllustratorTable : IntIdTable("pic2illustrator") {
 
     val picId =
-            reference(
-                "pic_id",
-                PicTable,
-                onDelete = ReferenceOption.CASCADE,
-            ).uniqueIndex()
+        reference(
+            "pic_id",
+            PicTable,
+            onDelete = ReferenceOption.CASCADE,
+        ).uniqueIndex()
 
     val illustratorId =
         reference(

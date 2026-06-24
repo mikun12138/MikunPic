@@ -16,7 +16,6 @@ import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
-import me.mikun.mikunpic.operator.sync
 import me.mikun.mikunpic.operator.backup
 import me.mikun.mikunpic.operator.createIllustrator
 import me.mikun.mikunpic.operator.createTag
@@ -25,12 +24,12 @@ import me.mikun.mikunpic.operator.randomPic
 import me.mikun.mikunpic.operator.searchIllustrator
 import me.mikun.mikunpic.operator.searchTag
 import me.mikun.mikunpic.operator.selectIllustrator
+import me.mikun.mikunpic.operator.sync
 import me.mikun.mikunpic.operator.updatePic
 import me.mikun.mikunpic.operator.uploadPic
 import me.mikun.mikunpic.utils.mapToNullable
 
 fun Route.manage() {
-
     fun pic() {
         post<OhMyRouting.Manage.Pic.Upload> {
             val multipart = call.receiveMultipart()
@@ -43,7 +42,6 @@ fun Route.manage() {
                     is PartData.FileItem -> {
                         byteArray = part.provider().readRemaining().readByteArray()
                         filename = part.originalFileName
-
                     }
 
                     is PartData.FormItem -> {
@@ -67,8 +65,6 @@ fun Route.manage() {
                 byteArray,
                 filename!!,
                 illustrator,
-                // TODO:: temp test
-                uploadFile = false
             )
 
             call.respond(
@@ -79,13 +75,13 @@ fun Route.manage() {
         get<OhMyRouting.Manage.Pic.Random> { req ->
             randomPic(
                 req.count,
-                req.illustrators.mapToNullable().toSet(),
+                req.illustratorIds.toSet(),
                 req.tags.mapToNullable().toSet(),
             ).let {
                 call.respond(
                     OhMyRouting.Manage.Pic.Random.Response(
                         it,
-                    )
+                    ),
                 )
             }
         }
@@ -108,7 +104,7 @@ fun Route.manage() {
 
         get<OhMyRouting.Manage.Illustrator.Random> { req ->
             randomIllustrator(
-                req.count
+                req.count,
             ).let {
                 call.respond(
                     OhMyRouting.Manage.Illustrator.Random.Response(
@@ -122,7 +118,7 @@ fun Route.manage() {
             searchIllustrator(
                 count = req.count,
                 keyword = req.keyword,
-                page = req.page
+                page = req.page,
             ).let {
                 call.respond(
                     OhMyRouting.Manage.Illustrator.Search.Response(
@@ -134,12 +130,12 @@ fun Route.manage() {
 
         get<OhMyRouting.Manage.Illustrator.IllustratorId> { req ->
             selectIllustrator(
-                req.illustratorId
+                req.illustratorId,
             )?.let {
                 call.respond(
                     OhMyRouting.Manage.Illustrator.IllustratorId.Response(
-                        it
-                    )
+                        it,
+                    ),
                 )
             } ?: call.respond(HttpStatusCode.NotFound)
         }
@@ -184,6 +180,4 @@ fun Route.manage() {
         }
         call.respond(HttpStatusCode.OK)
     }
-
-
 }

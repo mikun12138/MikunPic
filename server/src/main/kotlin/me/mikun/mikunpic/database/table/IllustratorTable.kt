@@ -8,5 +8,4 @@ object IllustratorTable : IntIdTable("illustrator") {
             "name",
             128,
         )
-
 }

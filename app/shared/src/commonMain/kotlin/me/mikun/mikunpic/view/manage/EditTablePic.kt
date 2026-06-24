@@ -48,13 +48,15 @@ import androidx.compose.ui.layout.ContentScale.Companion
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import coil3.size.Precision
 import coil3.size.Size
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.client.Client
+import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
-
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -64,6 +66,12 @@ fun EditTablePic() {
     val localPlatformContext = LocalPlatformContext.current
 
     var picOnTable by remember { mutableStateOf<Pic?>(null) }
+    LaunchedEffect(Unit) {
+        picOnTable = Client.randomPic(
+            1,
+        ).pics.firstOrNull()
+    }
+
     val editContext = object {
         var illustrator by remember(picOnTable) { mutableStateOf(picOnTable?.illustrator) }
         var tags =
@@ -71,14 +79,14 @@ fun EditTablePic() {
         var isEdited = remember(
             picOnTable,
             illustrator,
-            tags
+            tags,
         ) {
             derivedStateOf {
-                picOnTable != null
-                        && (
-                        picOnTable?.illustrator != illustrator
-                                || picOnTable?.tags?.toSet() != tags.toSet()
-                        )
+                picOnTable != null &&
+                        (
+                                picOnTable?.illustrator != illustrator ||
+                                        picOnTable?.tags?.toSet() != tags.toSet()
+                                )
             }
         }
     }
@@ -88,23 +96,29 @@ fun EditTablePic() {
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-
             HeaderSelection(
+                onSelectionRandom = {
+                    scope.launch {
+                        picOnTable = Client.randomPic(
+                            1,
+                        ).pics.firstOrNull()
+                        println(picOnTable?.filename)
+                    }
+                },
                 onSelectionNoAuthor = {
                     scope.launch {
                         picOnTable = Client.randomPic(
                             1,
-                            illustrators = listOf("")
-
+                            illustrators = listOf(Illustrator.UnExist),
                         ).pics.firstOrNull()
                     }
                 },
@@ -112,17 +126,10 @@ fun EditTablePic() {
                     scope.launch {
                         picOnTable = Client.randomPic(
                             1,
-                            tags = listOf("")
+                            tags = listOf(""),
                         ).pics.firstOrNull()
                     }
                 },
-                onSelectionRandom = {
-                    scope.launch {
-                        picOnTable = Client.randomPic(
-                            1,
-                        ).pics.firstOrNull()
-                    }
-                }
             )
 
             if (picOnTable != null) {
@@ -134,8 +141,10 @@ fun EditTablePic() {
                         ImageRequest.Builder(localPlatformContext)
                             .data("${Client.baseUrl}/pic/${picOnTable?.filename}")
                             .size(Size.ORIGINAL)
+                            .memoryCachePolicy(CachePolicy.DISABLED)
+                            .diskCachePolicy(CachePolicy.DISABLED)
 //                            .precision(Precision.EXACT)
-                            .build()
+                            .build(),
                     )
                 }
 
@@ -244,12 +253,11 @@ fun EditTablePic() {
                     }
                 },
                 picTags = picOnTable?.tags,
-                editContextTags = editContext.tags
+                editContextTags = editContext.tags,
             )
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -294,7 +302,7 @@ private fun ColumnScope.EditPicIllustratorSheet(
     Box(
         modifier = Modifier
             .fillMaxWidth(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         SearchBar(
             searchBarState,
@@ -314,7 +322,7 @@ private fun ColumnScope.EditPicIllustratorSheet(
                         }
                     },
                 )
-            }
+            },
         )
     }
 
@@ -330,7 +338,6 @@ private fun ColumnScope.EditPicIllustratorSheet(
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -381,10 +388,9 @@ private fun ColumnScope.EditPicTagsSheet(
             ElevatedAssistChip(
                 onClick = { },
                 label = { },
-                modifier = Modifier.alpha(0.0f)
+                modifier = Modifier.alpha(0.0f),
             )
         } else {
-
             /*
                 unchange
              */
@@ -403,8 +409,8 @@ private fun ColumnScope.EditPicTagsSheet(
                     onClick = { onEditTag(it) },
                     label = { Text(it) },
                     colors = AssistChipDefaults.elevatedAssistChipColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    )
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ),
                 )
             }
 
@@ -416,12 +422,10 @@ private fun ColumnScope.EditPicTagsSheet(
                     onClick = { onEditTag(it) },
                     label = { Text(it) },
                     colors = AssistChipDefaults.elevatedAssistChipColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    )
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                    ),
                 )
             }
-
-
         }
     }
 
@@ -443,9 +447,9 @@ private fun ColumnScope.EditPicTagsSheet(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun HeaderSelection(
+    onSelectionRandom: () -> Unit,
     onSelectionNoAuthor: () -> Unit,
     onSelectionNoTag: () -> Unit,
-    onSelectionRandom: () -> Unit,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -461,10 +465,10 @@ private fun HeaderSelection(
                             checked = selectedIndex == index,
                             onCheckedChange = {
                                 selectedIndex = index
-                                onSelectionNoAuthor()
+                                onSelectionRandom()
                             },
                         ) {
-                            Text("No author")
+                            Text("Random")
                         }
                     }
 
@@ -473,10 +477,10 @@ private fun HeaderSelection(
                             checked = selectedIndex == index,
                             onCheckedChange = {
                                 selectedIndex = index
-                                onSelectionNoTag()
+                                onSelectionNoAuthor()
                             },
                         ) {
-                            Text("No tag")
+                            Text("No author")
                         }
                     }
 
@@ -485,10 +489,10 @@ private fun HeaderSelection(
                             checked = selectedIndex == index,
                             onCheckedChange = {
                                 selectedIndex = index
-                                onSelectionRandom()
+                                onSelectionNoTag()
                             },
                         ) {
-                            Text("Random")
+                            Text("No tag")
                         }
                     }
 
@@ -501,7 +505,6 @@ private fun HeaderSelection(
             it()
         }
     }
-
 }
 
 @Composable
@@ -513,7 +516,6 @@ private fun PicShowingTable(
         contentDescription = null,
         modifier = Modifier
             .fillMaxSize(),
-        contentScale = ContentScale.Fit
+        contentScale = ContentScale.Fit,
     )
 }
-

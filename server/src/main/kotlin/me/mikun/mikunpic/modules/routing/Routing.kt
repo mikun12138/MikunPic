@@ -15,9 +15,7 @@ fun Application.configureRouting() {
             call.respond(HttpStatusCode.OK)
         }
         manage()
-        
+
 //        }
     }
 }
-
-

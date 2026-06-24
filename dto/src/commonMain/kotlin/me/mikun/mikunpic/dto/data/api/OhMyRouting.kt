@@ -31,7 +31,7 @@ interface OhMyRouting {
                 Small,
                 Medium,
                 Large,
-                Orig
+                Orig,
             }
         }
     }
@@ -52,7 +52,7 @@ interface OhMyRouting {
             @Resource("/random")
             data class Random(
                 val count: Int,
-                val illustrators: QueryParameterList<String> = emptyList(),
+                val illustratorIds: QueryParameterList<Int> = emptyList(),
                 val tags: QueryParameterList<String> = emptyList(),
             ) : OhMyRouting {
                 override val parent = Pic()
@@ -131,7 +131,6 @@ interface OhMyRouting {
                     val illustrator: me.mikun.mikunpic.dto.data.Illustrator,
                 )
             }
-
         }
 
         @Resource("/tag")

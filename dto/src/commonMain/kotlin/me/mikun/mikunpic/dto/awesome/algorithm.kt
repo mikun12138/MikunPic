@@ -24,7 +24,7 @@ suspend fun <T> dfs(
             stack.addAll(
                 grow(last).asReversed().map {
                     it to path + it
-                }
+                },
             )
         }
     }
@@ -52,7 +52,7 @@ suspend fun <T> dfs(
             finBlock(last)
         } else {
             stack.addAll(
-                grow(last).asReversed()
+                grow(last).asReversed(),
             )
         }
     }

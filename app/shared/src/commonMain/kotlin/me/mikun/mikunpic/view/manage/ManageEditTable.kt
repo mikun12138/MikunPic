@@ -78,14 +78,13 @@ import kotlin.repeat
 private enum class Edit {
     Pic,
     Illustrator,
-    Tag
+    Tag,
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 @Preview
 fun BoxScope.EditTable() {
-
     var isFloatingActionButtonMenuExpand by remember { mutableStateOf(false) }
     var editType by remember { mutableStateOf(Edit.Pic) }
 
@@ -98,11 +97,10 @@ fun BoxScope.EditTable() {
                         checked = isFloatingActionButtonMenuExpand,
                         onCheckedChange = {
                             isFloatingActionButtonMenuExpand = it
-                        }
+                        },
                     ) {
-
                     }
-                }
+                },
             ) {
                 FloatingActionButtonMenuItem(
                     onClick = {
@@ -114,9 +112,9 @@ fun BoxScope.EditTable() {
                     icon = {
                         Icon(
                             Icons.Default.ArtTrack,
-                            null
+                            null,
                         )
-                    }
+                    },
                 )
 
                 FloatingActionButtonMenuItem(
@@ -129,9 +127,9 @@ fun BoxScope.EditTable() {
                     icon = {
                         Icon(
                             Icons.Default.PersonSearch,
-                            null
+                            null,
                         )
-                    }
+                    },
                 )
 
                 FloatingActionButtonMenuItem(
@@ -144,13 +142,12 @@ fun BoxScope.EditTable() {
                     icon = {
                         Icon(
                             Icons.Default.Bookmark,
-                            null
+                            null,
                         )
-                    }
+                    },
                 )
-
             }
-        }
+        },
     ) {
         when (editType) {
             Edit.Pic -> {
@@ -163,10 +160,5 @@ fun BoxScope.EditTable() {
 
             else -> {}
         }
-
     }
 }
-
-
-
-

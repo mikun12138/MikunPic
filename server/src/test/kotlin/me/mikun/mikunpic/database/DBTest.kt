@@ -18,9 +18,9 @@ import io.ktor.utils.io.streams.asInput
 import kotlinx.coroutines.runBlocking
 import me.mikun.mikunpic.Sandbox
 import me.mikun.mikunpic.database.table.IllustratorTable
-import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
 import me.mikun.mikunpic.database.table.PicTable
 import me.mikun.mikunpic.database.table.TagTable
+import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
 import me.mikun.mikunpic.storage.PicStorage
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database

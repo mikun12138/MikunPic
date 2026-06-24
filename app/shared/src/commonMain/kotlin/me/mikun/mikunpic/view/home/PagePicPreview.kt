@@ -1,7 +1,11 @@
 package me.mikun.mikunpic.view.home
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import coil3.compose.LocalPlatformContext
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.CachePolicy
@@ -44,9 +48,13 @@ fun PagePicPreview(
             },
         )
     }
-
-    PicCarousel(
-        painters = painters,
-        startFadeInTrigger = startFadeInTrigger,
-    )
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        PicCarousel(
+            painters = painters,
+            startFadeInTrigger = startFadeInTrigger,
+        )
+    }
 }

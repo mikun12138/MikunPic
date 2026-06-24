@@ -17,7 +17,8 @@ var LocalConfig
 data class Config(
     val server: String = "http://127.0.0.1:8080",
     val bg: Bg = Bg(
-        home = Bg.Home(), manage = Bg.Manage()
+        home = Bg.Home(),
+        manage = Bg.Manage(),
     ),
 ) {
     @Serializable
@@ -27,14 +28,12 @@ data class Config(
     ) {
         @Serializable
         data class Home(
-            val api: String = "https://mikunpic-1324551995.cos.ap-shanghai.myqcloud.com/122763115_p0.jpg",
+            val api: String = "https://mikunpic-1324551995.cos.ap-shanghai.myqcloud.com/78544928_p0.jpg",
         )
 
         @Serializable
         data class Manage(
-            val upload: String = "https://mikunpic-1324551995.cos.ap-shanghai.myqcloud.com/122763115_p1.jpg",
-            val editTable: String = "https://mikunpic-1324551995.cos.ap-shanghai.myqcloud.com/122763115_p2.jpg",
+            val upload: String = "https://mikunpic-1324551995.cos.ap-shanghai.myqcloud.com/93291422_p0.jpg",
         )
     }
 }
-

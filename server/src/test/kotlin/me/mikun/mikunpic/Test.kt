@@ -17,5 +17,4 @@ class Test {
     @Test
     fun test() {
     }
-
 }

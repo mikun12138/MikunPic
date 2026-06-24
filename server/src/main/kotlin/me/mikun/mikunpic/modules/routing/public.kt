@@ -23,7 +23,7 @@ fun Route.public() {
     get<OhMyRouting.Pic.Filename> { req ->
         PicStorage.byName(
             req.filename,
-            req.thumbnail
+            req.thumbnail,
         )?.let {
             call.respondBytes {
                 it.readBytes()

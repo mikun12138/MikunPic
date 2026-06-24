@@ -13,8 +13,8 @@ import me.mikun.mikunpic.modules.configureHTTP
 import me.mikun.mikunpic.modules.configureOpenApi
 import me.mikun.mikunpic.modules.configureRateLimit
 import me.mikun.mikunpic.modules.configureResources
-import me.mikun.mikunpic.modules.routing.configureRouting
 import me.mikun.mikunpic.modules.configureSerialization
+import me.mikun.mikunpic.modules.routing.configureRouting
 import me.mikun.mikunpic.storage.PicStorage
 
 fun main(args: Array<String>) {

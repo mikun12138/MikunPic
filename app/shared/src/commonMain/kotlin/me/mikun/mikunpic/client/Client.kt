@@ -13,10 +13,8 @@ import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
-import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.readBytes
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
@@ -77,7 +75,7 @@ object Client {
         illustrator: Illustrator?,
     ) {
         httpClient.post(
-            OhMyRouting.Manage.Pic.Upload()
+            OhMyRouting.Manage.Pic.Upload(),
         ) {
             setBody(
                 MultiPartFormDataContent(
@@ -87,7 +85,7 @@ object Client {
                             Headers.build {
                                 append(
                                     HttpHeaders.ContentDisposition,
-                                    """form-data; name="file"; filename="$picName""""
+                                    """form-data; name="file"; filename="$picName"""",
                                 )
                             },
                         ) {
@@ -103,19 +101,18 @@ object Client {
                                 headers = Headers.build {
                                     append(
                                         HttpHeaders.ContentType,
-                                        ContentType.Application.Json.toString()
+                                        ContentType.Application.Json.toString(),
                                     )
-                                }
+                                },
                             )
                         }
-                    }
-                )
+                    },
+                ),
             )
         }
     }
 
-    suspend fun sync(
-    ) = httpClient.post(OhMyRouting.Manage.Sync())
+    suspend fun sync() = httpClient.post(OhMyRouting.Manage.Sync())
 
     suspend fun fetchPic(
         filename: String,
@@ -123,22 +120,22 @@ object Client {
     ) = httpClient.get(
         OhMyRouting.Pic.Filename(
             filename,
-            thumbnail
-        )
+            thumbnail,
+        ),
     ).let {
         it.readRawBytes()
     }
 
     suspend fun randomPic(
         count: Int = 1,
-        illustrators: List<String> = emptyList(),
+        illustrators: List<Illustrator> = emptyList(),
         tags: List<String> = emptyList(),
     ): OhMyRouting.Manage.Pic.Random.Response = httpClient
         .get(
             OhMyRouting.Manage.Pic.Random(
                 count = count,
-                illustrators = illustrators,
-                tags = tags
+                illustratorIds = illustrators.mapNotNull { it.id },
+                tags = tags,
             ),
         ).let {
             it.body<OhMyRouting.Manage.Pic.Random.Response>()
@@ -166,7 +163,7 @@ object Client {
             OhMyRouting.Manage.Illustrator.Search(
                 count = count,
                 keyword = keyword,
-                page = page
+                page = page,
             ),
         ).let {
             it.body<OhMyRouting.Manage.Illustrator.Search.Response>()
@@ -185,14 +182,13 @@ object Client {
             it.body<OhMyRouting.Manage.Tag.Search.Response>()
         }
 
-    suspend fun selectIllustrator(id: Int): Illustrator? =
-        httpClient
-            .get(
-                OhMyRouting.Manage.Illustrator.IllustratorId(id)
-            ).let {
-                when (it.status) {
-                    HttpStatusCode.OK -> it.body<OhMyRouting.Manage.Illustrator.IllustratorId.Response>().illustrator
-                    else -> null
-                }
+    suspend fun selectIllustrator(id: Int): Illustrator? = httpClient
+        .get(
+            OhMyRouting.Manage.Illustrator.IllustratorId(id),
+        ).let {
+            when (it.status) {
+                HttpStatusCode.OK -> it.body<OhMyRouting.Manage.Illustrator.IllustratorId.Response>().illustrator
+                else -> null
             }
+        }
 }

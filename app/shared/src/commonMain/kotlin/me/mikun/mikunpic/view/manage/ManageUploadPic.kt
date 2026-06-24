@@ -54,7 +54,7 @@ private class PlaceHolder(
         IllustratorName,
         IllustratorPixiv,
         IllustratorTwitter,
-        Filename
+        Filename,
     }
 }
 
@@ -64,21 +64,19 @@ private fun makeUploadRule(s: String): List<PlaceHolder> {
     return split.map {
         PlaceHolder(
             type =
-                if (it.startsWith("{") and it.endsWith("}")) {
-                    when (it.removePrefix("{").removeSuffix("}")) {
-                        "illustrator_name" -> PlaceHolder.Type.IllustratorName
-                        "pixiv" -> PlaceHolder.Type.IllustratorPixiv
-                        "twitter" -> PlaceHolder.Type.IllustratorTwitter
-                        "filename" -> PlaceHolder.Type.Filename
-                        else -> PlaceHolder.Type.Simple
-                    }
-                } else {
-                    PlaceHolder.Type.Simple
+            if (it.startsWith("{") and it.endsWith("}")) {
+                when (it.removePrefix("{").removeSuffix("}")) {
+                    "illustrator_name" -> PlaceHolder.Type.IllustratorName
+                    "pixiv" -> PlaceHolder.Type.IllustratorPixiv
+                    "twitter" -> PlaceHolder.Type.IllustratorTwitter
+                    "filename" -> PlaceHolder.Type.Filename
+                    else -> PlaceHolder.Type.Simple
                 }
+            } else {
+                PlaceHolder.Type.Simple
+            },
         )
-
     }
-
 }
 
 private val uploadRule = makeUploadRule("{illustrator_name}/{pixiv}/{filename}")
@@ -98,16 +96,15 @@ fun BoxScope.ManageOverview() {
     Column(
         modifier = Modifier
             .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-
         Row(
             modifier = Modifier.weight(0.5f),
             horizontalArrangement = Arrangement.spacedBy(
                 8.dp,
-                alignment = Alignment.CenterHorizontally
+                alignment = Alignment.CenterHorizontally,
             ),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             val buttonCount = 5
             val buttonIcons = listOf(
@@ -115,7 +112,7 @@ fun BoxScope.ManageOverview() {
                 Icons.Default.LibraryMusic,
                 Icons.Default.GraphicEq,
                 Icons.Default.Album,
-                Icons.AutoMirrored.Filled.QueueMusic
+                Icons.AutoMirrored.Filled.QueueMusic,
             )
 
             repeat(buttonCount) { index ->
@@ -129,20 +126,19 @@ fun BoxScope.ManageOverview() {
                     },
                     modifier = Modifier
                         .size(128.dp)
-                        .blur((opdeque.count { it == index } * 1.5f).dp)
+                        .blur((opdeque.count { it == index } * 1.5f).dp),
                 ) {
                     Icon(
                         buttonIcons[index],
                         contentDescription = null,
-                        modifier = Modifier.size(64.dp)
+                        modifier = Modifier.size(64.dp),
                     )
-
                 }
             }
         }
 
         Box(
-            modifier = Modifier.weight(0.5f)
+            modifier = Modifier.weight(0.5f),
         ) {
             when (opdeque.joinToString("")) {
                 "22222" -> {
@@ -195,6 +191,7 @@ fun BoxScope.ManageOverview() {
                                         for (i in 0 until path.size) {
                                             when (uploadRule[i].type) {
                                                 PlaceHolder.Type.Simple -> {}
+
                                                 PlaceHolder.Type.IllustratorName -> {
                                                     illustratorName = dirnames[i]
                                                 }
@@ -218,15 +215,15 @@ fun BoxScope.ManageOverview() {
                                                 illustratorTwitter?.let {
                                                     put(
                                                         Platform.Twitter,
-                                                        it
+                                                        it,
                                                     )
                                                 }
-                                            }
+                                            },
                                         )
                                         Client.uploadPic(
                                             file.name,
                                             file.readBytes(),
-                                            illustrator = illustrator
+                                            illustrator = illustrator,
                                         )
                                     }
                                 }
@@ -240,6 +237,5 @@ fun BoxScope.ManageOverview() {
                 else -> {}
             }
         }
-
     }
 }

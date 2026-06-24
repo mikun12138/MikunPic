@@ -91,17 +91,13 @@ fun PicCarousel(
 
     fun shouldLoad(index: Int): Boolean = abs(index - currentItem) <= 2
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-    ) {
+    Box {
         HorizontalCenteredHeroCarousel(
             state = carouselState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(8.dp),
-            itemSpacing = 8.dp,
         ) { index ->
-
             val realIndex =
                 index % actualSize
 

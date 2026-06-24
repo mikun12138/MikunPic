@@ -93,8 +93,8 @@ class PicStorageCos : PicStorage() {
         return cosClient.getObject(
             GetObjectRequest(
                 bucket.name,
-                reqKey
-            )
+                reqKey,
+            ),
         ).objectContent
     }
 
@@ -116,13 +116,11 @@ class PicStorageCos : PicStorage() {
         cosClient.putObject(request)
     }
 
-    private fun OhMyRouting.Pic.Filename.Thumbnail.asParam(): String {
-        return when(this) {
-            OhMyRouting.Pic.Filename.Thumbnail.Thumb -> "/thumb"
-            OhMyRouting.Pic.Filename.Thumbnail.Small -> "/small"
-            OhMyRouting.Pic.Filename.Thumbnail.Medium -> "/medium"
-            OhMyRouting.Pic.Filename.Thumbnail.Large -> "/large"
-            OhMyRouting.Pic.Filename.Thumbnail.Orig -> ""
-        }
+    private fun OhMyRouting.Pic.Filename.Thumbnail.asParam(): String = when (this) {
+        OhMyRouting.Pic.Filename.Thumbnail.Thumb -> "/thumb"
+        OhMyRouting.Pic.Filename.Thumbnail.Small -> "/small"
+        OhMyRouting.Pic.Filename.Thumbnail.Medium -> "/medium"
+        OhMyRouting.Pic.Filename.Thumbnail.Large -> "/large"
+        OhMyRouting.Pic.Filename.Thumbnail.Orig -> ""
     }
 }

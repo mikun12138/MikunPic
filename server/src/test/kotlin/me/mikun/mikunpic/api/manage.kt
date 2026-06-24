@@ -63,7 +63,7 @@ class Test {
             OhMyRouting.Manage.Illustrator.Search(
                 count = 5,
                 keyword = "a",
-                page = 0
+                page = 0,
             ),
         ).let {
             println(it.body<OhMyRouting.Manage.Illustrator.Search.Response>())
@@ -106,13 +106,11 @@ class Test {
                 )
             }
         }
-
     }
 
     @Test
     fun testTagCreate() = ohMyTest {
         val tags = generateSequence("oi") { it + "oi" }
-
 
         tags.take(16).forEach { tag ->
             client.post(
@@ -135,7 +133,7 @@ class Test {
             OhMyRouting.Manage.Pic.Random(
                 114514,
                 listOf("", "a"),
-                emptyList()
+                emptyList(),
             ),
         ).let {
             println(it.call.request.url)
@@ -148,7 +146,7 @@ class Test {
     @Test
     fun testBackup() = ohMyTest {
         client.post(
-            OhMyRouting.Manage.Backup()
+            OhMyRouting.Manage.Backup(),
         )
     }
 
@@ -156,10 +154,9 @@ class Test {
     fun testSync() = ohMyTest {
         // TODO:: fix 1 min limit
         client.post(
-            OhMyRouting.Manage.Sync()
+            OhMyRouting.Manage.Sync(),
         )
 
         delay(1000 * 60 * 5)
     }
-
 }
