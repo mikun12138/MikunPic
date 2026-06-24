@@ -148,7 +148,7 @@ suspend fun randomPic(
             joinType = JoinType.LEFT,
             onColumn = Pic2IllustratorTable.illustratorId,
             otherColumn = IllustratorTable.id
-        ).join( // TODO:: make it separate
+        ).join(
             otherTable = Pic2TagsTable,
             joinType = JoinType.LEFT,
             onColumn = PicTable.id,

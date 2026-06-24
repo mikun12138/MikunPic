@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Illustrator(
-    val id: Int?,
+    val id: Int? = null,
     val name: String?,
     val platformKeyMap: Map<Platform, String>,
 )
