@@ -6,7 +6,7 @@ import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import me.mikun.mikunpic.LocalConfig
+import me.mikun.mikunpic.LocalPref
 import me.mikun.mikunpic.component.SimpleBgBox
 import me.mikun.mikunpic.view.manage.EditTable
 import me.mikun.mikunpic.view.manage.ManageOverview
@@ -16,7 +16,7 @@ fun Manage() {
     val pages = listOf<@Composable () -> Unit>(
         {
             SimpleBgBox(
-                LocalConfig.bg.manage.upload,
+                LocalPref.bg.manage.upload,
             ) {
                 ManageOverview()
             }

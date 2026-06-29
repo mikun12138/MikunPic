@@ -54,6 +54,7 @@ import coil3.request.crossfade
 import coil3.size.Precision
 import coil3.size.Size
 import kotlinx.coroutines.launch
+import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
@@ -139,7 +140,7 @@ fun EditTablePic() {
                 ) {
                     PicShowingTable(
                         ImageRequest.Builder(localPlatformContext)
-                            .data("${Client.baseUrl}/pic/${picOnTable?.filename}")
+                            .data("${LocalConfig.current.server}/pic/${picOnTable?.filename}")
                             .size(Size.ORIGINAL)
                             .memoryCachePolicy(CachePolicy.DISABLED)
                             .diskCachePolicy(CachePolicy.DISABLED)

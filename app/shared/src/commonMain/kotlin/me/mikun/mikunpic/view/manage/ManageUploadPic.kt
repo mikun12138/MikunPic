@@ -1,5 +1,9 @@
 package me.mikun.mikunpic.view.manage
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
@@ -64,17 +69,17 @@ private fun makeUploadRule(s: String): List<PlaceHolder> {
     return split.map {
         PlaceHolder(
             type =
-            if (it.startsWith("{") and it.endsWith("}")) {
-                when (it.removePrefix("{").removeSuffix("}")) {
-                    "illustrator_name" -> PlaceHolder.Type.IllustratorName
-                    "pixiv" -> PlaceHolder.Type.IllustratorPixiv
-                    "twitter" -> PlaceHolder.Type.IllustratorTwitter
-                    "filename" -> PlaceHolder.Type.Filename
-                    else -> PlaceHolder.Type.Simple
-                }
-            } else {
-                PlaceHolder.Type.Simple
-            },
+                if (it.startsWith("{") and it.endsWith("}")) {
+                    when (it.removePrefix("{").removeSuffix("}")) {
+                        "illustrator_name" -> PlaceHolder.Type.IllustratorName
+                        "pixiv" -> PlaceHolder.Type.IllustratorPixiv
+                        "twitter" -> PlaceHolder.Type.IllustratorTwitter
+                        "filename" -> PlaceHolder.Type.Filename
+                        else -> PlaceHolder.Type.Simple
+                    }
+                } else {
+                    PlaceHolder.Type.Simple
+                },
         )
     }
 }
@@ -115,6 +120,10 @@ fun BoxScope.ManageOverview() {
                 Icons.AutoMirrored.Filled.QueueMusic,
             )
 
+            val rotations = remember {
+                List(5) { Animatable(0f) }
+            }
+
             repeat(buttonCount) { index ->
                 IconButton(
                     onClick = {
@@ -122,10 +131,23 @@ fun BoxScope.ManageOverview() {
                             opdeque.removeFirst()
                         }
                         opdeque.add(index)
-                        println(opdeque)
+
+                        scope.launch {
+                            rotations[index].animateTo(
+                                targetValue = rotations[index].targetValue + 360f,
+                                animationSpec = tween(
+                                    durationMillis = 600,
+                                    easing = FastOutSlowInEasing
+                                )
+                            )
+                        }
+
                     },
                     modifier = Modifier
                         .size(128.dp)
+                        .graphicsLayer {
+                            rotationY = rotations[index].value
+                        }
                         .blur((opdeque.count { it == index } * 1.5f).dp),
                 ) {
                     Icon(

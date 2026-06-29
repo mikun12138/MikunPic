@@ -1,5 +1,6 @@
 package me.mikun.mikunpic.client
 
+import androidx.compose.runtime.Composable
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.DefaultRequest
@@ -25,49 +26,54 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.io.Buffer
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.LocalConfig
+import me.mikun.mikunpic.LocalPref
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 
-var localToken: String? = null
-
 object Client {
-    val baseUrl = LocalConfig.server
+    lateinit var httpClient: HttpClient
 
-    val httpClient =
-        HttpClient {
-            install(HttpRequestRetry) {
-                maxRetries = 3
+    @Composable
+    fun Init() {
+        val server = LocalConfig.current.server
+        httpClient =
+            HttpClient {
+                install(HttpRequestRetry) {
+                    maxRetries = 3
 
-                exponentialDelay()
+                    exponentialDelay()
 
-                retryOnExceptionIf { _, _ ->
-                    true
-                }
-            }
-
-            install(DefaultRequest) {
-                url(baseUrl)
-                header(
-                    HttpHeaders.CacheControl,
-                    "no-cache",
-                )
-            }
-
-            install(Auth) {
-                bearer {
-                    loadTokens {
-                        localToken?.let { BearerTokens(it, null) }
+                    retryOnExceptionIf { _, _ ->
+                        true
                     }
                 }
-            }
 
-            install(Resources)
+                install(DefaultRequest) {
+                    url(server)
+                    header(
+                        HttpHeaders.CacheControl,
+                        "no-cache",
+                    )
+                }
 
-            install(ContentNegotiation) {
-                json()
+                install(Auth) {
+                    bearer {
+                        loadTokens {
+                            LocalPref.token?.let {
+                                BearerTokens(it, null)
+                            }
+                        }
+                    }
+                }
+
+                install(Resources)
+
+                install(ContentNegotiation) {
+                    json()
+                }
             }
-        }
+    }
 
     suspend fun uploadPic(
         picName: String,

@@ -70,6 +70,8 @@ kotlin {
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
             implementation("com.russhwolf:multiplatform-settings-serialization:1.3.0")
 
+            implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
+
             implementation("io.github.vinceglb:filekit-core:0.14.1")
             implementation("io.github.vinceglb:filekit-dialogs:0.14.1")
             implementation("io.github.vinceglb:filekit-dialogs-compose:0.14.1")

@@ -7,6 +7,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,7 +35,7 @@ import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PicCarousel(
+fun BoxScope.PicCarousel(
     painters: List<Painter>,
     startFadeInTrigger: Boolean,
 ) {
@@ -42,8 +43,8 @@ fun PicCarousel(
 
     val carouselState = rememberCarouselState(
         initialItem =
-        Int.MAX_VALUE / 2 -
-            (Int.MAX_VALUE / 2) % actualSize,
+            Int.MAX_VALUE / 2 -
+                    (Int.MAX_VALUE / 2) % actualSize,
     ) {
         Int.MAX_VALUE
     }
@@ -91,54 +92,52 @@ fun PicCarousel(
 
     fun shouldLoad(index: Int): Boolean = abs(index - currentItem) <= 2
 
-    Box {
-        HorizontalCenteredHeroCarousel(
-            state = carouselState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-        ) { index ->
-            val realIndex =
-                index % actualSize
+    HorizontalCenteredHeroCarousel(
+        state = carouselState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp),
+    ) { index ->
+        val realIndex =
+            index % actualSize
 
-            if (shouldLoad(index)) {
-                val painter = painters[realIndex]
+        if (shouldLoad(index)) {
+            val painter = painters[realIndex]
 
+            Image(
+                painter = painter,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .maskClip(clipShape)
+                    .blur(blurRadius),
+                alignment = Alignment.Center,
+                contentScale = ContentScale.Crop,
+            )
+
+            if (index == currentItem) {
                 Image(
                     painter = painter,
                     contentDescription = null,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .maskClip(clipShape)
-                        .blur(blurRadius),
+                        .padding(32.dp)
+                        .fillMaxHeight()
+                        .align(Alignment.Center)
+                        .graphicsLayer {
+                            alpha = foregroundAlpha
+
+                            val scale =
+                                0.95f + (foregroundAlpha * 0.05f)
+
+                            scaleX = scale
+                            scaleY = scale
+
+                            clip = true
+                            shape = clipShape
+                        },
                     alignment = Alignment.Center,
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
                 )
-
-                if (index == currentItem) {
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(32.dp)
-                            .fillMaxHeight()
-                            .align(Alignment.Center)
-                            .graphicsLayer {
-                                alpha = foregroundAlpha
-
-                                val scale =
-                                    0.95f + (foregroundAlpha * 0.05f)
-
-                                scaleX = scale
-                                scaleY = scale
-
-                                clip = true
-                                shape = clipShape
-                            },
-                        alignment = Alignment.Center,
-                        contentScale = ContentScale.Fit,
-                    )
-                }
             }
         }
     }

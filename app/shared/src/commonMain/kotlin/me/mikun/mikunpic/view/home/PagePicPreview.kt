@@ -11,6 +11,7 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.component.PicCarousel
 
 @Composable
@@ -20,11 +21,13 @@ fun PagePicPreview(
 ) {
     val context = LocalPlatformContext.current
 
-    val imageReqs = remember(context) {
+    val randomApi = "${LocalConfig.current.server}/random"
+
+    val imageReqs = remember(context, randomApi) {
         List(10) {
             ImageRequest.Builder(context)
                 .data(
-                    "http://127.0.0.1:8080/random",
+                    randomApi
                 )
                 .crossfade(true)
                 .diskCachePolicy(CachePolicy.DISABLED)
