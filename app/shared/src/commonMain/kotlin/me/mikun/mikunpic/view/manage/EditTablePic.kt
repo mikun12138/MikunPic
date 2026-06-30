@@ -70,7 +70,7 @@ fun EditTablePic() {
     LaunchedEffect(Unit) {
         picOnTable = Client.randomPic(
             1,
-        ).pics.firstOrNull()
+        )?.pics?.firstOrNull()
     }
 
     val editContext = object {
@@ -111,8 +111,7 @@ fun EditTablePic() {
                     scope.launch {
                         picOnTable = Client.randomPic(
                             1,
-                        ).pics.firstOrNull()
-                        println(picOnTable?.filename)
+                        )?.pics?.firstOrNull()
                     }
                 },
                 onSelectionNoAuthor = {
@@ -120,7 +119,7 @@ fun EditTablePic() {
                         picOnTable = Client.randomPic(
                             1,
                             illustrators = listOf(Illustrator.UnExist),
-                        ).pics.firstOrNull()
+                        )?.pics?.firstOrNull()
                     }
                 },
                 onSelectionNoTag = {
@@ -128,7 +127,7 @@ fun EditTablePic() {
                         picOnTable = Client.randomPic(
                             1,
                             tags = listOf(""),
-                        ).pics.firstOrNull()
+                        )?.pics?.firstOrNull()
                     }
                 },
             )
@@ -318,7 +317,7 @@ private fun ColumnScope.EditPicIllustratorSheet(
                                 Client.searchIllustrator(
                                     count = 100,
                                     keyword = text,
-                                ).illustrators.map { it.name ?: "" },
+                                )?.illustrators?.map { it.name ?: "" } ?: emptyList(),
                             )
                         }
                     },
@@ -368,7 +367,7 @@ private fun ColumnScope.EditPicTagsSheet(
                             Client.searchTag(
                                 count = 100,
                                 keyword = textFieldState.text.toString(),
-                            ).tags,
+                            )?.tags ?: emptyList(),
                         )
                     }
                 },

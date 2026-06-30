@@ -66,7 +66,7 @@ fun EditTableIllustrator() {
         val illustrators = Client.searchIllustrator(
             count = illustratorCount,
             page = pageIndex,
-        ).illustrators
+        )?.illustrators ?: emptyList()
 
         val contexts = MutableList<IllustratorContext?>(illustrators.size) {
             IllustratorContext(
@@ -84,7 +84,7 @@ fun EditTableIllustrator() {
                     val pics = Client.randomPic(
                         picPreIllustrator,
                         illustrators = listOf(illustrator)
-                    ).pics
+                    )?.pics ?: emptyList()
 
                     val picCaches = pics.map { pic ->
                         val bytes = Client.fetchPic(

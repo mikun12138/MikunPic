@@ -34,11 +34,13 @@ subprojects {
 }
 
 tasks.register("runJsServer") {
+    group = "dev"
     dependsOn(":app:webApp:jsBrowserDevelopmentRun")
     dependsOn(":server:run")
 }
 
 tasks.register("runDesktopServer") {
+    group = "dev"
     dependsOn(":app:desktopApp:hotRun")
     dependsOn(":server:run")
 }

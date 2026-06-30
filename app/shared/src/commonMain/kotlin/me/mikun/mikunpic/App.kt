@@ -98,20 +98,6 @@ fun App(
             }
         }
 
-        LaunchedEffect(Unit) {
-            SingletonImageLoader.setSafe {
-                ImageLoader.Builder(it)
-                    .components {
-                        add(
-                            KtorNetworkFetcherFactory(
-                                httpClient,
-                            ),
-                        )
-                    }
-                    .build()
-            }
-        }
-
         val navController = rememberNavController()
 
         LaunchedEffect(navController) {
@@ -196,6 +182,7 @@ fun App(
 fun SplashScreen(
     loaded: Boolean,
 ) {
+
     val rotation = remember {
         Animatable(0f)
     }

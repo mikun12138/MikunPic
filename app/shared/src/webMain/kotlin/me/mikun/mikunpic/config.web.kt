@@ -12,14 +12,19 @@ import org.w3c.fetch.RequestInit
 @Composable
 actual fun LoadConfig(): Config {
     val config by produceState(initialValue = Config.Def) {
-        val init = js("{}").unsafeCast<RequestInit>()
+        value = runCatching {
+            val init = js("{}").unsafeCast<RequestInit>()
+            val response = window.fetch("config.yaml", init).await()
 
-        val text = window.fetch("config.yaml", init)
-            .await()
-            .text()
-            .await()
+            require(response.ok)
 
-        value = Yaml().decodeFromString<Config>(text)
+            val text = response.text().await()
+            Yaml.decodeFromString<Config>(text)
+
+        }.getOrElse { e ->
+            e.printStackTrace()
+            Config.Def
+        }
     }
 
     return config

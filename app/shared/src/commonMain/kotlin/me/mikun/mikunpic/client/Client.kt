@@ -1,6 +1,10 @@
 package me.mikun.mikunpic.client
 
 import androidx.compose.runtime.Composable
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.annotation.ExperimentalCoilApi
+import coil3.network.ktor3.KtorNetworkFetcherFactory
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.DefaultRequest
@@ -16,6 +20,7 @@ import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
@@ -27,6 +32,8 @@ import kotlinx.io.Buffer
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.LocalPref
+import me.mikun.mikunpic.client.Client.`get any`
+import me.mikun.mikunpic.client.Client.httpClient
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
@@ -34,6 +41,7 @@ import me.mikun.mikunpic.dto.data.api.OhMyRouting
 object Client {
     lateinit var httpClient: HttpClient
 
+    @OptIn(ExperimentalCoilApi::class)
     @Composable
     fun Init() {
         val server = LocalConfig.current.server
@@ -73,6 +81,18 @@ object Client {
                     json()
                 }
             }
+
+        SingletonImageLoader.setSafe {
+            ImageLoader.Builder(it)
+                .components {
+                    add(
+                        KtorNetworkFetcherFactory(
+                            httpClient,
+                        ),
+                    )
+                }
+                .build()
+        }
     }
 
     suspend fun uploadPic(
@@ -118,34 +138,46 @@ object Client {
         }
     }
 
-    suspend fun sync() = httpClient.post(OhMyRouting.Manage.Sync())
+    private suspend fun HttpResponse.`get bytes`(): ByteArray? =
+        when (this.status) {
+            HttpStatusCode.OK -> this.readRawBytes()
+            else -> null
+        }
+
+    private suspend inline fun <reified T> HttpResponse.`get any`(): T? =
+        when (this.status) {
+            HttpStatusCode.OK -> this.body<T>()
+            else -> null
+        }
+
+    suspend fun sync() = httpClient
+        .post(
+            OhMyRouting.Manage.Sync()
+        )
 
     suspend fun fetchPic(
         filename: String,
         thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Thumb,
-    ) = httpClient.get(
-        OhMyRouting.Pic.Filename(
-            filename,
-            thumbnail,
-        ),
-    ).let {
-        it.readRawBytes()
-    }
+    ) = httpClient
+        .get(
+            OhMyRouting.Pic.Filename(
+                filename,
+                thumbnail,
+            ),
+        ).`get bytes`()
 
     suspend fun randomPic(
         count: Int = 1,
         illustrators: List<Illustrator> = emptyList(),
         tags: List<String> = emptyList(),
-    ): OhMyRouting.Manage.Pic.Random.Response = httpClient
+    ) = httpClient
         .get(
             OhMyRouting.Manage.Pic.Random(
                 count = count,
                 illustratorIds = illustrators.mapNotNull { it.id },
                 tags = tags,
             ),
-        ).let {
-            it.body<OhMyRouting.Manage.Pic.Random.Response>()
-        }
+        ).`get any`<OhMyRouting.Manage.Pic.Random.Response>()
 
     suspend fun updatePic(pic: Pic) {
         httpClient.post(
@@ -164,37 +196,23 @@ object Client {
         count: Int,
         keyword: String = "",
         page: Int = 0,
-    ): OhMyRouting.Manage.Illustrator.Search.Response = httpClient
+    ) = httpClient
         .get(
             OhMyRouting.Manage.Illustrator.Search(
                 count = count,
                 keyword = keyword,
                 page = page,
             ),
-        ).let {
-            it.body<OhMyRouting.Manage.Illustrator.Search.Response>()
-        }
+        ).`get any`<OhMyRouting.Manage.Illustrator.Search.Response>()
 
     suspend fun searchTag(
         count: Int,
         keyword: String,
-    ): OhMyRouting.Manage.Tag.Search.Response = httpClient
+    ) = httpClient
         .get(
             OhMyRouting.Manage.Tag.Search(
                 count,
                 keyword,
             ),
-        ).let {
-            it.body<OhMyRouting.Manage.Tag.Search.Response>()
-        }
-
-    suspend fun selectIllustrator(id: Int): Illustrator? = httpClient
-        .get(
-            OhMyRouting.Manage.Illustrator.IllustratorId(id),
-        ).let {
-            when (it.status) {
-                HttpStatusCode.OK -> it.body<OhMyRouting.Manage.Illustrator.IllustratorId.Response>().illustrator
-                else -> null
-            }
-        }
+        ).`get any`<OhMyRouting.Manage.Tag.Search.Response>()
 }

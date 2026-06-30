@@ -15,7 +15,7 @@ expect fun LoadConfig(): Config
 @Serializable
 data class Config(
     @SerialName("server")
-    val server: String = "",
+    val server: String = "http://127.0.0.1:8080",
 ) {
     companion object {
         val Def = Config()
