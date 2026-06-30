@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.carousel.HorizontalCenteredHeroCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -29,15 +24,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImagePainter.State.Empty.painter
-import coil3.compose.rememberAsyncImagePainter
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoxScope.PicCarousel(
     painters: List<Painter>,
-    startFadeInTrigger: Boolean,
+    readyPop: Boolean,
 ) {
     val actualSize = painters.size
 
@@ -49,13 +42,9 @@ fun BoxScope.PicCarousel(
         Int.MAX_VALUE
     }
 
-    var fadeIn by remember {
-        mutableStateOf(true)
-    }
-
-    val blurRadius by animateDpAsState(
+    val bgBlurRadius by animateDpAsState(
         targetValue = if (
-            carouselState.isScrollInProgress || fadeIn
+            carouselState.isScrollInProgress || !readyPop
         ) {
             0.dp
         } else {
@@ -65,9 +54,9 @@ fun BoxScope.PicCarousel(
         animationSpec = tween(600),
     )
 
-    val foregroundAlpha by animateFloatAsState(
+    val fgAlpha by animateFloatAsState(
         targetValue = if (
-            carouselState.isScrollInProgress || fadeIn
+            carouselState.isScrollInProgress || !readyPop
         ) {
             0f
         } else {
@@ -80,18 +69,6 @@ fun BoxScope.PicCarousel(
         ),
     )
 
-    LaunchedEffect(startFadeInTrigger) {
-        if (startFadeInTrigger) {
-            fadeIn = false
-        }
-    }
-
-    val clipShape = MaterialTheme.shapes.extraLarge
-
-    val currentItem = carouselState.currentItem
-
-    fun shouldLoad(index: Int): Boolean = abs(index - currentItem) <= 2
-
     HorizontalCenteredHeroCarousel(
         state = carouselState,
         modifier = Modifier
@@ -101,6 +78,7 @@ fun BoxScope.PicCarousel(
         val realIndex =
             index % actualSize
 
+        fun shouldLoad(index: Int): Boolean = abs(index - carouselState.currentItem) <= 2
         if (shouldLoad(index)) {
             val painter = painters[realIndex]
 
@@ -109,13 +87,13 @@ fun BoxScope.PicCarousel(
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .maskClip(clipShape)
-                    .blur(blurRadius),
+                    .maskClip(MaterialTheme.shapes.extraLarge)
+                    .blur(bgBlurRadius),
                 alignment = Alignment.Center,
                 contentScale = ContentScale.Crop,
             )
 
-            if (index == currentItem) {
+            if (index == carouselState.currentItem) {
                 Image(
                     painter = painter,
                     contentDescription = null,
@@ -124,17 +102,16 @@ fun BoxScope.PicCarousel(
                         .fillMaxHeight()
                         .align(Alignment.Center)
                         .graphicsLayer {
-                            alpha = foregroundAlpha
+                            alpha = fgAlpha
 
                             val scale =
-                                0.95f + (foregroundAlpha * 0.05f)
+                                0.95f + (fgAlpha * 0.05f)
 
                             scaleX = scale
                             scaleY = scale
 
-                            clip = true
-                            shape = clipShape
-                        },
+                        }
+                        .maskClip(MaterialTheme.shapes.extraLarge),
                     alignment = Alignment.Center,
                     contentScale = ContentScale.Fit,
                 )

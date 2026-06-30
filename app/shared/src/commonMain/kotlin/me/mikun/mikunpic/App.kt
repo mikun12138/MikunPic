@@ -2,30 +2,25 @@ package me.mikun.mikunpic
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import coil3.ImageLoader
-import coil3.SingletonImageLoader
-import coil3.network.ktor3.KtorNetworkFetcherFactory
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.delay
@@ -33,199 +28,100 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.client.Client.httpClient
-import me.mikun.mikunpic.shared.generated.resources.Res
-import me.mikun.mikunpic.shared.generated.resources.rua
+import me.mikun.mikunpic.component.SplashScreen
+import me.mikun.mikunpic.component.SplashState
 import me.mikun.mikunpic.ui.theme.AppTheme
 import me.mikun.mikunpic.view.Home
 import me.mikun.mikunpic.view.LocalNavController
 import me.mikun.mikunpic.view.login.Login
 import me.mikun.mikunpic.view.Manage
 import me.mikun.mikunpic.view.Nav
-import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun App(
     onNavHostReady: suspend (NavController) -> Unit = {},
 ) {
-    CompositionLocalProvider(LocalConfig provides LoadConfig()) {
+    val navController = rememberNavController()
+    CompositionLocalProvider(
+        LocalConfig provides LoadConfig(),
+        LocalNavController provides navController
+    ) {
         Client.Init()
-
-        var loaded by remember { mutableStateOf(false) }
-        // TODO:: make a timeline&trigger
-        var startFadeInTrigger by remember { mutableStateOf(false) }
-
-        val splashAlpha = remember {
-            Animatable(0f)
-        }
-
-        val mainPageAlpha = remember {
-            Animatable(0f)
-        }
-
-        LaunchedEffect(Unit) {
-            launch {
-                splashAlpha.animateTo(
-                    1f,
-                    tween(
-                        durationMillis = 500,
-                        easing = FastOutSlowInEasing,
-                    ),
-                )
-            }
-            delay(1000)
-
-            snapshotFlow { loaded }
-                .first { it }
-
-            launch {
-                mainPageAlpha.animateTo(
-                    1f,
-                    tween(
-                        500,
-                        easing = FastOutSlowInEasing,
-                    ),
-                )
-                startFadeInTrigger = true
-            }
-            launch {
-                splashAlpha.animateTo(
-                    0f,
-                    tween(
-                        500,
-                        easing = FastOutSlowInEasing,
-                    ),
-                )
-            }
-        }
-
-        val navController = rememberNavController()
 
         LaunchedEffect(navController) {
             onNavHostReady(navController)
         }
 
-        AppTheme {
-            BoxWithConstraints(
-                modifier = Modifier
-                    .fillMaxSize(),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .graphicsLayer {
-                            this.alpha = mainPageAlpha.value
-                        },
-                ) {
-                    CompositionLocalProvider(LocalNavController provides navController) {
-                        NavHost(
-                            navController = LocalNavController.current,
-                            startDestination = Nav.Home,
-                        ) {
-                            composable<Nav.Home> {
-                                Home(
-                                    {
-                                        loaded = true
-                                    },
-                                    startFadeInTrigger,
-                                )
-                            }
-                            composable<Nav.Manage> {
-                                LaunchedEffect(Unit) {
-                                    httpClient.get("/auth").let {
-                                        if (it.status != HttpStatusCode.OK) {
-                                            navController.navigate(Nav.Login) {
-                                                popUpTo(Nav.Manage) {
-                                                    inclusive = true
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                Manage()
-                            }
-
-                            composable<Nav.Login> {
-                                LaunchedEffect(Unit) {
-                                    httpClient.get("/auth").let {
-                                        if (it.status == HttpStatusCode.OK) {
-                                            navController.navigate(Nav.Manage) {
-                                                popUpTo(Nav.Login) {
-                                                    inclusive = true
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                Login()
-                            }
-                        }
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .graphicsLayer {
-                            this.alpha = splashAlpha.value
-                        },
-                ) {
-                    SplashScreen(
-                        loaded,
-                    )
-                }
-            }
-        }
+        AppInternal()
     }
 }
 
 @Composable
-fun SplashScreen(
-    loaded: Boolean,
-) {
-
-    val rotation = remember {
-        Animatable(0f)
+private fun AppInternal() {
+    val splashState = remember {
+        MutableTransitionState(SplashState.Start)
     }
 
-    LaunchedEffect(Unit) {
-        rotation.animateTo(
-            380f,
-            animationSpec = keyframes {
-                durationMillis = 400
-
-                0f at 0
-
-                380f at 400 using FastOutSlowInEasing
-            },
-        )
-    }
-
-    LaunchedEffect(loaded) {
-        if (loaded) {
-            rotation.animateTo(
-                -40f,
-                animationSpec = keyframes {
-                    durationMillis = 400
-
-                    380f at 0
-
-                    (-40f) at 400 using FastOutSlowInEasing
-                },
-            )
+    val readyPop by remember {
+        derivedStateOf {
+            splashState.currentState == SplashState.End
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Image(
-            painter = painterResource(Res.drawable.rua),
-            null,
+    AppTheme {
+        Box(
             modifier = Modifier
-                .graphicsLayer {
-                    rotationZ = rotation.value
-                },
+                .fillMaxSize(),
+        ) {
+            val localNavController = LocalNavController.current
+            NavHost(
+                navController = LocalNavController.current,
+                startDestination = Nav.Home,
+            ) {
+                composable<Nav.Home> {
+                    Home(
+                        {
+                            splashState.targetState = SplashState.End
+                        },
+                        readyPop
+                    )
+                }
+                composable<Nav.Manage> {
+                    LaunchedEffect(Unit) {
+                        httpClient.get("/auth").let {
+                            if (it.status != HttpStatusCode.OK) {
+                                localNavController.navigate(Nav.Login) {
+                                    popUpTo(Nav.Manage) {
+                                        inclusive = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Manage()
+                }
+
+                composable<Nav.Login> {
+                    LaunchedEffect(Unit) {
+                        httpClient.get("/auth").let {
+                            if (it.status == HttpStatusCode.OK) {
+                                localNavController.navigate(Nav.Manage) {
+                                    popUpTo(Nav.Login) {
+                                        inclusive = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Login()
+                }
+            }
+        }
+
+        SplashScreen(
+            splashState,
         )
     }
 }

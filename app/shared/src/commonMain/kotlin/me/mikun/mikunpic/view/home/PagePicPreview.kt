@@ -17,7 +17,7 @@ import me.mikun.mikunpic.component.PicCarousel
 @Composable
 fun PagePicPreview(
     onReady: () -> Unit,
-    startFadeInTrigger: Boolean,
+    readyPop: Boolean
 ) {
     val context = LocalPlatformContext.current
 
@@ -51,13 +51,14 @@ fun PagePicPreview(
             },
         )
     }
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         PicCarousel(
             painters = painters,
-            startFadeInTrigger = startFadeInTrigger,
+            readyPop = readyPop,
         )
     }
 }

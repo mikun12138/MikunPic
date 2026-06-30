@@ -13,13 +13,13 @@ import me.mikun.mikunpic.view.home.PagePicPreview
 @Composable
 fun Home(
     onReady: () -> Unit,
-    startFadeInTrigger: Boolean,
+    readyPop: Boolean
 ) {
     val pages = listOf<@Composable () -> Unit>(
         {
             PagePicPreview(
                 onReady,
-                startFadeInTrigger,
+                readyPop
             )
         },
         {
