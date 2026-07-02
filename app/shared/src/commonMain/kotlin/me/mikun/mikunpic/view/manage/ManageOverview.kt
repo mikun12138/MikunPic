@@ -65,21 +65,20 @@ private fun makeUploadRule(s: String): List<PlaceHolder> {
     return split.map {
         PlaceHolder(
             type =
-                if (it.startsWith("{") and it.endsWith("}")) {
-                    when (it.removePrefix("{").removeSuffix("}")) {
-                        "illustrator_name" -> PlaceHolder.Type.IllustratorName
-                        "pixiv" -> PlaceHolder.Type.IllustratorPixiv
-                        "twitter" -> PlaceHolder.Type.IllustratorTwitter
-                        "filename" -> PlaceHolder.Type.Filename
-                        else -> PlaceHolder.Type.Simple
-                    }
-                } else {
-                    PlaceHolder.Type.Simple
-                },
+            if (it.startsWith("{") and it.endsWith("}")) {
+                when (it.removePrefix("{").removeSuffix("}")) {
+                    "illustrator_name" -> PlaceHolder.Type.IllustratorName
+                    "pixiv" -> PlaceHolder.Type.IllustratorPixiv
+                    "twitter" -> PlaceHolder.Type.IllustratorTwitter
+                    "filename" -> PlaceHolder.Type.Filename
+                    else -> PlaceHolder.Type.Simple
+                }
+            } else {
+                PlaceHolder.Type.Simple
+            },
         )
     }
 }
-
 
 @Composable
 fun BoxScope.ManageOverview() {
@@ -132,11 +131,10 @@ fun BoxScope.ManageOverview() {
                                 targetValue = rotations[index].targetValue + 360f,
                                 animationSpec = tween(
                                     durationMillis = 600,
-                                    easing = FastOutSlowInEasing
-                                )
+                                    easing = FastOutSlowInEasing,
+                                ),
                             )
                         }
-
                     },
                     modifier = Modifier
                         .size(128.dp)
@@ -183,7 +181,7 @@ fun BoxScope.ManageOverview() {
                         ElevatedButton(
                             onClick = {
                                 LocalPref = LocalPref.copy(
-                                    uploadRule = uploadRuleText.text.toString()
+                                    uploadRule = uploadRuleText.text.toString(),
                                 )
 
                                 val uploadRule = makeUploadRule(LocalPref.uploadRule)
@@ -241,7 +239,7 @@ fun BoxScope.ManageOverview() {
                                                     illustratorPixiv?.let {
                                                         put(
                                                             Platform.Pixiv,
-                                                            it
+                                                            it,
                                                         )
                                                     }
                                                     illustratorTwitter?.let {
@@ -264,9 +262,7 @@ fun BoxScope.ManageOverview() {
                         ) {
                             Text("Upload")
                         }
-
                     }
-
                 }
 
                 else -> {}

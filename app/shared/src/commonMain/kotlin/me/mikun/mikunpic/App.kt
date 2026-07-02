@@ -33,9 +33,9 @@ import me.mikun.mikunpic.component.SplashState
 import me.mikun.mikunpic.ui.theme.AppTheme
 import me.mikun.mikunpic.view.Home
 import me.mikun.mikunpic.view.LocalNavController
-import me.mikun.mikunpic.view.login.Login
 import me.mikun.mikunpic.view.Manage
 import me.mikun.mikunpic.view.Nav
+import me.mikun.mikunpic.view.login.Login
 
 @Composable
 fun App(
@@ -44,7 +44,7 @@ fun App(
     val navController = rememberNavController()
     CompositionLocalProvider(
         LocalConfig provides LoadConfig(),
-        LocalNavController provides navController
+        LocalNavController provides navController,
     ) {
         Client.Init()
 
@@ -83,7 +83,7 @@ private fun AppInternal() {
                         {
                             splashState.targetState = SplashState.End
                         },
-                        readyPop
+                        readyPop,
                     )
                 }
                 composable<Nav.Manage> {
@@ -125,4 +125,3 @@ private fun AppInternal() {
         )
     }
 }
-

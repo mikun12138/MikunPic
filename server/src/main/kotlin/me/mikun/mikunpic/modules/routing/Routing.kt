@@ -12,12 +12,10 @@ fun Application.configureRouting() {
         public()
 
         authenticate("bearer") {
-
             get("/auth") {
                 call.respond(HttpStatusCode.OK)
             }
             manage()
-
         }
     }
 }

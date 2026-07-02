@@ -36,8 +36,8 @@ fun BoxScope.PicCarousel(
 
     val carouselState = rememberCarouselState(
         initialItem =
-            Int.MAX_VALUE / 2 -
-                    (Int.MAX_VALUE / 2) % actualSize,
+        Int.MAX_VALUE / 2 -
+            (Int.MAX_VALUE / 2) % actualSize,
     ) {
         Int.MAX_VALUE
     }
@@ -109,7 +109,6 @@ fun BoxScope.PicCarousel(
 
                             scaleX = scale
                             scaleY = scale
-
                         }
                         .maskClip(MaterialTheme.shapes.extraLarge),
                     alignment = Alignment.Center,

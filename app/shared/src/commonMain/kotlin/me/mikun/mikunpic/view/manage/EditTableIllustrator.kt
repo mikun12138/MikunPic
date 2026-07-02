@@ -83,13 +83,13 @@ fun EditTableIllustrator() {
                 launch {
                     val pics = Client.randomPic(
                         picPreIllustrator,
-                        illustrators = listOf(illustrator)
+                        illustrators = listOf(illustrator),
                     )?.pics ?: emptyList()
 
                     val picCaches = pics.map { pic ->
                         val bytes = Client.fetchPic(
                             pic.filename,
-                            OhMyRouting.Pic.Filename.Thumbnail.Thumb
+                            OhMyRouting.Pic.Filename.Thumbnail.Thumb,
                         )
 
                         ImageRequest.Builder(localPlatformContext)
@@ -151,12 +151,12 @@ private fun IllustratorCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(
                 8.dp,
-                alignment = Alignment.CenterVertically
+                alignment = Alignment.CenterVertically,
             ),
         ) {
             Box(
                 modifier = Modifier.weight(0.4f),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = illustratorContext?.illustrator?.name ?: "Loading...",
@@ -166,7 +166,7 @@ private fun IllustratorCard(
 
             Box(
                 modifier = Modifier.weight(0.6f),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 LazyRow(
                     modifier = Modifier.fillMaxSize(),
@@ -181,7 +181,7 @@ private fun IllustratorCard(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
                         )
                     }
                 }

@@ -14,7 +14,6 @@ import kotlin.js.JsModule
 fun main() {
     val body = document.body ?: return
 
-
     ComposeViewport(body) {
         App(
             onNavHostReady = {

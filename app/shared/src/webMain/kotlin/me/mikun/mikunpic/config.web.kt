@@ -18,14 +18,12 @@ actual fun LoadConfig(): Config {
 
             require(response.ok)
 
-
             val text = response.text().await()
             require(!text.trimStart().startsWith("<")) {
                 "config.yaml is missing or returned HTML"
             }
 
             Yaml.decodeFromString<Config>(text)
-
         }.getOrElse { e ->
             e.printStackTrace()
             Config.Def

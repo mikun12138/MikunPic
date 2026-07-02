@@ -24,7 +24,7 @@ data class Pref(
         home = Bg.Home(),
         manage = Bg.Manage(),
     ),
-    val uploadRule: String = "{illustrator_name}/{pixiv}/{filename}"
+    val uploadRule: String = "{illustrator_name}/{pixiv}/{filename}",
 ) {
     @Serializable
     data class Bg(

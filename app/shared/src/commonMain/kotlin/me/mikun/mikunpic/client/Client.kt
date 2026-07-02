@@ -137,21 +137,21 @@ object Client {
         }
     }
 
-    private suspend fun HttpResponse.`get bytes`(): ByteArray? =
-        when (this.status) {
-            HttpStatusCode.OK -> this.readRawBytes()
-            else -> null
-        }
+    @Suppress("ktlint:standard:function-naming")
+    private suspend fun HttpResponse.`get bytes`(): ByteArray? = when (this.status) {
+        HttpStatusCode.OK -> this.readRawBytes()
+        else -> null
+    }
 
-    private suspend inline fun <reified T> HttpResponse.`get any`(): T? =
-        when (this.status) {
-            HttpStatusCode.OK -> this.body<T>()
-            else -> null
-        }
+    @Suppress("ktlint:standard:function-naming")
+    private suspend inline fun <reified T> HttpResponse.`get any`(): T? = when (this.status) {
+        HttpStatusCode.OK -> this.body<T>()
+        else -> null
+    }
 
     suspend fun sync() = httpClient
         .post(
-            OhMyRouting.Manage.Sync()
+            OhMyRouting.Manage.Sync(),
         )
 
     suspend fun fetchPic(

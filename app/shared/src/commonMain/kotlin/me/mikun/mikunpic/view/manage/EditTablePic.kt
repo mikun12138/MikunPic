@@ -84,10 +84,10 @@ fun EditTablePic() {
         ) {
             derivedStateOf {
                 picOnTable != null &&
-                        (
-                                picOnTable?.illustrator != illustrator ||
-                                        picOnTable?.tags?.toSet() != tags.toSet()
-                                )
+                    (
+                        picOnTable?.illustrator != illustrator ||
+                            picOnTable?.tags?.toSet() != tags.toSet()
+                        )
             }
         }
     }

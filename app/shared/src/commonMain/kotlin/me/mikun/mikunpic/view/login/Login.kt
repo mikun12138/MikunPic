@@ -37,7 +37,7 @@ fun Login() {
             OutlinedButton(
                 onClick = {
                     LocalPref = LocalPref.copy(
-                        token = textField.text.toString()
+                        token = textField.text.toString(),
                     )
 
                     navController.navigate(Nav.Manage) {
@@ -46,7 +46,6 @@ fun Login() {
                             inclusive = true
                         }
                     }
-
                 },
             ) {
                 Text("Login")

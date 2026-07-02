@@ -17,7 +17,7 @@ import me.mikun.mikunpic.component.PicCarousel
 @Composable
 fun PagePicPreview(
     onReady: () -> Unit,
-    readyPop: Boolean
+    readyPop: Boolean,
 ) {
     val context = LocalPlatformContext.current
 
@@ -27,7 +27,7 @@ fun PagePicPreview(
         List(10) {
             ImageRequest.Builder(context)
                 .data(
-                    randomApi
+                    randomApi,
                 )
                 .crossfade(true)
                 .diskCachePolicy(CachePolicy.DISABLED)
