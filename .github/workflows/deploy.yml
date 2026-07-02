@@ -49,6 +49,18 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "server/build/libs/mikunpic-0.1.0.jar"
           target: "~/mikunpic/"
+          strip_components: 3
+
+      - name: Upload systemd service file
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "scripts/mikunpic-user.service"
+          target: "~/.config/mikunpic/temp/"
+          strip_components: 1
 
       - name: Restart service
         uses: appleboy/ssh-action@v1.2.5
@@ -58,4 +70,14 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            mkdir -p ~/.config/systemd/user/
+            
+            # rename and move to user-service folder
+            if [ -f ~/.config/mikunpic/temp/mikunpic-user.service ]; then
+              mv ~/.config/mikunpic/temp/mikunpic-user.service ~/.config/systemd/user/mikunpic.service
+              echo "✔ Service file updated and renamed to mikunpic.service"
+            fi
+            
+            systemctl --user daemon-reload
+            systemctl --user enable mikunpic
             systemctl --user restart mikunpic
