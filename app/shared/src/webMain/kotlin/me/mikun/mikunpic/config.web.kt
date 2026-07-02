@@ -14,11 +14,16 @@ actual fun LoadConfig(): Config {
     val config by produceState(initialValue = Config.Def) {
         value = runCatching {
             val init = js("{}").unsafeCast<RequestInit>()
-            val response = window.fetch("config.yaml", init).await()
+            val response = window.fetch("/config.yaml", init).await()
 
             require(response.ok)
 
+
             val text = response.text().await()
+            require(!text.trimStart().startsWith("<")) {
+                "config.yaml is missing or returned HTML"
+            }
+
             Yaml.decodeFromString<Config>(text)
 
         }.getOrElse { e ->

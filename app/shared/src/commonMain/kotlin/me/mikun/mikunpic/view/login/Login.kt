@@ -39,6 +39,7 @@ fun Login() {
                     LocalPref = LocalPref.copy(
                         token = textField.text.toString()
                     )
+
                     navController.navigate(Nav.Manage) {
                         launchSingleTop = true
                         popUpTo(Nav.Login) {

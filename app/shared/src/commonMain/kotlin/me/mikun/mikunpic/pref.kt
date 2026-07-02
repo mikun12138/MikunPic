@@ -1,5 +1,9 @@
 package me.mikun.mikunpic
 
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.serialization.decodeValue
 import com.russhwolf.settings.serialization.encodeValue
@@ -20,6 +24,7 @@ data class Pref(
         home = Bg.Home(),
         manage = Bg.Manage(),
     ),
+    val uploadRule: String = "{illustrator_name}/{pixiv}/{filename}"
 ) {
     @Serializable
     data class Bg(

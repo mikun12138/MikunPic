@@ -2,9 +2,7 @@ package me.mikun.mikunpic.view.manage
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -12,19 +10,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -33,8 +30,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import io.github.vinceglb.filekit.FileKit
@@ -45,6 +40,7 @@ import io.github.vinceglb.filekit.list
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.launch
+import me.mikun.mikunpic.LocalPref
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.awesome.FileExtension
 import me.mikun.mikunpic.dto.awesome.dfs
@@ -84,7 +80,6 @@ private fun makeUploadRule(s: String): List<PlaceHolder> {
     }
 }
 
-private val uploadRule = makeUploadRule("{illustrator_name}/{pixiv}/{filename}")
 
 @Composable
 fun BoxScope.ManageOverview() {
@@ -180,80 +175,98 @@ fun BoxScope.ManageOverview() {
                 }
 
                 "134" -> {
-                    ElevatedButton(
-                        onClick = {
-                            scope.launch {
-                                fun isImage(file: PlatformFile): Boolean {
-                                    require(file.isRegularFile())
-                                    return FileExtension.image.any { ext ->
-                                        file.name.endsWith(ext, ignoreCase = true)
+                    val uploadRuleText = rememberTextFieldState(LocalPref.uploadRule)
+
+                    Column {
+                        TextField(uploadRuleText)
+
+                        ElevatedButton(
+                            onClick = {
+                                LocalPref = LocalPref.copy(
+                                    uploadRule = uploadRuleText.text.toString()
+                                )
+
+                                val uploadRule = makeUploadRule(LocalPref.uploadRule)
+                                scope.launch {
+                                    fun isImage(file: PlatformFile): Boolean {
+                                        require(file.isRegularFile())
+                                        return FileExtension.image.any { ext ->
+                                            file.name.endsWith(ext, ignoreCase = true)
+                                        }
                                     }
-                                }
 
-                                FileKit.openDirectoryPicker()?.let { dir ->
-                                    dfs(
-                                        dir,
-                                        PlatformFile::isRegularFile,
-                                        PlatformFile::list,
-                                    ) { file, path ->
+                                    FileKit.openDirectoryPicker()?.let { dir ->
+                                        dfs(
+                                            dir,
+                                            PlatformFile::isRegularFile,
+                                            PlatformFile::list,
+                                        ) { file, path ->
 
-                                        if (path.size != uploadRule.size) {
-                                            return@dfs
-                                        }
-
-                                        if (!isImage(file)) {
-                                            return@dfs
-                                        }
-
-                                        var illustratorName: String? = null
-                                        var illustratorPixiv: String? = null
-                                        var illustratorTwitter: String? = null
-
-                                        val dirnames = path.map { it.name }
-                                        for (i in 0 until path.size) {
-                                            when (uploadRule[i].type) {
-                                                PlaceHolder.Type.Simple -> {}
-
-                                                PlaceHolder.Type.IllustratorName -> {
-                                                    illustratorName = dirnames[i]
-                                                }
-
-                                                PlaceHolder.Type.IllustratorPixiv -> {
-                                                    illustratorPixiv = dirnames[i]
-                                                }
-
-                                                PlaceHolder.Type.IllustratorTwitter -> {
-                                                    illustratorTwitter = dirnames[i]
-                                                }
-
-                                                PlaceHolder.Type.Filename -> {}
+                                            if (path.size != uploadRule.size) {
+                                                return@dfs
                                             }
-                                        }
 
-                                        val illustrator = Illustrator(
-                                            name = illustratorName,
-                                            platformKeyMap = buildMap {
-                                                illustratorPixiv?.let { put(Platform.Pixiv, it) }
-                                                illustratorTwitter?.let {
-                                                    put(
-                                                        Platform.Twitter,
-                                                        it,
-                                                    )
+                                            if (!isImage(file)) {
+                                                return@dfs
+                                            }
+
+                                            var illustratorName: String? = null
+                                            var illustratorPixiv: String? = null
+                                            var illustratorTwitter: String? = null
+
+                                            val dirnames = path.map { it.name }
+                                            for (i in 0 until path.size) {
+                                                when (uploadRule[i].type) {
+                                                    PlaceHolder.Type.Simple -> {}
+
+                                                    PlaceHolder.Type.IllustratorName -> {
+                                                        illustratorName = dirnames[i]
+                                                    }
+
+                                                    PlaceHolder.Type.IllustratorPixiv -> {
+                                                        illustratorPixiv = dirnames[i]
+                                                    }
+
+                                                    PlaceHolder.Type.IllustratorTwitter -> {
+                                                        illustratorTwitter = dirnames[i]
+                                                    }
+
+                                                    PlaceHolder.Type.Filename -> {}
                                                 }
-                                            },
-                                        )
-                                        Client.uploadPic(
-                                            file.name,
-                                            file.readBytes(),
-                                            illustrator = illustrator,
-                                        )
+                                            }
+
+                                            val illustrator = Illustrator(
+                                                name = illustratorName,
+                                                platformKeyMap = buildMap {
+                                                    illustratorPixiv?.let {
+                                                        put(
+                                                            Platform.Pixiv,
+                                                            it
+                                                        )
+                                                    }
+                                                    illustratorTwitter?.let {
+                                                        put(
+                                                            Platform.Twitter,
+                                                            it,
+                                                        )
+                                                    }
+                                                },
+                                            )
+                                            Client.uploadPic(
+                                                file.name,
+                                                file.readBytes(),
+                                                illustrator = illustrator,
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                        },
-                    ) {
-                        Text("Upload")
+                            },
+                        ) {
+                            Text("Upload")
+                        }
+
                     }
+
                 }
 
                 else -> {}

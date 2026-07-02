@@ -33,9 +33,15 @@ subprojects {
     }
 }
 
-tasks.register("runJsServer") {
+tasks.register("runJsServerWebpack") {
     group = "dev"
     dependsOn(":app:webApp:jsBrowserDevelopmentRun")
+    dependsOn(":server:run")
+}
+
+tasks.register("runJsServer") {
+    group = "dev"
+    dependsOn(":app:webApp:viteRun")
     dependsOn(":server:run")
 }
 

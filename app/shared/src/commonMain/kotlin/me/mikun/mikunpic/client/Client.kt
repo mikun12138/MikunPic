@@ -32,11 +32,10 @@ import kotlinx.io.Buffer
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.LocalPref
-import me.mikun.mikunpic.client.Client.`get any`
-import me.mikun.mikunpic.client.Client.httpClient
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
+import okio.FileSystem
 
 object Client {
     lateinit var httpClient: HttpClient
