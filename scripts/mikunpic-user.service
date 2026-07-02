@@ -1,0 +1,11 @@
+[Unit]
+Description=Mikun Pic Service
+After=network.target
+
+[Service]
+WorkingDirectory=%h/mikunpic
+ExecStart=/usr/bin/java -jar %h/mikunpic/mikunpic-0.1.0.jar
+Restart=always
+
+[Install]
+WantedBy=default.target
