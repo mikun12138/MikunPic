@@ -132,7 +132,7 @@ class Test {
         client.get(
             OhMyRouting.Manage.Pic.Random(
                 114514,
-                listOf("", "a"),
+                listOf(),
                 emptyList(),
             ),
         ).let {

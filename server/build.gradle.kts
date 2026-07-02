@@ -40,6 +40,8 @@ dependencies {
 
     implementation(libs.sqlite.jdbc)
 
+    implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
+
     implementation(libs.ktor.client.resources)
     implementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.ktor.serverTestHost)

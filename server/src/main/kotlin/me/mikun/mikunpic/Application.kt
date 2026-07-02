@@ -4,8 +4,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.netty.EngineMain
 import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
-import io.ktor.util.logging.Logger
-import me.mikun.mikunpic.modules.configureApiOnly
 import me.mikun.mikunpic.modules.configureAuth
 import me.mikun.mikunpic.modules.configureCORS
 import me.mikun.mikunpic.modules.configureDatabase
@@ -32,7 +30,6 @@ fun Application.module() {
     configureDatabase()
 
     configureRateLimit()
-    configureApiOnly()
 
     configureCORS()
 
@@ -40,5 +37,9 @@ fun Application.module() {
         skipLastProxies(1)
     }
 
+    PicStorage.configure(this)
+}
+
+fun Application.onReloadConfig() {
     PicStorage.configure(this)
 }

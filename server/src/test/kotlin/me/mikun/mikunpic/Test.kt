@@ -1,20 +1,24 @@
 package me.mikun.mikunpic
 
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.DefaultRequest
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.statement.readRawBytes
-import io.ktor.http.HttpHeaders
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.testing.testApplication
-import kotlinx.coroutines.runBlocking
-import java.io.File
+import me.mikun.mikunpic.dto.data.MikunPicConfig
+import net.mamoe.yamlkt.Yaml
 import kotlin.test.Test
 
 class Test {
 
     @Test
     fun test() {
+        Yaml.encodeToString(
+            MikunPicConfig(
+                storage = MikunPicConfig.Storage.Local(
+                    path = "qwq"
+                ),
+                auth = MikunPicConfig.Auth.Bearer(
+                    token = "qwqwq"
+                )
+            )
+        ).let {
+            println(it)
+        }
     }
 }

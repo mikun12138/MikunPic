@@ -14,6 +14,8 @@ import com.qcloud.cos.model.ObjectMetadata
 import com.qcloud.cos.model.PutObjectRequest
 import com.qcloud.cos.region.Region
 import io.ktor.server.application.Application
+import me.mikun.mikunpic.LocalMikunPicConfig
+import me.mikun.mikunpic.dto.data.MikunPicConfig
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import java.io.InputStream
 
@@ -22,59 +24,61 @@ class PicStorageCos : PicStorage() {
     private lateinit var bucket: Bucket
 
     override fun init(application: Application) {
-        with(application) {
-            with(environment) {
-                fun initClient() {
-                    val cred: COSCredentials = BasicCOSCredentials(
-                        config.property("storage.cos.secretId").getString(),
-                        config.property("storage.cos.secretKey").getString(),
-                    )
-                    val region = Region(config.property("storage.cos.region").getString())
-                    val clientConfig = ClientConfig(region)
-                    clientConfig.httpProtocol = HttpProtocol.https
+        (LocalMikunPicConfig.storage as? MikunPicConfig.Storage.Cos)?.let { storage ->
 
-                    cosClient = COSClient(
-                        cred,
-                        clientConfig,
-                    )
-                }
-                initClient()
+            fun initClient() {
+                val cred: COSCredentials = BasicCOSCredentials(
+                    storage.secretId,
+                    storage.secretKey
+                )
 
-                fun initBucket() {
-                    val bucketName = config.property("storage.cos.bucket_name").getString()
-                    bucket =
-                        if (cosClient.doesBucketExist(bucketName)) {
-                            cosClient.listBuckets().first { it.name == bucketName }
-                        } else {
-                            CreateBucketRequest(bucketName)
-                                .apply {
-                                    cannedAcl = CannedAccessControlList.PublicRead
-                                }.let { request ->
-                                    cosClient.createBucket(request)
-                                }
-                        }
+                val region = Region(
+                    storage.region
+                )
+                val clientConfig = ClientConfig(region)
+                clientConfig.httpProtocol = HttpProtocol.https
 
-                    var lastMarker = ""
-                    while (true) {
-                        ListObjectsRequest()
+                cosClient = COSClient(
+                    cred,
+                    clientConfig,
+                )
+            }
+            initClient()
+
+            fun initBucket() {
+                val bucketName = storage.bucketName
+                bucket =
+                    if (cosClient.doesBucketExist(bucketName)) {
+                        cosClient.listBuckets().first { it.name == bucketName }
+                    } else {
+                        CreateBucketRequest(bucketName)
                             .apply {
-                                this.bucketName = bucket.name
-                                prefix = ""
-                                maxKeys = 1000
-                                marker = lastMarker
+                                cannedAcl = CannedAccessControlList.PublicRead
                             }.let { request ->
-                                cosClient.listObjects(request)
-                            }.let { objectListing ->
-                                picKeys.addAll(
-                                    objectListing.objectSummaries.map { it.key },
-                                )
-                                if (objectListing.nextMarker == null) break
-                                lastMarker = objectListing.nextMarker
+                                cosClient.createBucket(request)
                             }
                     }
+
+                var lastMarker = ""
+                while (true) {
+                    ListObjectsRequest()
+                        .apply {
+                            this.bucketName = bucket.name
+                            prefix = ""
+                            maxKeys = 1000
+                            marker = lastMarker
+                        }.let { request ->
+                            cosClient.listObjects(request)
+                        }.let { objectListing ->
+                            picKeys.addAll(
+                                objectListing.objectSummaries.map { it.key },
+                            )
+                            if (objectListing.nextMarker == null) break
+                            lastMarker = objectListing.nextMarker
+                        }
                 }
-                initBucket()
             }
+            initBucket()
         }
     }
 

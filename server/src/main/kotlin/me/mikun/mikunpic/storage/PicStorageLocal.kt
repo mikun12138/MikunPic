@@ -5,6 +5,8 @@ import io.ktor.server.application.log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.mikun.mikunpic.LocalMikunPicConfig
+import me.mikun.mikunpic.dto.data.MikunPicConfig
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import java.io.File
 import java.io.FileInputStream
@@ -17,19 +19,18 @@ class PicStorageLocal : PicStorage() {
     lateinit var folderPath: String
 
     override fun init(application: Application) {
-        with(application) {
-            environment.config.propertyOrNull("storage.local.path")?.getString()?.let {
-                folderPath = it
-            } ?: throw IllegalArgumentException("Please config: [storage.local.path] firstly!")
+        (LocalMikunPicConfig.storage as? MikunPicConfig.Storage.Local)?.let { storage ->
+            folderPath = storage.path
 
             File(folderPath).apply {
                 exists() || mkdirs()
                 isDirectory || error("$folderPath is not a dir!")
             }
 
+
             flashStorage()
 
-            launch(Dispatchers.IO) {
+            application.launch(Dispatchers.IO) {
                 val watchService = FileSystems.getDefault().newWatchService()
                 Path(folderPath).register(
                     watchService,
@@ -47,7 +48,7 @@ class PicStorageLocal : PicStorage() {
                         }
                     key.reset()
 
-                    log.info("PicStorage count update: ${picKeys.size}")
+                    application.log.info("PicStorage count update: ${picKeys.size}")
                 }
             }
         }

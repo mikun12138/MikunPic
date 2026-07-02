@@ -3,6 +3,7 @@ package me.mikun.mikunpic.dto.data.api
 import io.ktor.resources.Resource
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import me.mikun.mikunpic.dto.data.MikunPicConfig
 
 interface OhMyRouting {
     val parent: Any
@@ -39,6 +40,17 @@ interface OhMyRouting {
     @Resource("/manage")
     class Manage : OhMyRouting {
         override val parent = OhMyRouting.Companion
+
+        @Resource("/config")
+        class Config : OhMyRouting {
+            override val parent = Manage()
+
+            @Serializable
+            data class Body(
+                @SerialName("config")
+                val mikunPicConfig: MikunPicConfig
+            )
+        }
 
         @Resource("/pic")
         class Pic : OhMyRouting {
