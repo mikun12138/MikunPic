@@ -12,10 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # backend
-      - name: Build ktor
-        run: ./gradlew :server:shadowJar
-
       - name: Check all secrets
         env:
           HOST: ${{ secrets.SERVER_HOST }}
@@ -39,7 +35,11 @@ jobs:
           fi
           
           echo "✔ all required secrets exist"
-          
+
+      # backend
+      - name: Build ktor
+        run: ./gradlew :server:shadowJar
+
       - name: Upload jar to server
         uses: appleboy/scp-action@v1.0.0
         with:
