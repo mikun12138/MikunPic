@@ -41,7 +41,7 @@ sealed class PicStorage {
                 return
             }
 
-            picKeys.clear()
+//            picKeys.clear()
 
             runCatching {
                 when (LocalMikunPicConfig.storage) {
