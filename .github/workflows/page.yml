@@ -3,6 +3,8 @@ name: deploy-webapp
 on:
   push:
     branches: [ "action_test" ]
+    paths-ignore:
+      - ".github/workflows/deploy.yml"
 
 permissions:
   contents: read
