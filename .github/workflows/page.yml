@@ -1,0 +1,51 @@
+name: deploy-webapp
+
+on:
+  push:
+    branches: [ "action_test" ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# only the newest
+concurrency:
+  group: "github-pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 25
+
+      - name: Grant execute permission
+        run: chmod +x ./gradlew
+
+      - name: Build webApp
+        run: ./gradlew :app:webApp:viteBuild
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/webApp/build/vite/js/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
