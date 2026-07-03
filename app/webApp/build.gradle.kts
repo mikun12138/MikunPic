@@ -52,6 +52,7 @@ tasks.register<Copy>("copyComposeResourcesToViteDist") {
 }
 
 afterEvaluate {
+    tasks.findByName("viteBuild")?.finalizedBy("copyComposeResourcesToViteDist")
     tasks.findByName("jsViteBuild")?.finalizedBy("copyComposeResourcesToViteDist")
 }
 

@@ -4,6 +4,9 @@ on:
   push:
     branches: [ "action_test" ]
 
+    paths-ignore:
+      - ".github/workflows/page.yml"
+
 jobs:
   build-and-deploy:
     environment: deploy
