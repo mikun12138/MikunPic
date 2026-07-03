@@ -38,6 +38,11 @@ jobs:
       - name: Build webApp
         run: ./gradlew :app:webApp:viteBuild
 
+      - name: Check build output
+        run: |
+          ls -lah app/webApp/build/vite/js/dist
+          test -f app/webApp/build/vite/js/dist/index.html
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
