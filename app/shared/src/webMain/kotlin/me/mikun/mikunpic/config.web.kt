@@ -14,7 +14,7 @@ actual fun LoadConfig(): Config {
     val config by produceState(initialValue = Config.Def) {
         value = runCatching {
             val init = js("{}").unsafeCast<RequestInit>()
-            val response = window.fetch("/config.yaml", init).await()
+            val response = window.fetch("config.yaml", init).await()
 
             require(response.ok)
 
