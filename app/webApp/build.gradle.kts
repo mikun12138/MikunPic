@@ -46,14 +46,26 @@ vite {
     )
 }
 
+tasks.register<Copy>("copyConfigToViteDist") {
+    from(layout.projectDirectory.file("config.yaml"))
+    into(layout.buildDirectory.dir("vite/js/dist"))
+}
+
+
 tasks.register<Copy>("copyComposeResourcesToViteDist") {
     from(layout.buildDirectory.dir("vite/js/prod/kotlin/composeResources"))
     into(layout.buildDirectory.dir("vite/js/dist/composeResources"))
 }
 
 afterEvaluate {
-    tasks.findByName("viteBuild")?.finalizedBy("copyComposeResourcesToViteDist")
-    tasks.findByName("jsViteBuild")?.finalizedBy("copyComposeResourcesToViteDist")
+    tasks.findByName("viteBuild")?.finalizedBy(
+        "copyComposeResourcesToViteDist",
+        "copyConfigToViteDist"
+    )
+    tasks.findByName("jsViteBuild")?.finalizedBy(
+        "copyComposeResourcesToViteDist",
+        "copyConfigToViteDist"
+    )
 }
 
 
