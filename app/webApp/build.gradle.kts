@@ -48,7 +48,7 @@ vite {
 
 tasks.register<Copy>("copyConfigToViteDist") {
     from(layout.projectDirectory.file("config.yaml"))
-    into(layout.buildDirectory.dir("vite/js/dist/public/"))
+    into(layout.buildDirectory.dir("vite/js/dist/"))
 }
 
 
