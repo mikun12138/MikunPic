@@ -20,7 +20,7 @@ import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
 import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
-import me.mikun.mikunpic.modules.db
+import me.mikun.mikunpic.modules.dbs
 import me.mikun.mikunpic.storage.PicStorage
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
@@ -33,14 +33,27 @@ import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
 import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.name
 import org.jetbrains.exposed.v1.jdbc.orWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.sql.Connection
 
+fun findDb(
+    name: String
+): Database? {
+    return dbs.find { it.name == name }
+}
+
+fun randomDb(): Database? {
+    return dbs.randomOrNull()
+}
+
 suspend fun Route.uploadPic(
+    label: String,
     byteArray: ByteArray,
     filename: String,
     illustrator: Illustrator? = null,
@@ -55,12 +68,13 @@ suspend fun Route.uploadPic(
 
         if (uploadFile) {
             PicStorage.upload(
+                label,
                 byteArray,
                 filename,
             )
         }
 
-        transaction {
+        transaction(findDb(label)) {
             val illustratorEntity: IllustratorEntity? = illustrator?.let {
                 it.id?.let { id ->
                     IllustratorEntity.findById(id)
@@ -127,7 +141,8 @@ suspend fun randomPic(
     count: Int,
     illustratorIds: Set<Int?>,
     tags: Set<String?> = setOf(),
-): List<Pic> = transaction {
+    db: Database? = randomDb()
+): Pair<List<Pic>, String> = transaction(randomDb()) {
     PicEntity.wrapRows(
         PicTable.join(
             otherTable = Pic2IllustratorTable,
@@ -181,15 +196,17 @@ suspend fun randomPic(
             }
             .withDistinct(),
 
-    )
+        )
         .limit(count)
         .orderBy(Random() to SortOrder.ASC)
         .map { it.toPic() }
+        .let { it to db!!.name }
 }
 
 suspend fun updatePic(
+    label: String,
     pic: Pic,
-) = transaction {
+) = transaction(findDb(label)) {
     PicEntity.findSingleByAndUpdate(PicTable.filename eq pic.filename) { picEntity ->
         if (!pic.illustrator.isNullOrEmpty()) {
             picEntity.illustrator =
@@ -214,6 +231,7 @@ suspend fun updatePic(
     }
 }
 
+// TODO:: mult db
 suspend fun searchIllustrator(
     count: Int,
     keyword: String? = null,
@@ -251,9 +269,10 @@ suspend fun searchIllustrator(
 }
 
 suspend fun createIllustrator(
+    label: String,
     illustrator: String?,
 ) {
-    transaction {
+    transaction(findDb(label)) {
         illustrator?.let {
             IllustratorEntity.new {
                 this.name = illustrator
@@ -262,6 +281,7 @@ suspend fun createIllustrator(
     }
 }
 
+// TODO:: mult db
 suspend fun randomIllustrator(
     count: Int,
 ): List<String> = transaction {
@@ -271,6 +291,7 @@ suspend fun randomIllustrator(
         .map { it.name }
 }
 
+// TODO:: mult db
 suspend fun selectIllustrator(
     illustratorId: Int,
 ): Illustrator? = transaction {
@@ -285,9 +306,10 @@ suspend fun selectIllustrator(
 }
 
 suspend fun createTag(
+    label: String,
     tag: String?,
 ) {
-    transaction {
+    transaction(findDb(label)) {
         tag?.let {
             TagEntity.new {
                 this.name = tag
@@ -296,6 +318,7 @@ suspend fun createTag(
     }
 }
 
+// TODO:: mult db
 suspend fun searchTag(
     count: Int,
     keyword: String? = null,
@@ -309,21 +332,29 @@ suspend fun searchTag(
     }
 }
 
+// TODO:: mult db
 suspend fun backup() {
-    (db.connector().connection as Connection).use { connection ->
-        connection.createStatement().use { statement ->
-            val sql = "VACUUM INTO './data/databases/pic.db.bak'"
-            statement.executeUpdate(sql)
+    dbs.forEach { db ->
+        (db.connector().connection as Connection).use { connection ->
+            connection.createStatement().use { statement ->
+                val sql = "VACUUM INTO './data/databases/${db.name}.db.bak'"
+                statement.executeUpdate(sql)
+            }
         }
     }
 }
 
 suspend fun Route.sync() {
-    PicStorage.picKeys.forEach {
-        uploadPic(
-            byteArray = PicStorage.byName(it)!!.toByteReadChannel().readRemaining().readByteArray(),
-            filename = it,
-            uploadFile = false,
-        )
+    PicStorage.storages.forEach { storage ->
+        if (storage.label == "sandbox") return@forEach
+        storage.picKeys.forEach {
+            uploadPic(
+                label = storage.label,
+                byteArray = PicStorage.byName(storage.label, it)!!.toByteReadChannel().readRemaining()
+                    .readByteArray(),
+                filename = it,
+                uploadFile = false,
+            )
+        }
     }
 }

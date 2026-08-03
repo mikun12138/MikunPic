@@ -53,6 +53,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.size.Precision
 import coil3.size.Size
+import io.ktor.http.encodeURLPathPart
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.client.Client
@@ -67,10 +68,15 @@ fun EditTablePic() {
     val localPlatformContext = LocalPlatformContext.current
 
     var picOnTable by remember { mutableStateOf<Pic?>(null) }
+
+    var currentStorageLabel by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        picOnTable = Client.randomPic(
+        Client.randomPic(
             1,
-        )?.pics?.firstOrNull()
+        )?.let {
+            picOnTable = it.pics.firstOrNull()
+            currentStorageLabel = it.storageLabel
+        }
     }
 
     val editContext = object {
@@ -84,10 +90,10 @@ fun EditTablePic() {
         ) {
             derivedStateOf {
                 picOnTable != null &&
-                    (
-                        picOnTable?.illustrator != illustrator ||
-                            picOnTable?.tags?.toSet() != tags.toSet()
-                        )
+                        (
+                                picOnTable?.illustrator != illustrator ||
+                                        picOnTable?.tags?.toSet() != tags.toSet()
+                                )
             }
         }
     }
@@ -109,25 +115,34 @@ fun EditTablePic() {
             HeaderSelection(
                 onSelectionRandom = {
                     scope.launch {
-                        picOnTable = Client.randomPic(
+                        Client.randomPic(
                             1,
-                        )?.pics?.firstOrNull()
+                        )?.let {
+                            picOnTable = it.pics.firstOrNull()
+                            currentStorageLabel = it.storageLabel
+                        }
                     }
                 },
                 onSelectionNoAuthor = {
                     scope.launch {
-                        picOnTable = Client.randomPic(
+                        Client.randomPic(
                             1,
                             illustrators = listOf(Illustrator.UnExist),
-                        )?.pics?.firstOrNull()
+                        )?.let {
+                            picOnTable = it.pics.firstOrNull()
+                            currentStorageLabel = it.storageLabel
+                        }
                     }
                 },
                 onSelectionNoTag = {
                     scope.launch {
-                        picOnTable = Client.randomPic(
+                        Client.randomPic(
                             1,
                             tags = listOf(""),
-                        )?.pics?.firstOrNull()
+                        )?.let {
+                            picOnTable = it.pics.firstOrNull()
+                            currentStorageLabel = it.storageLabel
+                        }
                     }
                 },
             )
@@ -137,9 +152,24 @@ fun EditTablePic() {
                     modifier = Modifier
                         .weight(0.6f),
                 ) {
+
+                    fun encodePathKeepingSlash(path: String): String {
+                        return path
+                            .split("/")
+                            .joinToString("/") { segment ->
+                                segment.encodeURLPathPart()
+                            }
+                    }
+
                     PicShowingTable(
                         ImageRequest.Builder(localPlatformContext)
-                            .data("${LocalConfig.current.server}/pic/${picOnTable?.filename}")
+                            .data(
+                                "${LocalConfig.current.server}/pic/${
+                                    encodePathKeepingSlash(
+                                        picOnTable!!.filename
+                                    )
+                                }"
+                            )
                             .size(Size.ORIGINAL)
                             .memoryCachePolicy(CachePolicy.DISABLED)
                             .diskCachePolicy(CachePolicy.DISABLED)
@@ -215,6 +245,7 @@ fun EditTablePic() {
 
                                 scope.launch {
                                     Client.updatePic(
+                                        storageLabel = currentStorageLabel,
                                         picOnTable!!,
                                     )
                                 }

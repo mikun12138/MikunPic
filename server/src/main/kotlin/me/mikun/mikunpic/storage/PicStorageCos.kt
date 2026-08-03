@@ -19,12 +19,17 @@ import me.mikun.mikunpic.dto.data.MikunPicConfig
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import java.io.InputStream
 
-class PicStorageCos : PicStorage() {
+class PicStorageCos(
+    override val label: String
+) : PicStorage() {
     private lateinit var cosClient: COSClient
     private lateinit var bucket: Bucket
 
-    override fun init(application: Application) {
-        (LocalMikunPicConfig.storage as? MikunPicConfig.Storage.Cos)?.let { storage ->
+    override fun init(
+        application: Application,
+        storage: MikunPicConfig.Storage,
+    ) {
+        (storage as? MikunPicConfig.Storage.Cos)?.let { storage ->
 
             fun initClient() {
                 val cred: COSCredentials = BasicCOSCredentials(
@@ -79,6 +84,7 @@ class PicStorageCos : PicStorage() {
                 }
             }
             initBucket()
+            println(picKeys)
         }
     }
 

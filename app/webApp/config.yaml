@@ -1,1 +1,2 @@
-server: "https://pic.mikun.icu"
+#server: "https://pic.mikun.icu"
+server: "http://127.0.0.1:8080"

@@ -8,17 +8,5 @@ class Test {
 
     @Test
     fun test() {
-        Yaml.encodeToString(
-            MikunPicConfig(
-                storage = MikunPicConfig.Storage.Local(
-                    path = "qwq"
-                ),
-                auth = MikunPicConfig.Auth.Bearer(
-                    token = "qwqwq"
-                )
-            )
-        ).let {
-            println(it)
-        }
     }
 }

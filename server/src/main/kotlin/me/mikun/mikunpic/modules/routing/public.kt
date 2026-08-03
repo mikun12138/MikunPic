@@ -22,8 +22,9 @@ fun Route.public() {
 
     get<OhMyRouting.Pic.Filename> { req ->
         PicStorage.byName(
-            req.filename,
-            req.thumbnail,
+            label = "",
+            name =  call.parameters.getAll("filename")?.joinToString("/") ?: "",
+            thumbnail = req.thumbnail,
         )?.let {
             call.respondBytes {
                 it.readBytes()

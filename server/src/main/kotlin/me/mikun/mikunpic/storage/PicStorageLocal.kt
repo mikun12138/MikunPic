@@ -15,11 +15,16 @@ import java.nio.file.FileSystems
 import java.nio.file.StandardWatchEventKinds
 import kotlin.io.path.Path
 
-class PicStorageLocal : PicStorage() {
+class PicStorageLocal(
+    override val label: String,
+) : PicStorage() {
     lateinit var folderPath: String
 
-    override fun init(application: Application) {
-        (LocalMikunPicConfig.storage as? MikunPicConfig.Storage.Local)?.let { storage ->
+    override fun init(
+        application: Application,
+        storage: MikunPicConfig.Storage,
+    ) {
+        (storage as? MikunPicConfig.Storage.Local)?.let { storage ->
             folderPath = storage.path
 
             File(folderPath).apply {
@@ -27,30 +32,29 @@ class PicStorageLocal : PicStorage() {
                 isDirectory || error("$folderPath is not a dir!")
             }
 
-
             flashStorage()
-
-            application.launch(Dispatchers.IO) {
-                val watchService = FileSystems.getDefault().newWatchService()
-                Path(folderPath).register(
-                    watchService,
-                    StandardWatchEventKinds.ENTRY_CREATE,
-                )
-
-                while (true) {
-                    val key = watchService.take()
-                    key
-                        .pollEvents()
-                        .filter { it.kind() == StandardWatchEventKinds.ENTRY_CREATE }
-                        .forEach { event ->
-                            val fileName = event.context().toString()
-                            picKeys.add(fileName)
-                        }
-                    key.reset()
-
-                    application.log.info("PicStorage count update: ${picKeys.size}")
-                }
-            }
+//
+//            application.launch(Dispatchers.IO) {
+//                val watchService = FileSystems.getDefault().newWatchService()
+//                Path(folderPath).register(
+//                    watchService,
+//                    StandardWatchEventKinds.ENTRY_CREATE,
+//                )
+//
+//                while (true) {
+//                    val key = watchService.take()
+//                    key
+//                        .pollEvents()
+//                        .filter { it.kind() == StandardWatchEventKinds.ENTRY_CREATE }
+//                        .forEach { event ->
+//                            val fileName = event.context().toString()
+//                            picKeys.add(fileName)
+//                        }
+//                    key.reset()
+//
+//                    application.log.info("PicStorage count update: ${picKeys.size}")
+//                }
+//            }
         }
     }
 
@@ -78,7 +82,6 @@ class PicStorageLocal : PicStorage() {
 
     override suspend fun byName(
         name: String,
-        // TODO::
         thumbnail: OhMyRouting.Pic.Filename.Thumbnail,
     ): InputStream? {
         return withContext(Dispatchers.IO) {
@@ -107,8 +110,15 @@ class PicStorageLocal : PicStorage() {
 
     fun flashStorage() {
         picKeys.clear()
-        File(folderPath).listFiles()?.let { files ->
-            picKeys.addAll(files.map { it.name })
-        }
+
+        val root = File(folderPath)
+        root.walkTopDown()
+            .onEnter {
+                !it.isHidden
+            }
+            .filter { !it.isHidden && it.isFile }
+            .forEach {
+                picKeys.add(it.relativeTo(root).path)
+            }
     }
 }

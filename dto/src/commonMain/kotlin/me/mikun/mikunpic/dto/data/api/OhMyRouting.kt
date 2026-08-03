@@ -4,6 +4,7 @@ import io.ktor.resources.Resource
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import me.mikun.mikunpic.dto.data.MikunPicConfig
+import me.mikun.mikunpic.dto.data.Storage
 
 interface OhMyRouting {
     val parent: Any
@@ -20,7 +21,7 @@ interface OhMyRouting {
     class Pic : OhMyRouting {
         override val parent = OhMyRouting.Companion
 
-        @Resource("{filename}")
+        @Resource("{filename...}")
         class Filename(
             val filename: String,
             val thumbnail: Thumbnail = Thumbnail.Orig,
@@ -40,6 +41,17 @@ interface OhMyRouting {
     @Resource("/manage")
     class Manage : OhMyRouting {
         override val parent = OhMyRouting.Companion
+
+        @Resource("/storages")
+        class Storages : OhMyRouting {
+            override val parent = Manage()
+
+            @Serializable
+            data class Response(
+                @SerialName("storages")
+                val storages: List<Storage>
+            )
+        }
 
         @Resource("/config")
         class Config : OhMyRouting {
@@ -73,6 +85,8 @@ interface OhMyRouting {
                 data class Response(
                     @SerialName("pics")
                     val pics: List<me.mikun.mikunpic.dto.data.Pic>,
+                    @SerialName("storage_label")
+                    val storageLabel: String
                 )
             }
 
@@ -82,6 +96,8 @@ interface OhMyRouting {
 
                 @Serializable
                 data class Body(
+                    @SerialName("storage_label")
+                    val storageLabel: String,
                     @SerialName("pic")
                     val pic: me.mikun.mikunpic.dto.data.Pic,
                 )
@@ -98,6 +114,8 @@ interface OhMyRouting {
 
                 @Serializable
                 data class Body(
+                    @SerialName("storage_label")
+                    val storageLabel: String,
                     @SerialName("name")
                     val name: String,
                 )
@@ -155,6 +173,8 @@ interface OhMyRouting {
 
                 @Serializable
                 data class Body(
+                    @SerialName("storage_label")
+                    val storageLabel: String,
                     @SerialName("name")
                     val name: String,
                 )

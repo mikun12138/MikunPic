@@ -29,13 +29,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.io.Buffer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.LocalPref
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
-import okio.FileSystem
 
 object Client {
     lateinit var httpClient: HttpClient
@@ -95,6 +95,7 @@ object Client {
     }
 
     suspend fun uploadPic(
+        storageLabel: String,
         picName: String,
         picBytes: ByteArray,
         illustrator: Illustrator?,
@@ -131,6 +132,10 @@ object Client {
                                 },
                             )
                         }
+                        append(
+                            "storage_label",
+                            storageLabel,
+                        )
                     },
                 ),
             )
@@ -157,6 +162,7 @@ object Client {
     suspend fun fetchPic(
         filename: String,
         thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Thumb,
+        storageLabel: String = "",
     ) = httpClient
         .get(
             OhMyRouting.Pic.Filename(
@@ -178,13 +184,17 @@ object Client {
             ),
         ).`get any`<OhMyRouting.Manage.Pic.Random.Response>()
 
-    suspend fun updatePic(pic: Pic) {
+    suspend fun updatePic(
+        storageLabel: String,
+        pic: Pic,
+    ) {
         httpClient.post(
             OhMyRouting.Manage.Pic.Update(),
         ) {
             contentType(ContentType.Application.Json)
             setBody(
                 OhMyRouting.Manage.Pic.Update.Body(
+                    storageLabel = storageLabel,
                     pic = pic,
                 ),
             )
@@ -214,4 +224,10 @@ object Client {
                 keyword,
             ),
         ).`get any`<OhMyRouting.Manage.Tag.Search.Response>()
+
+    suspend fun fetchStorages() =
+        httpClient
+            .get(
+                OhMyRouting.Manage.Storages()
+            ).`get any`<OhMyRouting.Manage.Storages.Response>()
 }

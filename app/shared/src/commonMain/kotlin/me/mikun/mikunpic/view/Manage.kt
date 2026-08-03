@@ -8,8 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import me.mikun.mikunpic.LocalPref
 import me.mikun.mikunpic.component.SimpleBgBox
-import me.mikun.mikunpic.view.manage.EditTable
+import me.mikun.mikunpic.view.manage.ManageEditTable
 import me.mikun.mikunpic.view.manage.ManageOverview
+import me.mikun.mikunpic.view.manage.ManageStorages
 
 @Composable
 fun Manage() {
@@ -25,9 +26,16 @@ fun Manage() {
             Box(
                 modifier = Modifier.fillMaxSize(),
             ) {
-                EditTable()
+                ManageEditTable()
             }
         },
+        {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                ManageStorages()
+            }
+        }
     )
 
     VerticalPager(

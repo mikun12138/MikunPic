@@ -2,7 +2,6 @@ package me.mikun.mikunpic.storage
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.log
-import kotlinx.coroutines.flow.Flow
 import me.mikun.mikunpic.LocalMikunPicConfig
 import me.mikun.mikunpic.dto.awesome.FileExtension
 import me.mikun.mikunpic.dto.data.MikunPicConfig
@@ -11,7 +10,8 @@ import java.io.InputStream
 import java.util.concurrent.CopyOnWriteArraySet
 
 sealed class PicStorage {
-    protected val picKeys =
+    abstract val label: String
+    val picKeys =
         object : CopyOnWriteArraySet<String>() {
 
             private fun isValid(e: String?): Boolean = e != null &&
@@ -31,64 +31,93 @@ sealed class PicStorage {
         }
 
     companion object {
-        lateinit var delegate: PicStorage
-
-        val picKeys
-            get() = delegate.picKeys
+        val storages: MutableList<PicStorage> = mutableListOf()
 
         fun configure(application: Application) {
-            if (LocalMikunPicConfig.storage == null) {
-                return
-            }
-
-//            picKeys.clear()
 
             runCatching {
-                when (LocalMikunPicConfig.storage) {
-                    is MikunPicConfig.Storage.Local -> {
-                        delegate =
-                            PicStorageLocal().apply {
-                                init(application)
-                            }
-                    }
+                LocalMikunPicConfig.storages.forEach {
+                    when (it) {
+                        is MikunPicConfig.Storage.Local -> {
+                            storages.add(
+                                PicStorageLocal(
+                                    it.label
+                                ).apply {
+                                    init(
+                                        application,
+                                        it
+                                    )
+                                }
+                            )
+                        }
 
-                    is MikunPicConfig.Storage.Cos -> {
-                        delegate =
-                            PicStorageCos().apply {
-                                init(application)
-                            }
-                    }
+                        is MikunPicConfig.Storage.Cos -> {
+                            storages.add(
+                                PicStorageCos(
+                                    it.label
+                                ).apply {
+                                    init(
+                                        application,
+                                        it
+                                    )
+                                }
+                            )
+                        }
 
-                    else -> error("??? how can you reach here ???")
+                        else -> error("??? how can you reach here ???")
+                    }
+                    application.log.info("Add storage: ${it.label}")
                 }
             }.onFailure { e ->
                 application.log.error(e.message)
                 throw e
             }
-
-            application.log.info("PicStorage count: ${delegate.picKeys.size}")
         }
 
-        suspend fun random(): InputStream? = delegate.random()
+        suspend fun random(): InputStream? = storages.random().random()
+        suspend fun byName(
+            label: String,
+            name: String,
+            thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Orig,
+        ): InputStream? {
+            storages.find { it.label == label }?.let { storage ->
+                try {
+                    storage.byName(name, thumbnail)?.let {
+                        return it
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } ?: run {
+                storages.forEach { storage ->
+                    try {
+                        storage.byName(name, thumbnail)?.let {
+                            return it
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+            return null
+        }
 
         suspend fun upload(
+            label: String,
             byteArray: ByteArray,
             filename: String,
-        ) = delegate.upload(
+        ) = storages.find { it.label == label }?.upload(
             byteArray,
             filename,
         )
 
-        suspend fun byName(
-            name: String,
-            thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Orig,
-        ): InputStream? = delegate.byName(
-            name,
-            thumbnail,
-        )
     }
 
-    abstract fun init(application: Application)
+    abstract fun init(
+        application: Application,
+        storage: MikunPicConfig.Storage,
+    )
 
     abstract suspend fun random(): InputStream?
 

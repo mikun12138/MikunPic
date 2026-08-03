@@ -15,10 +15,12 @@ import kotlinx.coroutines.launch
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.dto.data.Illustrator
+import me.mikun.mikunpic.dto.data.Storage
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.backup
 import me.mikun.mikunpic.operator.createIllustrator
 import me.mikun.mikunpic.operator.createTag
+import me.mikun.mikunpic.operator.randomDb
 import me.mikun.mikunpic.operator.randomIllustrator
 import me.mikun.mikunpic.operator.randomPic
 import me.mikun.mikunpic.operator.searchIllustrator
@@ -27,9 +29,24 @@ import me.mikun.mikunpic.operator.selectIllustrator
 import me.mikun.mikunpic.operator.sync
 import me.mikun.mikunpic.operator.updatePic
 import me.mikun.mikunpic.operator.uploadPic
+import me.mikun.mikunpic.storage.PicStorage
 import me.mikun.mikunpic.utils.mapToNullable
 
 fun Route.manage() {
+    fun storage() {
+        get<OhMyRouting.Manage.Storages> {
+            call.respond(
+                OhMyRouting.Manage.Storages.Response(
+                    PicStorage.storages.map {
+                        Storage(
+                            it.label
+                        )
+                    }
+                )
+            )
+        }
+    }
+
     fun pic() {
         post<OhMyRouting.Manage.Pic.Upload> {
             val multipart = call.receiveMultipart()
@@ -37,6 +54,7 @@ fun Route.manage() {
             var byteArray: ByteArray? = null
             var filename: String? = null
             var illustrator: Illustrator? = null
+            var storageLabel: String? = null
             multipart.forEachPart { part ->
                 when (part) {
                     is PartData.FileItem -> {
@@ -45,16 +63,23 @@ fun Route.manage() {
                     }
 
                     is PartData.FormItem -> {
-                        if (part.name == "illustrator") {
-                            illustrator = Json.decodeFromString(part.value)
+                        when (part.name) {
+                            "illustrator" -> {
+                                illustrator = Json.decodeFromString(part.value)
+                            }
+
+                            "storage_label" -> {
+                                storageLabel = part.value
+                            }
                         }
                     }
 
                     else -> part.dispose()
                 }
             }
+            println("storageLabel: " + storageLabel)
 
-            if (byteArray == null || filename == null) {
+            if (byteArray == null || filename == null || storageLabel == null) {
                 call.respond(
                     HttpStatusCode.BadGateway,
                 )
@@ -62,6 +87,7 @@ fun Route.manage() {
             }
 
             uploadPic(
+                storageLabel!!,
                 byteArray,
                 filename!!,
                 illustrator,
@@ -80,7 +106,8 @@ fun Route.manage() {
             ).let {
                 call.respond(
                     OhMyRouting.Manage.Pic.Random.Response(
-                        it,
+                        it.first,
+                        it.second
                     ),
                 )
             }
@@ -89,7 +116,10 @@ fun Route.manage() {
         post<OhMyRouting.Manage.Pic.Update> {
             val receive = call.receive<OhMyRouting.Manage.Pic.Update.Body>()
 
-            updatePic(receive.pic)
+            updatePic(
+                label = receive.storageLabel,
+                receive.pic
+            )
 
             call.respond(HttpStatusCode.Created)
         }
@@ -99,7 +129,10 @@ fun Route.manage() {
         post<OhMyRouting.Manage.Illustrator.Create> {
             val receive = call.receive<OhMyRouting.Manage.Illustrator.Create.Body>()
 
-            createIllustrator(receive.name)
+            createIllustrator(
+                label = receive.storageLabel,
+                receive.name
+            )
         }
 
         get<OhMyRouting.Manage.Illustrator.Random> { req ->
@@ -146,7 +179,10 @@ fun Route.manage() {
             val receive = call.receive<OhMyRouting.Manage.Tag.Create.Body>()
 
             runCatching {
-                createTag(receive.name)
+                createTag(
+                    receive.storageLabel,
+                    receive.name
+                )
             }
 
             call.respond(HttpStatusCode.Created)
@@ -165,6 +201,8 @@ fun Route.manage() {
             }
         }
     }
+
+    storage()
 
     pic()
     illustrator()
