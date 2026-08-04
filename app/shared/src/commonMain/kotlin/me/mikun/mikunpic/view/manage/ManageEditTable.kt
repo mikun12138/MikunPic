@@ -49,50 +49,55 @@ fun BoxScope.ManageEditTable() {
                     }
                 },
             ) {
-                FloatingActionButtonMenuItem(
-                    onClick = {
-                        editType = Edit.Pic
-                    },
-                    text = {
-                        Text("Pic")
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Default.ArtTrack,
-                            null,
-                        )
-                    },
-                )
+                if (editType != Edit.Pic) {
+                    FloatingActionButtonMenuItem(
+                        onClick = {
+                            editType = Edit.Pic
+                        },
+                        text = {
+                            Text("Pic")
+                        },
+                        icon = {
+                            Icon(
+                                Icons.Default.ArtTrack,
+                                null,
+                            )
+                        },
+                    )
+                }
+                if (editType != Edit.Illustrator) {
 
-                FloatingActionButtonMenuItem(
-                    onClick = {
-                        editType = Edit.Illustrator
-                    },
-                    text = {
-                        Text("Illustrator")
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Default.PersonSearch,
-                            null,
-                        )
-                    },
-                )
-
-                FloatingActionButtonMenuItem(
-                    onClick = {
-                        editType = Edit.Tag
-                    },
-                    text = {
-                        Text("Tag")
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Default.Bookmark,
-                            null,
-                        )
-                    },
-                )
+                    FloatingActionButtonMenuItem(
+                        onClick = {
+                            editType = Edit.Illustrator
+                        },
+                        text = {
+                            Text("Illustrator")
+                        },
+                        icon = {
+                            Icon(
+                                Icons.Default.PersonSearch,
+                                null,
+                            )
+                        },
+                    )
+                }
+                if (editType != Edit.Tag) {
+                    FloatingActionButtonMenuItem(
+                        onClick = {
+                            editType = Edit.Tag
+                        },
+                        text = {
+                            Text("Tag")
+                        },
+                        icon = {
+                            Icon(
+                                Icons.Default.Bookmark,
+                                null,
+                            )
+                        },
+                    )
+                }
             }
         },
     ) {
@@ -107,6 +112,10 @@ fun BoxScope.ManageEditTable() {
 
                 Edit.Illustrator -> {
                     EditTableIllustrator()
+                }
+
+                Edit.Tag -> {
+                    EditTableTag()
                 }
 
                 else -> {}

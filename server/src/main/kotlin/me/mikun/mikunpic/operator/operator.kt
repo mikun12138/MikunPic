@@ -43,7 +43,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.sql.Connection
 
 fun findDb(
-    name: String
+    name: String,
 ): Database? {
     return dbs.find { it.name == name }
 }
@@ -141,7 +141,7 @@ suspend fun randomPic(
     count: Int,
     illustratorIds: Set<Int?>,
     tags: Set<String?> = setOf(),
-    db: Database? = randomDb()
+    db: Database? = randomDb(),
 ): Pair<List<Pic>, String> = transaction(randomDb()) {
     PicEntity.wrapRows(
         PicTable.join(
@@ -328,8 +328,24 @@ suspend fun searchTag(
             .limit(count)
             .map { it.name }
     } else {
-        emptyList()
+        TagEntity
+            .all()
+            .orderBy(TagTable.id to SortOrder.ASC)
+            .limit(count)
+            .map { it.name }
     }
+}
+
+suspend fun deleteTag(
+    storageLabel: String,
+    tagName: String
+) {
+   transaction(findDb(storageLabel)) {
+       TagEntity.find { TagTable.name eq tagName }
+           .firstOrNull()?.let {
+               it.delete()
+           }
+   }
 }
 
 // TODO:: mult db
@@ -350,7 +366,8 @@ suspend fun Route.sync() {
         storage.picKeys.forEach {
             uploadPic(
                 label = storage.label,
-                byteArray = PicStorage.byName(storage.label, it)!!.toByteReadChannel().readRemaining()
+                byteArray = PicStorage.byName(storage.label, it)!!.toByteReadChannel()
+                    .readRemaining()
                     .readByteArray(),
                 filename = it,
                 uploadFile = false,

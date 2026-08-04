@@ -34,6 +34,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -59,6 +60,8 @@ import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
+import kotlin.collections.emptyList
+import kotlin.collections.mutableListOf
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -326,7 +329,11 @@ private fun ColumnScope.EditPicIllustratorSheet(
 ) {
     val scope = rememberCoroutineScope()
 
-    val searchResults = remember { mutableStateListOf<String>() }
+    val searchResults by produceState(mutableListOf()) {
+        value = Client.searchIllustrator(100)?.let {
+            it.illustrators.map { it.name ?: "" }.toMutableList()
+        } ?: mutableListOf()
+    }
 
     val searchBarState = rememberContainedSearchBarState()
 
@@ -383,7 +390,11 @@ private fun ColumnScope.EditPicTagsSheet(
     val searchBarState = rememberContainedSearchBarState()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
 
-    val searchResults = remember { mutableStateListOf<String>() }
+    val searchResults by produceState(mutableListOf()) {
+        value = Client.searchTag(100)?.let {
+            it.tags.toMutableList()
+        } ?: mutableListOf()
+    }
 
     val inputField =
         @Composable {

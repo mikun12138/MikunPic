@@ -214,9 +214,27 @@ object Client {
             ),
         ).`get any`<OhMyRouting.Manage.Illustrator.Search.Response>()
 
+    suspend fun createTag(
+        storageLabel: String,
+        tagName: String,
+    ) {
+        httpClient
+            .post(
+                OhMyRouting.Manage.Tag.Create()
+            ) {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    OhMyRouting.Manage.Tag.Create.Body(
+                        storageLabel = storageLabel,
+                        name = tagName
+                    )
+                )
+            }
+    }
+
     suspend fun searchTag(
         count: Int,
-        keyword: String,
+        keyword: String = "",
     ) = httpClient
         .get(
             OhMyRouting.Manage.Tag.Search(
@@ -224,6 +242,24 @@ object Client {
                 keyword,
             ),
         ).`get any`<OhMyRouting.Manage.Tag.Search.Response>()
+
+    suspend fun deleteTag(
+        storageLabel: String,
+        tagName: String,
+    ) {
+        httpClient
+            .post(
+                OhMyRouting.Manage.Tag.Delete()
+            ) {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    OhMyRouting.Manage.Tag.Delete.Body(
+                        storageLabel,
+                        tagName
+                    )
+                )
+            }
+    }
 
     suspend fun fetchStorages() =
         httpClient

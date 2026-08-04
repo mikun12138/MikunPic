@@ -11,7 +11,7 @@ import me.mikun.mikunpic.dto.data.Storage
 
 class ManageStorageViewModel : ViewModel() {
     private val _storages = MutableStateFlow<List<Storage>>(emptyList())
-    val storages: StateFlow<List<Storage>> = _storages.asStateFlow()
+    val storages = _storages.asStateFlow()
 
     init {
         fetchStorages()

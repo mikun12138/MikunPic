@@ -20,6 +20,7 @@ import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.backup
 import me.mikun.mikunpic.operator.createIllustrator
 import me.mikun.mikunpic.operator.createTag
+import me.mikun.mikunpic.operator.deleteTag
 import me.mikun.mikunpic.operator.randomDb
 import me.mikun.mikunpic.operator.randomIllustrator
 import me.mikun.mikunpic.operator.randomPic
@@ -77,8 +78,8 @@ fun Route.manage() {
                     else -> part.dispose()
                 }
             }
-            println("storageLabel: " + storageLabel)
 
+            println(illustrator)
             if (byteArray == null || filename == null || storageLabel == null) {
                 call.respond(
                     HttpStatusCode.BadGateway,
@@ -87,7 +88,7 @@ fun Route.manage() {
             }
 
             uploadPic(
-                storageLabel!!,
+                storageLabel,
                 byteArray,
                 filename!!,
                 illustrator,
@@ -199,6 +200,16 @@ fun Route.manage() {
                     ),
                 )
             }
+        }
+
+        post<OhMyRouting.Manage.Tag.Delete> { req ->
+            val receive = call.receive<OhMyRouting.Manage.Tag.Delete.Body>()
+            deleteTag(
+                receive.storageLabel,
+                receive.name
+            )
+
+            call.respond(HttpStatusCode.Accepted)
         }
     }
 

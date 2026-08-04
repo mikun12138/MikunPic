@@ -193,6 +193,19 @@ interface OhMyRouting {
                     val tags: List<String>,
                 )
             }
+
+            @Resource("/delete")
+            class Delete: OhMyRouting {
+                override val parent = Tag()
+
+                @Serializable
+                data class Body(
+                    @SerialName("storage_label")
+                    val storageLabel: String,
+                    @SerialName("name")
+                    val name: String,
+                )
+            }
         }
 
         @Resource("/backup")
