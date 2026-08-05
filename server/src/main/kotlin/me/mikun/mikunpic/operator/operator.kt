@@ -10,6 +10,7 @@ import kotlinx.io.readByteArray
 import me.mikun.mikunpic.database.IllustratorEntity
 import me.mikun.mikunpic.database.PicEntity
 import me.mikun.mikunpic.database.PlatformKeyEntity
+import me.mikun.mikunpic.database.StorageDB
 import me.mikun.mikunpic.database.TagEntity
 import me.mikun.mikunpic.database.table.IllustratorTable
 import me.mikun.mikunpic.database.table.PicTable
@@ -20,7 +21,6 @@ import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
 import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
-import me.mikun.mikunpic.modules.dbs
 import me.mikun.mikunpic.storage.PicStorage
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
@@ -42,16 +42,6 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.sql.Connection
 
-fun findDb(
-    name: String,
-): Database? {
-    return dbs.find { it.name == name }
-}
-
-fun randomDb(): Database? {
-    return dbs.randomOrNull()
-}
-
 suspend fun Route.uploadPic(
     label: String,
     byteArray: ByteArray,
@@ -60,6 +50,8 @@ suspend fun Route.uploadPic(
     tags: List<String> = emptyList(),
     uploadFile: Boolean = true,
 ) {
+    check(findStorageDb(label) != null)
+
     try {
         val hash = Digest("md5").let {
             it += byteArray
@@ -73,8 +65,7 @@ suspend fun Route.uploadPic(
                 filename,
             )
         }
-
-        transaction(findDb(label)) {
+        transaction(findStorageDb(label)) {
             val illustratorEntity: IllustratorEntity? = illustrator?.let {
                 it.id?.let { id ->
                     IllustratorEntity.findById(id)
@@ -138,75 +129,86 @@ suspend fun Route.uploadPic(
 }
 
 suspend fun randomPic(
+    storageLabels: Set<String>,
     count: Int,
     illustratorIds: Set<Int?>,
     tags: Set<String?> = setOf(),
-    db: Database? = randomDb(),
-): Pair<List<Pic>, String> = transaction(randomDb()) {
-    PicEntity.wrapRows(
-        PicTable.join(
-            otherTable = Pic2IllustratorTable,
-            joinType = JoinType.LEFT,
-            onColumn = PicTable.id,
-            otherColumn = Pic2IllustratorTable.picId,
-        ).join(
-            otherTable = IllustratorTable,
-            joinType = JoinType.LEFT,
-            onColumn = Pic2IllustratorTable.illustratorId,
-            otherColumn = IllustratorTable.id,
-        ).join(
-            otherTable = Pic2TagsTable,
-            joinType = JoinType.LEFT,
-            onColumn = PicTable.id,
-            otherColumn = Pic2TagsTable.picId,
-        ).join(
-            otherTable = TagTable,
-            joinType = JoinType.LEFT,
-            onColumn = Pic2TagsTable.tagId,
-            otherColumn = TagTable.id,
-        )
-            .select(PicTable.columns)
-            .apply {
-                // with effect so
-                if (illustratorIds.isNotEmpty()) {
-                    andWhere {
-                        var op: Op<Boolean> =
-                            (IllustratorTable.id inList illustratorIds.filterNotNull())
+): Pair<List<Pic>, String> {
 
-                        if (illustratorIds.contains(null)) {
-                            op = op or IllustratorTable.id.isNull()
+    val dbs = storageLabels.mapNotNull { StorageDB.byNameNoEx(it) }
+
+    val picCounts = dbs.map {  it.countPic }
+
+    val weights = dbs.map {
+
+    }
+
+    return transaction(db) {
+        PicEntity.wrapRows(
+            PicTable.join(
+                otherTable = Pic2IllustratorTable,
+                joinType = JoinType.LEFT,
+                onColumn = PicTable.id,
+                otherColumn = Pic2IllustratorTable.picId,
+            ).join(
+                otherTable = IllustratorTable,
+                joinType = JoinType.LEFT,
+                onColumn = Pic2IllustratorTable.illustratorId,
+                otherColumn = IllustratorTable.id,
+            ).join(
+                otherTable = Pic2TagsTable,
+                joinType = JoinType.LEFT,
+                onColumn = PicTable.id,
+                otherColumn = Pic2TagsTable.picId,
+            ).join(
+                otherTable = TagTable,
+                joinType = JoinType.LEFT,
+                onColumn = Pic2TagsTable.tagId,
+                otherColumn = TagTable.id,
+            )
+                .select(PicTable.columns)
+                .apply {
+                    // with effect so
+                    if (illustratorIds.isNotEmpty()) {
+                        andWhere {
+                            var op: Op<Boolean> =
+                                (IllustratorTable.id inList illustratorIds.filterNotNull())
+
+                            if (illustratorIds.contains(null)) {
+                                op = op or IllustratorTable.id.isNull()
+                            }
+
+                            op
                         }
+                    }
 
-                        op
+                    if (tags.isNotEmpty()) {
+                        andWhere {
+                            var op: Op<Boolean> =
+                                TagTable.name inList tags.filterNotNull()
+
+                            if (tags.contains(null)) {
+                                op = op or TagTable.name.isNull()
+                            }
+
+                            op
+                        }
                     }
                 }
+                .withDistinct(),
 
-                if (tags.isNotEmpty()) {
-                    andWhere {
-                        var op: Op<Boolean> =
-                            TagTable.name inList tags.filterNotNull()
-
-                        if (tags.contains(null)) {
-                            op = op or TagTable.name.isNull()
-                        }
-
-                        op
-                    }
-                }
-            }
-            .withDistinct(),
-
-        )
-        .limit(count)
-        .orderBy(Random() to SortOrder.ASC)
-        .map { it.toPic() }
-        .let { it to db!!.name }
+            )
+            .limit(count)
+            .orderBy(Random() to SortOrder.ASC)
+            .map { it.toPic() }
+            .let { it to db!!.nameNoEx }
+    }
 }
 
 suspend fun updatePic(
     label: String,
     pic: Pic,
-) = transaction(findDb(label)) {
+) = transaction(findStorageDb(label)) {
     PicEntity.findSingleByAndUpdate(PicTable.filename eq pic.filename) { picEntity ->
         if (!pic.illustrator.isNullOrEmpty()) {
             picEntity.illustrator =
@@ -223,9 +225,6 @@ suspend fun updatePic(
                 this.name = it
             }
         }
-
-        tagsInTable.forEach { println(it.name) }
-        newTags.forEach { println(it.name) }
 
         picEntity.tags = SizedCollection(tagsInTable + newTags)
     }
@@ -265,98 +264,6 @@ suspend fun searchIllustrator(
                     emptyMap(),
                 )
             }
-    }
-}
-
-suspend fun createIllustrator(
-    label: String,
-    illustrator: String?,
-) {
-    transaction(findDb(label)) {
-        illustrator?.let {
-            IllustratorEntity.new {
-                this.name = illustrator
-            }
-        }
-    }
-}
-
-// TODO:: mult db
-suspend fun randomIllustrator(
-    count: Int,
-): List<String> = transaction {
-    IllustratorEntity.find { IllustratorTable.name.isNotNull() }
-        .orderBy(Random() to SortOrder.ASC)
-        .limit(count)
-        .map { it.name }
-}
-
-// TODO:: mult db
-suspend fun selectIllustrator(
-    illustratorId: Int,
-): Illustrator? = transaction {
-    IllustratorEntity.findById(illustratorId)?.let {
-        Illustrator(
-            id = illustratorId,
-            name = it.name,
-            // TODO:: return platform key
-            emptyMap(),
-        )
-    }
-}
-
-suspend fun createTag(
-    label: String,
-    tag: String?,
-) {
-    transaction(findDb(label)) {
-        tag?.let {
-            TagEntity.new {
-                this.name = tag
-            }
-        }
-    }
-}
-
-// TODO:: mult db
-suspend fun searchTag(
-    count: Int,
-    keyword: String? = null,
-): List<String> = transaction {
-    if (!keyword.isNullOrEmpty()) {
-        TagEntity.find { TagTable.name like "%$keyword%" }
-            .limit(count)
-            .map { it.name }
-    } else {
-        TagEntity
-            .all()
-            .orderBy(TagTable.id to SortOrder.ASC)
-            .limit(count)
-            .map { it.name }
-    }
-}
-
-suspend fun deleteTag(
-    storageLabel: String,
-    tagName: String
-) {
-   transaction(findDb(storageLabel)) {
-       TagEntity.find { TagTable.name eq tagName }
-           .firstOrNull()?.let {
-               it.delete()
-           }
-   }
-}
-
-// TODO:: mult db
-suspend fun backup() {
-    dbs.forEach { db ->
-        (db.connector().connection as Connection).use { connection ->
-            connection.createStatement().use { statement ->
-                val sql = "VACUUM INTO './data/databases/${db.name}.db.bak'"
-                statement.executeUpdate(sql)
-            }
-        }
     }
 }
 

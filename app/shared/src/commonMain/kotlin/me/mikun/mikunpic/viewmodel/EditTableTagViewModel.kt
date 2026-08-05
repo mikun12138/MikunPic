@@ -19,14 +19,15 @@ class EditTableTagViewModel : ViewModel() {
     private val _imageShowing = MutableStateFlow<List<String>>(emptyList())
     val imageShowing = _imageShowing.asStateFlow()
 
-    init {
-        updateTags()
-    }
-
-    fun updateTags() {
+    fun updateTags(
+        storageLabel: String,
+    ) {
         viewModelScope.launch {
             try {
-                _tags.value = Client.searchTag(Int.MAX_VALUE)?.let {
+                _tags.value = Client.searchTag(
+                    storageLabel = storageLabel,
+                    count = Int.MAX_VALUE
+                )?.let {
                     it.tags
                 } ?: emptyList()
             } catch (e: Exception) {
@@ -51,13 +52,16 @@ class EditTableTagViewModel : ViewModel() {
         }
     }
 
-    fun updateImageShowing() {
+    fun updateImageShowing(
+        storageLabel: String,
+    ) {
         viewModelScope.launch {
             try {
                 _imageShowing.value = Client.randomPic(
                     count = 10,
                     illustrators = emptyList(),
                     tags = tagsSelected.value,
+                    storageLabels = storageLabel
                 )?.let {
                     it.pics.map { it.filename }
                 } ?: emptyList()

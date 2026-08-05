@@ -29,7 +29,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.io.Buffer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.LocalPref
@@ -175,14 +174,22 @@ object Client {
         count: Int = 1,
         illustrators: List<Illustrator> = emptyList(),
         tags: List<String> = emptyList(),
+        storageLabels: List<String> = emptyList(),
     ) = httpClient
-        .get(
-            OhMyRouting.Manage.Pic.Random(
-                count = count,
-                illustratorIds = illustrators.mapNotNull { it.id },
-                tags = tags,
-            ),
-        ).`get any`<OhMyRouting.Manage.Pic.Random.Response>()
+        .post(
+            OhMyRouting.Manage.Pic.Random()
+        ) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                OhMyRouting.Manage.Pic.Random.Body(
+                    count = count,
+                    illustratorIds = illustrators.mapNotNull { it.id },
+                    tags = tags,
+                    storageLabels = storageLabels
+                )
+            )
+        }
+        .`get any`<OhMyRouting.Manage.Pic.Random.Response>()
 
     suspend fun updatePic(
         storageLabel: String,
@@ -233,13 +240,15 @@ object Client {
     }
 
     suspend fun searchTag(
+        storageLabel: String,
         count: Int,
         keyword: String = "",
     ) = httpClient
         .get(
             OhMyRouting.Manage.Tag.Search(
-                count,
-                keyword,
+                count = count,
+                keyword = keyword,
+                storageLabel = storageLabel
             ),
         ).`get any`<OhMyRouting.Manage.Tag.Search.Response>()
 

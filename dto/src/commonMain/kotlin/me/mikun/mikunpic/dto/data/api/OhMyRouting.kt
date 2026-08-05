@@ -74,12 +74,20 @@ interface OhMyRouting {
             }
 
             @Resource("/random")
-            data class Random(
-                val count: Int,
-                val illustratorIds: QueryParameterList<Int> = emptyList(),
-                val tags: QueryParameterList<String> = emptyList(),
-            ) : OhMyRouting {
+            class Random: OhMyRouting {
                 override val parent = Pic()
+
+                @Serializable
+                data class Body(
+                    @SerialName("count")
+                    val count: Int,
+                    @SerialName("illustrator_ids")
+                    val illustratorIds: QueryParameterList<Int> = emptyList(),
+                    @SerialName("tags")
+                    val tags: QueryParameterList<String> = emptyList(),
+                    @SerialName("storage_label")
+                    val storageLabels: QueryParameterList<String> = emptyList()
+                )
 
                 @Serializable
                 data class Response(
@@ -121,19 +129,6 @@ interface OhMyRouting {
                 )
             }
 
-            @Resource("/random")
-            data class Random(
-                val count: Int,
-            ) : OhMyRouting {
-                override val parent = Illustrator()
-
-                @Serializable
-                data class Response(
-                    @SerialName("illustrators")
-                    val illustrators: List<String>,
-                )
-            }
-
             @Resource("/search")
             class Search(
                 val count: Int,
@@ -146,19 +141,6 @@ interface OhMyRouting {
                 data class Response(
                     @SerialName("illustrators")
                     val illustrators: List<me.mikun.mikunpic.dto.data.Illustrator>,
-                )
-            }
-
-            @Resource("{illustrator_id}")
-            class IllustratorId(
-                @SerialName("illustrator_id")
-                val illustratorId: Int,
-            ) : OhMyRouting {
-                override val parent = Illustrator()
-
-                @Serializable
-                data class Response(
-                    val illustrator: me.mikun.mikunpic.dto.data.Illustrator,
                 )
             }
         }
@@ -184,6 +166,8 @@ interface OhMyRouting {
             class Search(
                 val count: Int,
                 val keyword: String,
+                @SerialName("storage_label")
+                val storageLabel: String,
             ) : OhMyRouting {
                 override val parent = Tag()
 

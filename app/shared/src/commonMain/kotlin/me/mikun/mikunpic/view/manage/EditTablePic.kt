@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.AssistChipDefaults
@@ -30,6 +29,7 @@ import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -43,16 +43,13 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ContentScale.Companion
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
-import coil3.request.crossfade
-import coil3.size.Precision
 import coil3.size.Size
 import io.ktor.http.encodeURLPathPart
 import kotlinx.coroutines.launch
@@ -60,25 +57,32 @@ import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.viewmodel.ManageViewModel
 import kotlin.collections.emptyList
 import kotlin.collections.mutableListOf
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun EditTablePic() {
+fun EditTablePic(
+    manageViewModel: ManageViewModel = viewModel { ManageViewModel() },
+) {
     val scope = rememberCoroutineScope()
 
     val localPlatformContext = LocalPlatformContext.current
 
     var picOnTable by remember { mutableStateOf<Pic?>(null) }
 
-    var currentStorageLabel by remember { mutableStateOf("") }
+    var currentPicStorageLabel by remember { mutableStateOf("") }
+
+    val currentStorageLabel = manageViewModel.currentStorageLabel.collectAsState().value
+
     LaunchedEffect(Unit) {
         Client.randomPic(
-            1,
+            count = 1,
+            storageLabels = listOf(currentStorageLabel)
         )?.let {
             picOnTable = it.pics.firstOrNull()
-            currentStorageLabel = it.storageLabel
+            currentPicStorageLabel = it.storageLabel
         }
     }
 
@@ -119,32 +123,35 @@ fun EditTablePic() {
                 onSelectionRandom = {
                     scope.launch {
                         Client.randomPic(
-                            1,
+                            count = 1,
+                            storageLabels = listOf(currentStorageLabel)
                         )?.let {
                             picOnTable = it.pics.firstOrNull()
-                            currentStorageLabel = it.storageLabel
+                            currentPicStorageLabel = it.storageLabel
                         }
                     }
                 },
                 onSelectionNoAuthor = {
                     scope.launch {
                         Client.randomPic(
-                            1,
+                            count = 1,
+                            storageLabels = listOf(currentStorageLabel),
                             illustrators = listOf(Illustrator.UnExist),
                         )?.let {
                             picOnTable = it.pics.firstOrNull()
-                            currentStorageLabel = it.storageLabel
+                            currentPicStorageLabel = it.storageLabel
                         }
                     }
                 },
                 onSelectionNoTag = {
                     scope.launch {
                         Client.randomPic(
-                            1,
+                            count = 1,
+                            storageLabels = listOf(currentStorageLabel),
                             tags = listOf(""),
                         )?.let {
                             picOnTable = it.pics.firstOrNull()
-                            currentStorageLabel = it.storageLabel
+                            currentPicStorageLabel = it.storageLabel
                         }
                     }
                 },
@@ -237,25 +244,32 @@ fun EditTablePic() {
                         }
                     }
 
-                    ElevatedButton(
-                        onClick = {
-                            if (editContext.isEdited.value) {
-                                picOnTable = Pic(
-                                    picOnTable!!.filename,
-                                    editContext.illustrator,
-                                    editContext.tags.toList(),
-                                )
-
-                                scope.launch {
-                                    Client.updatePic(
-                                        storageLabel = currentStorageLabel,
-                                        picOnTable!!,
-                                    )
-                                }
-                            }
-                        },
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("Apply")
+                        ElevatedButton(
+                            onClick = {
+                                if (editContext.isEdited.value) {
+                                    picOnTable = Pic(
+                                        picOnTable!!.filename,
+                                        editContext.illustrator,
+                                        editContext.tags.toList(),
+                                    )
+
+                                    scope.launch {
+                                        Client.updatePic(
+                                            storageLabel = currentPicStorageLabel,
+                                            picOnTable!!,
+                                        )
+                                    }
+                                }
+                            },
+                        ) {
+                            Text("Apply")
+                        }
+
+                        Text("To Storage: $currentPicStorageLabel")
                     }
                 }
             }
@@ -288,6 +302,7 @@ fun EditTablePic() {
                 },
                 picTags = picOnTable?.tags,
                 editContextTags = editContext.tags,
+                currentPicStorageLabel
             )
         }
     }
@@ -383,38 +398,42 @@ private fun ColumnScope.EditPicTagsSheet(
     onEditTag: (String) -> Unit,
     picTags: List<String>?,
     editContextTags: SnapshotStateList<String>,
+    currentPicStorageLabel: String,
 ) {
     val scope = rememberCoroutineScope()
 
     val textFieldState = rememberTextFieldState()
-    val searchBarState = rememberContainedSearchBarState()
-    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
 
     val searchResults by produceState(mutableListOf()) {
-        value = Client.searchTag(100)?.let {
+        value = Client.searchTag(
+            storageLabel = currentPicStorageLabel,
+            count = 100
+        )?.let {
             it.tags.toMutableList()
         } ?: mutableListOf()
     }
 
-    val inputField =
-        @Composable {
-            SearchBarDefaults.InputField(
-                textFieldState = textFieldState,
-                searchBarState = searchBarState,
-                onSearch = {
-                    scope.launch { searchBarState.animateToCollapsed() }
-                    scope.launch {
-                        searchResults.clear()
-                        searchResults.addAll(
-                            Client.searchTag(
-                                count = 100,
-                                keyword = textFieldState.text.toString(),
-                            )?.tags ?: emptyList(),
-                        )
-                    }
-                },
-            )
-        }
+    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val searchBarState = rememberContainedSearchBarState()
+    val inputField = @Composable {
+        SearchBarDefaults.InputField(
+            textFieldState = textFieldState,
+            searchBarState = searchBarState,
+            onSearch = {
+                scope.launch { searchBarState.animateToCollapsed() }
+                scope.launch {
+                    searchResults.clear()
+                    searchResults.addAll(
+                        Client.searchTag(
+                            storageLabel = currentPicStorageLabel,
+                            count = 100,
+                            keyword = textFieldState.text.toString(),
+                        )?.tags ?: emptyList(),
+                    )
+                }
+            },
+        )
+    }
 
     AppBarWithSearch(
         scrollBehavior = scrollBehavior,
@@ -426,7 +445,7 @@ private fun ColumnScope.EditPicTagsSheet(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (picTags.isNullOrEmpty()) {
+        if (picTags.isNullOrEmpty() && editContextTags.isEmpty()) {
             ElevatedAssistChip(
                 onClick = { },
                 label = { },
@@ -436,7 +455,7 @@ private fun ColumnScope.EditPicTagsSheet(
             /*
                 unchange
              */
-            picTags.intersect(editContextTags.toSet()).forEach {
+            picTags!!.intersect(editContextTags.toSet()).forEach {
                 ElevatedAssistChip(
                     onClick = { onEditTag(it) },
                     label = { Text(it) },
@@ -477,7 +496,7 @@ private fun ColumnScope.EditPicTagsSheet(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        (searchResults - editContextTags).forEach {
+        (searchResults - editContextTags - (picTags?.toSet() ?: emptySet())).forEach {
             ElevatedAssistChip(
                 onClick = { onEditTag(it) },
                 label = { Text(it) },

@@ -14,15 +14,12 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.launch
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
+import me.mikun.mikunpic.database.StorageDB
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Storage
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.backup
 import me.mikun.mikunpic.operator.createIllustrator
-import me.mikun.mikunpic.operator.createTag
-import me.mikun.mikunpic.operator.deleteTag
-import me.mikun.mikunpic.operator.randomDb
-import me.mikun.mikunpic.operator.randomIllustrator
 import me.mikun.mikunpic.operator.randomPic
 import me.mikun.mikunpic.operator.searchIllustrator
 import me.mikun.mikunpic.operator.searchTag
@@ -79,7 +76,6 @@ fun Route.manage() {
                 }
             }
 
-            println(illustrator)
             if (byteArray == null || filename == null || storageLabel == null) {
                 call.respond(
                     HttpStatusCode.BadGateway,
@@ -99,11 +95,14 @@ fun Route.manage() {
             )
         }
 
-        get<OhMyRouting.Manage.Pic.Random> { req ->
+        post<OhMyRouting.Manage.Pic.Random> {
+            val receive = call.receive<OhMyRouting.Manage.Pic.Random.Body>()
+
             randomPic(
-                req.count,
-                req.illustratorIds.toSet(),
-                req.tags.mapToNullable().toSet(),
+                receive.storageLabels.toSet(),
+                receive.count,
+                receive.illustratorIds.toSet(),
+                receive.tags.mapToNullable().toSet(),
             ).let {
                 call.respond(
                     OhMyRouting.Manage.Pic.Random.Response(
@@ -130,25 +129,14 @@ fun Route.manage() {
         post<OhMyRouting.Manage.Illustrator.Create> {
             val receive = call.receive<OhMyRouting.Manage.Illustrator.Create.Body>()
 
-            createIllustrator(
-                label = receive.storageLabel,
-                receive.name
-            )
-        }
-
-        get<OhMyRouting.Manage.Illustrator.Random> { req ->
-            randomIllustrator(
-                req.count,
-            ).let {
-                call.respond(
-                    OhMyRouting.Manage.Illustrator.Random.Response(
-                        it,
-                    ),
+            StorageDB.byNameNoEx(receive.storageLabel)?.apply {
+                createIllustrator(
+                    receive.name
                 )
             }
         }
 
-        get<OhMyRouting.Manage.Illustrator.Search> { req ->
+        post<OhMyRouting.Manage.Illustrator.Search> { req ->
             searchIllustrator(
                 count = req.count,
                 keyword = req.keyword,
@@ -161,27 +149,14 @@ fun Route.manage() {
                 )
             }
         }
-
-        get<OhMyRouting.Manage.Illustrator.IllustratorId> { req ->
-            selectIllustrator(
-                req.illustratorId,
-            )?.let {
-                call.respond(
-                    OhMyRouting.Manage.Illustrator.IllustratorId.Response(
-                        it,
-                    ),
-                )
-            } ?: call.respond(HttpStatusCode.NotFound)
-        }
     }
 
     fun tag() {
         post<OhMyRouting.Manage.Tag.Create> {
             val receive = call.receive<OhMyRouting.Manage.Tag.Create.Body>()
 
-            runCatching {
+            StorageDB.byNameNoEx(receive.storageLabel)?.apply {
                 createTag(
-                    receive.storageLabel,
                     receive.name
                 )
             }
@@ -189,8 +164,19 @@ fun Route.manage() {
             call.respond(HttpStatusCode.Created)
         }
 
+        post<OhMyRouting.Manage.Tag.Delete> {
+            val receive = call.receive<OhMyRouting.Manage.Tag.Delete.Body>()
+            StorageDB.byNameNoEx(receive.storageLabel)?.apply {
+                deleteTag(
+                    receive.name
+                )
+            }
+
+            call.respond(HttpStatusCode.Accepted)
+        }
+
         get<OhMyRouting.Manage.Tag.Search> { req ->
-            searchTag(
+            StorageDB.searchTag(
                 count = req.count,
                 keyword = req.keyword,
             ).let {
@@ -201,16 +187,6 @@ fun Route.manage() {
                 )
             }
         }
-
-        post<OhMyRouting.Manage.Tag.Delete> { req ->
-            val receive = call.receive<OhMyRouting.Manage.Tag.Delete.Body>()
-            deleteTag(
-                receive.storageLabel,
-                receive.name
-            )
-
-            call.respond(HttpStatusCode.Accepted)
-        }
     }
 
     storage()
@@ -220,13 +196,12 @@ fun Route.manage() {
     tag()
 
     post<OhMyRouting.Manage.Backup> {
-        backup()
+        StorageDB.backup()
+        call.respond(HttpStatusCode.OK)
     }
 
     post<OhMyRouting.Manage.Sync> {
-        application.launch {
-            sync()
-        }
+        sync()
         call.respond(HttpStatusCode.OK)
     }
 }

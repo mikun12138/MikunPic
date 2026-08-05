@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.viewmodel.EditTableTagViewModel
+import me.mikun.mikunpic.viewmodel.ManageViewModel
 
 private enum class EditMode {
     None,
@@ -54,6 +55,7 @@ private enum class EditMode {
 @Composable
 fun EditTableTag(
     viewModel: EditTableTagViewModel = viewModel { EditTableTagViewModel() },
+    manageViewModel: ManageViewModel = viewModel { ManageViewModel() },
 ) {
     val scope = rememberCoroutineScope()
 
@@ -63,9 +65,16 @@ fun EditTableTag(
 
     val tagToRemove = remember { mutableStateListOf<String>() }
 
+    val currentStorageLabel by manageViewModel.currentStorageLabel.collectAsState()
+    LaunchedEffect(currentStorageLabel) {
+        viewModel.updateTags(currentStorageLabel)
+        viewModel.updateImageShowing(
+            currentStorageLabel
+        )
+    }
+
     LaunchedEffect(editMode) {
         viewModel.flashTagsSelected()
-        tagToRemove.clear()
     }
 
     Column(
@@ -77,7 +86,9 @@ fun EditTableTag(
             when (editMode) {
                 EditMode.None -> {
                     Button(
+                        enabled = currentStorageLabel.isNotEmpty(),
                         onClick = {
+                            tagToRemove.clear()
                             editMode = EditMode.Remove
                         }
                     ) {
@@ -85,6 +96,7 @@ fun EditTableTag(
                     }
 
                     Button(
+                        enabled = currentStorageLabel.isNotEmpty(),
                         onClick = {
                             editMode = EditMode.Add
                         }
@@ -99,11 +111,13 @@ fun EditTableTag(
                             scope.launch {
                                 tagToRemove.forEach {
                                     Client.deleteTag(
-                                        "sandbox",
+                                        currentStorageLabel,
                                         it
                                     )
                                 }
-                                viewModel.updateTags()
+                                viewModel.updateTags(
+                                    currentStorageLabel
+                                )
                             }
                             editMode = EditMode.None
                         }
@@ -122,10 +136,12 @@ fun EditTableTag(
                         onClick = {
                             scope.launch {
                                 Client.createTag(
-                                    "sandbox",
+                                    currentStorageLabel,
                                     tagToAdd.text.toString()
                                 )
-                                viewModel.updateTags()
+                                viewModel.updateTags(
+                                    currentStorageLabel
+                                )
                             }
                             editMode = EditMode.None
                         }
@@ -167,7 +183,9 @@ fun EditTableTag(
                             tagsSelected.contains(tag),
                             onClick = {
                                 viewModel.toggleTagsSelected(tag)
-                                viewModel.updateImageShowing()
+                                viewModel.updateImageShowing(
+                                    currentStorageLabel
+                                )
                             },
                             label = {
                                 Text(tag)

@@ -16,12 +16,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.viewmodel.compose.viewModel
+import me.mikun.mikunpic.viewmodel.ManageViewModel
 
 private enum class Edit {
     Pic,
@@ -31,7 +34,9 @@ private enum class Edit {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun BoxScope.ManageEditTable() {
+fun BoxScope.ManageEditTable(
+    manageViewModel: ManageViewModel = viewModel { ManageViewModel() }
+) {
     var isFloatingActionButtonMenuExpand by remember { mutableStateOf(false) }
     var editType by remember { mutableStateOf(Edit.Pic) }
 

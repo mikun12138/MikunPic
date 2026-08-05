@@ -31,10 +31,8 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
@@ -84,6 +82,7 @@ fun EditTableIllustrator() {
                     val pics = Client.randomPic(
                         picPreIllustrator,
                         illustrators = listOf(illustrator),
+                        storageLabels = ""
                     )?.pics ?: emptyList()
 
                     val picCaches = pics.map { pic ->
