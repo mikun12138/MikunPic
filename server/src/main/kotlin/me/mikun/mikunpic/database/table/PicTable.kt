@@ -13,4 +13,10 @@ object PicTable : IntIdTable("pic") {
             "hash",
             32,
         ).uniqueIndex()
+    // TODO::
+    val link =
+        char(
+            "link",
+            2048
+        )
 }
