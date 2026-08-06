@@ -5,11 +5,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Illustrator(
     val id: Int? = null,
-    val name: String?,
+    val name: String,
     val platformKeyMap: Map<Platform, String> = mapOf(),
 ) {
     companion object {
-        val UnExist = Illustrator(name = null)
+        val UnExist = Illustrator(name = "")
     }
 }
 

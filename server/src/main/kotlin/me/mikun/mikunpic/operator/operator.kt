@@ -50,221 +50,83 @@ suspend fun Route.uploadPic(
     tags: List<String> = emptyList(),
     uploadFile: Boolean = true,
 ) {
-    check(findStorageDb(label) != null)
-
-    try {
-        val hash = Digest("md5").let {
-            it += byteArray
-            it.build()
-        }.toHexString()
-
-        if (uploadFile) {
-            PicStorage.upload(
-                label,
-                byteArray,
-                filename,
-            )
-        }
-        transaction(findStorageDb(label)) {
-            val illustratorEntity: IllustratorEntity? = illustrator?.let {
-                it.id?.let { id ->
-                    IllustratorEntity.findById(id)
-                } ?: it.platformKeyMap.takeIf { it.isNotEmpty() }?.let { platformKeyMap ->
-                    IllustratorEntity.wrapRows(
-                        IllustratorTable.join(
-                            otherTable = Illustrator2PlatformKeysTable,
-                            joinType = JoinType.LEFT,
-                            onColumn = IllustratorTable.id,
-                            otherColumn = Illustrator2PlatformKeysTable.illustrator,
-                        ).join(
-                            otherTable = PlatformKeyTable,
-                            joinType = JoinType.LEFT,
-                            onColumn = Illustrator2PlatformKeysTable.platformkey,
-                            otherColumn = PlatformKeyTable.id,
-                        ).select(IllustratorTable.columns)
-                            .apply {
-                                platformKeyMap.forEach { (platform, key) ->
-                                    orWhere {
-                                        (PlatformKeyTable.platform eq platform) and (PlatformKeyTable.key eq key)
-                                    }
-                                }
-                            },
-                    ).firstOrNull()
-                } ?: illustrator.name?.let { name ->
-                    IllustratorEntity.new {
-                        this.name = name
-                        this.platformKeys =
-                            SizedCollection(
-                                illustrator.platformKeyMap.map { (platform, key) ->
-                                    PlatformKeyEntity.new {
-                                        this.platform = platform
-                                        this.key = key
-                                    }
-                                },
-                            )
-                    }
-                }
-            }
-
-            val tags = SizedCollection(
-                tags.map {
-                    TagEntity.find { TagTable.name eq it }.firstOrNull() ?: TagEntity.new {
-                        this.name = it
-                    }
-                },
-            )
-
-            PicEntity.new {
-                this.filename = filename
-                this.hash = hash
-                this.illustrator = illustratorEntity
-                this.tags = tags
-            }
-        }
-
-        application.log.info("upload pic $filename")
-    } catch (e: Exception) {
-        application.log.error("failed to upload pic $filename : $e")
-    }
-}
-
-suspend fun randomPic(
-    storageLabels: Set<String>,
-    count: Int,
-    illustratorIds: Set<Int?>,
-    tags: Set<String?> = setOf(),
-): Pair<List<Pic>, String> {
-
-    val dbs = storageLabels.mapNotNull { StorageDB.byNameNoEx(it) }
-
-    val picCounts = dbs.map {  it.countPic }
-
-    val weights = dbs.map {
-
-    }
-
-    return transaction(db) {
-        PicEntity.wrapRows(
-            PicTable.join(
-                otherTable = Pic2IllustratorTable,
-                joinType = JoinType.LEFT,
-                onColumn = PicTable.id,
-                otherColumn = Pic2IllustratorTable.picId,
-            ).join(
-                otherTable = IllustratorTable,
-                joinType = JoinType.LEFT,
-                onColumn = Pic2IllustratorTable.illustratorId,
-                otherColumn = IllustratorTable.id,
-            ).join(
-                otherTable = Pic2TagsTable,
-                joinType = JoinType.LEFT,
-                onColumn = PicTable.id,
-                otherColumn = Pic2TagsTable.picId,
-            ).join(
-                otherTable = TagTable,
-                joinType = JoinType.LEFT,
-                onColumn = Pic2TagsTable.tagId,
-                otherColumn = TagTable.id,
-            )
-                .select(PicTable.columns)
-                .apply {
-                    // with effect so
-                    if (illustratorIds.isNotEmpty()) {
-                        andWhere {
-                            var op: Op<Boolean> =
-                                (IllustratorTable.id inList illustratorIds.filterNotNull())
-
-                            if (illustratorIds.contains(null)) {
-                                op = op or IllustratorTable.id.isNull()
-                            }
-
-                            op
-                        }
-                    }
-
-                    if (tags.isNotEmpty()) {
-                        andWhere {
-                            var op: Op<Boolean> =
-                                TagTable.name inList tags.filterNotNull()
-
-                            if (tags.contains(null)) {
-                                op = op or TagTable.name.isNull()
-                            }
-
-                            op
-                        }
-                    }
-                }
-                .withDistinct(),
-
-            )
-            .limit(count)
-            .orderBy(Random() to SortOrder.ASC)
-            .map { it.toPic() }
-            .let { it to db!!.nameNoEx }
-    }
-}
-
-suspend fun updatePic(
-    label: String,
-    pic: Pic,
-) = transaction(findStorageDb(label)) {
-    PicEntity.findSingleByAndUpdate(PicTable.filename eq pic.filename) { picEntity ->
-        if (!pic.illustrator.isNullOrEmpty()) {
-            picEntity.illustrator =
-                IllustratorEntity.find { IllustratorTable.name eq pic.illustrator!! }.firstOrNull()
-                    ?: IllustratorEntity.new {
-                        this.name = pic.illustrator!!
-                    }
-        }
-
-        val tagsInTable = TagEntity.find { TagTable.name inList pic.tags }
-
-        val newTags = (pic.tags - tagsInTable.map { it.name }.toSet()).map {
-            TagEntity.new {
-                this.name = it
-            }
-        }
-
-        picEntity.tags = SizedCollection(tagsInTable + newTags)
-    }
-}
-
-// TODO:: mult db
-suspend fun searchIllustrator(
-    count: Int,
-    keyword: String? = null,
-    page: Int = 0,
-): List<Illustrator> = transaction {
-    val offset = (page.coerceAtLeast(0) * count).toLong()
-    if (!keyword.isNullOrEmpty()) {
-        IllustratorEntity.find { IllustratorTable.name like "%$keyword%" }
-            .orderBy(IllustratorTable.id to SortOrder.ASC)
-            .limit(count)
-            .offset(offset)
-            .map {
-                Illustrator(
-                    id = it.id.value,
-                    name = it.name,
-                    // TODO:: return platform key
-                    emptyMap(),
-                )
-            }
-    } else {
-        IllustratorEntity
-            .all()
-            .orderBy(IllustratorTable.id to SortOrder.ASC)
-            .limit(count)
-            .offset(offset)
-            .map {
-                Illustrator(
-                    id = it.id.value,
-                    name = it.name,
-                    // TODO:: return platform key
-                    emptyMap(),
-                )
-            }
-    }
+//    TODO::
+//    check(findStorageDb(label) != null)
+//
+//    try {
+//        val hash = Digest("md5").let {
+//            it += byteArray
+//            it.build()
+//        }.toHexString()
+//
+//        if (uploadFile) {
+//            PicStorage.upload(
+//                label,
+//                byteArray,
+//                filename,
+//            )
+//        }
+//        transaction(findStorageDb(label)) {
+//            val illustratorEntity: IllustratorEntity? = illustrator?.let {
+//                it.id?.let { id ->
+//                    IllustratorEntity.findById(id)
+//                } ?: it.platformKeyMap.takeIf { it.isNotEmpty() }?.let { platformKeyMap ->
+//                    IllustratorEntity.wrapRows(
+//                        IllustratorTable.join(
+//                            otherTable = Illustrator2PlatformKeysTable,
+//                            joinType = JoinType.LEFT,
+//                            onColumn = IllustratorTable.id,
+//                            otherColumn = Illustrator2PlatformKeysTable.illustrator,
+//                        ).join(
+//                            otherTable = PlatformKeyTable,
+//                            joinType = JoinType.LEFT,
+//                            onColumn = Illustrator2PlatformKeysTable.platformkey,
+//                            otherColumn = PlatformKeyTable.id,
+//                        ).select(IllustratorTable.columns)
+//                            .apply {
+//                                platformKeyMap.forEach { (platform, key) ->
+//                                    orWhere {
+//                                        (PlatformKeyTable.platform eq platform) and (PlatformKeyTable.key eq key)
+//                                    }
+//                                }
+//                            },
+//                    ).firstOrNull()
+//                } ?: illustrator.name?.let { name ->
+//                    IllustratorEntity.new {
+//                        this.name = name
+//                        this.platformKeys =
+//                            SizedCollection(
+//                                illustrator.platformKeyMap.map { (platform, key) ->
+//                                    PlatformKeyEntity.new {
+//                                        this.platform = platform
+//                                        this.key = key
+//                                    }
+//                                },
+//                            )
+//                    }
+//                }
+//            }
+//
+//            val tags = SizedCollection(
+//                tags.map {
+//                    TagEntity.find { TagTable.name eq it }.firstOrNull() ?: TagEntity.new {
+//                        this.name = it
+//                    }
+//                },
+//            )
+//
+//            PicEntity.new {
+//                this.filename = filename
+//                this.hash = hash
+//                this.illustrator = illustratorEntity
+//                this.tags = tags
+//            }
+//        }
+//
+//        application.log.info("upload pic $filename")
+//    } catch (e: Exception) {
+//        application.log.error("failed to upload pic $filename : $e")
+//    }
 }
 
 suspend fun Route.sync() {

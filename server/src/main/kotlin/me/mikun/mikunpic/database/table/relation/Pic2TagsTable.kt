@@ -15,9 +15,5 @@ object Pic2TagsTable : IntIdTable("pics2tags") {
         )
 
     val tagId =
-        reference(
-            "tag_id",
-            TagTable,
-            onDelete = ReferenceOption.CASCADE,
-        )
+        integer("tag_id")
 }

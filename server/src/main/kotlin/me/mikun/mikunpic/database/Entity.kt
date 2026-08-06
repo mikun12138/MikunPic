@@ -22,20 +22,6 @@ class PicEntity(
 
     var hash by PicTable.hash
 
-    var illustrators by IllustratorEntity via Pic2IllustratorTable
-    var illustrator: IllustratorEntity?
-        get() = illustrators.firstOrNull()
-        set(value) {
-            illustrators = SizedCollection(listOfNotNull(value))
-        }
-
-    var tags by TagEntity via Pic2TagsTable
-
-    fun toPic(): Pic = Pic(
-        this.filename,
-        this.illustrator?.name,
-        this.tags.map { it.name },
-    )
 }
 
 class IllustratorEntity(
@@ -44,8 +30,6 @@ class IllustratorEntity(
     companion object : IntEntityClass<IllustratorEntity>(IllustratorTable)
 
     var name by IllustratorTable.name
-
-    val pics by PicEntity via Pic2IllustratorTable
 
     var platformKeys by PlatformKeyEntity via Illustrator2PlatformKeysTable
 }
@@ -65,6 +49,4 @@ class TagEntity(
     companion object : IntEntityClass<TagEntity>(TagTable)
 
     var name by TagTable.name
-
-    var pics by PicEntity via Pic2TagsTable
 }

@@ -122,10 +122,8 @@ interface OhMyRouting {
 
                 @Serializable
                 data class Body(
-                    @SerialName("storage_label")
-                    val storageLabel: String,
-                    @SerialName("name")
-                    val name: String,
+                    @SerialName("illustrator")
+                    val illustrator: me.mikun.mikunpic.dto.data.Illustrator,
                 )
             }
 
@@ -133,7 +131,7 @@ interface OhMyRouting {
             class Search(
                 val count: Int,
                 val keyword: String,
-                val page: Int,
+                val page: Int = 0,
             ) : OhMyRouting {
                 override val parent = Illustrator()
 
@@ -155,26 +153,8 @@ interface OhMyRouting {
 
                 @Serializable
                 data class Body(
-                    @SerialName("storage_label")
-                    val storageLabel: String,
                     @SerialName("name")
                     val name: String,
-                )
-            }
-
-            @Resource("/search")
-            class Search(
-                val count: Int,
-                val keyword: String,
-                @SerialName("storage_label")
-                val storageLabel: String,
-            ) : OhMyRouting {
-                override val parent = Tag()
-
-                @Serializable
-                data class Response(
-                    @SerialName("tags")
-                    val tags: List<String>,
                 )
             }
 
@@ -184,10 +164,23 @@ interface OhMyRouting {
 
                 @Serializable
                 data class Body(
-                    @SerialName("storage_label")
-                    val storageLabel: String,
                     @SerialName("name")
                     val name: String,
+                )
+            }
+
+            @Resource("/search")
+            class Search(
+                val count: Int,
+                val keyword: String,
+                val page: Int = 0
+            ) : OhMyRouting {
+                override val parent = Tag()
+
+                @Serializable
+                data class Response(
+                    @SerialName("tags")
+                    val tags: List<String>,
                 )
             }
         }

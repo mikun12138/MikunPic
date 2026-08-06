@@ -15,8 +15,5 @@ object Pic2IllustratorTable : IntIdTable("pic2illustrator") {
         ).uniqueIndex()
 
     val illustratorId =
-        reference(
-            "illustrator_id",
-            IllustratorTable,
-        ).nullable()
+        integer("illustrator_id")
 }
