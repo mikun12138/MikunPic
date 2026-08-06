@@ -15,6 +15,7 @@ import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.database.MetadataDB
 import me.mikun.mikunpic.database.StorageDB
 import me.mikun.mikunpic.dto.data.Illustrator
+import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.Storage
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.sync
@@ -41,25 +42,24 @@ fun Route.manage() {
         post<OhMyRouting.Manage.Pic.Upload> {
             val multipart = call.receiveMultipart()
 
-            var byteArray: ByteArray? = null
-            var filename: String? = null
-            var illustrator: Illustrator? = null
             var storageLabel: String? = null
+            var byteArray: ByteArray? = null
+            var pic: Pic? = null
             multipart.forEachPart { part ->
                 when (part) {
                     is PartData.FileItem -> {
                         byteArray = part.provider().readRemaining().readByteArray()
-                        filename = part.originalFileName
+//                        filename = part.originalFileName
                     }
 
                     is PartData.FormItem -> {
                         when (part.name) {
-                            "illustrator" -> {
-                                illustrator = Json.decodeFromString(part.value)
-                            }
-
                             "storage_label" -> {
                                 storageLabel = part.value
+                            }
+
+                            "pic" -> {
+                                pic = Json.decodeFromString(part.value)
                             }
                         }
                     }
@@ -68,7 +68,7 @@ fun Route.manage() {
                 }
             }
 
-            if (byteArray == null || filename == null || storageLabel == null) {
+            if (storageLabel == null || byteArray == null || pic == null) {
                 call.respond(
                     HttpStatusCode.BadGateway,
                 )
@@ -78,8 +78,7 @@ fun Route.manage() {
             uploadPic(
                 storageLabel,
                 byteArray,
-                filename!!,
-                illustrator,
+                pic!!
             )
 
             call.respond(

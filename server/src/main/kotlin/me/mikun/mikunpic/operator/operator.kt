@@ -1,146 +1,58 @@
 package me.mikun.mikunpic.operator
 
-import io.ktor.server.application.log
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.application
 import io.ktor.util.Digest
-import io.ktor.utils.io.jvm.javaio.toByteReadChannel
-import io.ktor.utils.io.readRemaining
-import kotlinx.io.readByteArray
-import me.mikun.mikunpic.database.IllustratorEntity
-import me.mikun.mikunpic.database.PicEntity
-import me.mikun.mikunpic.database.PlatformKeyEntity
 import me.mikun.mikunpic.database.StorageDB
-import me.mikun.mikunpic.database.TagEntity
-import me.mikun.mikunpic.database.table.IllustratorTable
-import me.mikun.mikunpic.database.table.PicTable
-import me.mikun.mikunpic.database.table.PlatformKeyTable
-import me.mikun.mikunpic.database.table.TagTable
-import me.mikun.mikunpic.database.table.relation.Illustrator2PlatformKeysTable
-import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
-import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
-import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.storage.PicStorage
-import org.jetbrains.exposed.v1.core.JoinType
-import org.jetbrains.exposed.v1.core.Op
-import org.jetbrains.exposed.v1.core.Random
-import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.inList
-import org.jetbrains.exposed.v1.core.isNotNull
-import org.jetbrains.exposed.v1.core.isNull
-import org.jetbrains.exposed.v1.core.like
-import org.jetbrains.exposed.v1.core.or
-import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.SizedCollection
-import org.jetbrains.exposed.v1.jdbc.andWhere
-import org.jetbrains.exposed.v1.jdbc.name
-import org.jetbrains.exposed.v1.jdbc.orWhere
-import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import java.sql.Connection
 
 suspend fun Route.uploadPic(
-    label: String,
+    storageLabel: String,
     byteArray: ByteArray,
-    filename: String,
-    illustrator: Illustrator? = null,
-    tags: List<String> = emptyList(),
+    pic: Pic,
     uploadFile: Boolean = true,
 ) {
-//    TODO::
-//    check(findStorageDb(label) != null)
-//
-//    try {
-//        val hash = Digest("md5").let {
-//            it += byteArray
-//            it.build()
-//        }.toHexString()
-//
-//        if (uploadFile) {
-//            PicStorage.upload(
-//                label,
-//                byteArray,
-//                filename,
-//            )
-//        }
-//        transaction(findStorageDb(label)) {
-//            val illustratorEntity: IllustratorEntity? = illustrator?.let {
-//                it.id?.let { id ->
-//                    IllustratorEntity.findById(id)
-//                } ?: it.platformKeyMap.takeIf { it.isNotEmpty() }?.let { platformKeyMap ->
-//                    IllustratorEntity.wrapRows(
-//                        IllustratorTable.join(
-//                            otherTable = Illustrator2PlatformKeysTable,
-//                            joinType = JoinType.LEFT,
-//                            onColumn = IllustratorTable.id,
-//                            otherColumn = Illustrator2PlatformKeysTable.illustrator,
-//                        ).join(
-//                            otherTable = PlatformKeyTable,
-//                            joinType = JoinType.LEFT,
-//                            onColumn = Illustrator2PlatformKeysTable.platformkey,
-//                            otherColumn = PlatformKeyTable.id,
-//                        ).select(IllustratorTable.columns)
-//                            .apply {
-//                                platformKeyMap.forEach { (platform, key) ->
-//                                    orWhere {
-//                                        (PlatformKeyTable.platform eq platform) and (PlatformKeyTable.key eq key)
-//                                    }
-//                                }
-//                            },
-//                    ).firstOrNull()
-//                } ?: illustrator.name?.let { name ->
-//                    IllustratorEntity.new {
-//                        this.name = name
-//                        this.platformKeys =
-//                            SizedCollection(
-//                                illustrator.platformKeyMap.map { (platform, key) ->
-//                                    PlatformKeyEntity.new {
-//                                        this.platform = platform
-//                                        this.key = key
-//                                    }
-//                                },
-//                            )
-//                    }
-//                }
-//            }
-//
-//            val tags = SizedCollection(
-//                tags.map {
-//                    TagEntity.find { TagTable.name eq it }.firstOrNull() ?: TagEntity.new {
-//                        this.name = it
-//                    }
-//                },
-//            )
-//
-//            PicEntity.new {
-//                this.filename = filename
-//                this.hash = hash
-//                this.illustrator = illustratorEntity
-//                this.tags = tags
-//            }
-//        }
-//
-//        application.log.info("upload pic $filename")
-//    } catch (e: Exception) {
-//        application.log.error("failed to upload pic $filename : $e")
-//    }
+    StorageDB.byNameNoEx(storageLabel)?.apply {
+        selectPic(
+            filename = pic.filename
+        ).let {
+            if (!it.isEmpty()) {
+                return
+            }
+        }
+
+        if (uploadFile) {
+            PicStorage.upload(
+                storageLabel,
+                byteArray,
+                pic.filename,
+            )
+        }
+
+        val hash = Digest("md5").let {
+            it += byteArray
+            it.build()
+        }.toHexString()
+
+        createPic(
+            pic = pic,
+            hash = hash
+        )
+    }
 }
 
 suspend fun Route.sync() {
-    PicStorage.storages.forEach { storage ->
-        if (storage.label == "sandbox") return@forEach
-        storage.picKeys.forEach {
-            uploadPic(
-                label = storage.label,
-                byteArray = PicStorage.byName(storage.label, it)!!.toByteReadChannel()
-                    .readRemaining()
-                    .readByteArray(),
-                filename = it,
-                uploadFile = false,
-            )
-        }
-    }
+    TODO()
+//    PicStorage.storages.forEach { storage ->
+//        storage.picKeys.forEach {
+//            uploadPic(
+//                storageLabel = storage.label,
+//                byteArray = PicStorage.byName(storage.label, it)!!.toByteReadChannel()
+//                    .readRemaining()
+//                    .readByteArray(),
+//                filename = it,
+//                uploadFile = false,
+//            )
+//        }
+//    }
 }

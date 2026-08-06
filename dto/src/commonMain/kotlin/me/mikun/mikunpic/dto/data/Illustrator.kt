@@ -13,7 +13,9 @@ data class Illustrator(
     }
 }
 
+// fanbox? 抱歉没有那种东西
 enum class Platform {
+    Other,
     Pixiv,
     Twitter,
 }
