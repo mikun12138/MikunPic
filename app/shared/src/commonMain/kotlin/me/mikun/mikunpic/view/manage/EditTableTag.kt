@@ -67,7 +67,7 @@ fun EditTableTag(
 
     val currentStorageLabel by manageViewModel.currentStorageLabel.collectAsState()
     LaunchedEffect(currentStorageLabel) {
-        viewModel.updateTags(currentStorageLabel)
+        viewModel.updateTags()
         viewModel.updateImageShowing(
             currentStorageLabel
         )
@@ -111,13 +111,10 @@ fun EditTableTag(
                             scope.launch {
                                 tagToRemove.forEach {
                                     Client.deleteTag(
-                                        currentStorageLabel,
                                         it
                                     )
                                 }
-                                viewModel.updateTags(
-                                    currentStorageLabel
-                                )
+                                viewModel.updateTags()
                             }
                             editMode = EditMode.None
                         }
@@ -136,12 +133,9 @@ fun EditTableTag(
                         onClick = {
                             scope.launch {
                                 Client.createTag(
-                                    currentStorageLabel,
                                     tagToAdd.text.toString()
                                 )
-                                viewModel.updateTags(
-                                    currentStorageLabel
-                                )
+                                viewModel.updateTags()
                             }
                             editMode = EditMode.None
                         }

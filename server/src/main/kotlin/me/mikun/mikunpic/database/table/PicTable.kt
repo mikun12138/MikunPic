@@ -7,7 +7,8 @@ object PicTable : IntIdTable("pic") {
         varchar(
             "filename",
             128,
-        ).uniqueIndex()
+        )
+//            .uniqueIndex()
     val hash =
         char(
             "hash",

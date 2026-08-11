@@ -51,45 +51,15 @@ import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.LocalPref
+import me.mikun.mikunpic.awesome.UploadRule
+import me.mikun.mikunpic.awesome.UploadRule.asRegex
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.awesome.FileExtension
 import me.mikun.mikunpic.dto.awesome.dfs
 import me.mikun.mikunpic.dto.data.Illustrator
+import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.Platform
 import me.mikun.mikunpic.viewmodel.ManageStorageViewModel
-
-private class PlaceHolder(
-    val type: Type,
-) {
-    enum class Type {
-        Simple,
-        IllustratorName,
-        IllustratorPixiv,
-        IllustratorTwitter,
-        Filename,
-    }
-}
-
-private fun makeUploadRule(s: String): List<PlaceHolder> {
-    val split = s.split("/")
-
-    return split.map {
-        PlaceHolder(
-            type =
-                if (it.startsWith("{") and it.endsWith("}")) {
-                    when (it.removePrefix("{").removeSuffix("}")) {
-                        "illustrator_name" -> PlaceHolder.Type.IllustratorName
-                        "pixiv" -> PlaceHolder.Type.IllustratorPixiv
-                        "twitter" -> PlaceHolder.Type.IllustratorTwitter
-                        "filename" -> PlaceHolder.Type.Filename
-                        else -> PlaceHolder.Type.Simple
-                    }
-                } else {
-                    PlaceHolder.Type.Simple
-                },
-        )
-    }
-}
 
 @Composable
 fun BoxScope.ManageOverview(
@@ -220,12 +190,16 @@ fun BoxScope.ManageOverview(
                                                 uploadRule = uploadRuleText.text.toString(),
                                             )
 
-                                            val uploadRule = makeUploadRule(LocalPref.uploadRule)
+                                            val uploadRule =
+                                                UploadRule.makeUploadRule(LocalPref.uploadRule)
                                             scope.launch {
                                                 fun isImage(file: PlatformFile): Boolean {
                                                     require(file.isRegularFile())
                                                     return FileExtension.image.any { ext ->
-                                                        file.name.endsWith(ext, ignoreCase = true)
+                                                        file.name.endsWith(
+                                                            ext,
+                                                            ignoreCase = true
+                                                        )
                                                     }
                                                 }
 
@@ -249,49 +223,48 @@ fun BoxScope.ManageOverview(
                                                         var illustratorTwitter: String? = null
 
                                                         val dirnames = path.map { it.name }
+
                                                         for (i in 0 until path.size) {
-                                                            when (uploadRule[i].type) {
-                                                                PlaceHolder.Type.Simple -> {}
-
-                                                                PlaceHolder.Type.IllustratorName -> {
-                                                                    illustratorName = dirnames[i]
-                                                                }
-
-                                                                PlaceHolder.Type.IllustratorPixiv -> {
-                                                                    illustratorPixiv = dirnames[i]
-                                                                }
-
-                                                                PlaceHolder.Type.IllustratorTwitter -> {
-                                                                    illustratorTwitter = dirnames[i]
-                                                                }
-
-                                                                PlaceHolder.Type.Filename -> {}
-                                                            }
+                                                            val regex = uploadRule[i].asRegex()
+                                                            val matchResult =
+                                                                regex.matchEntire(dirnames[i])
+                                                            illustratorName =
+                                                                matchResult?.groups?.get("illustrator_name")?.value
+                                                            illustratorPixiv =
+                                                                matchResult?.groups?.get("pixiv")?.value
+                                                            illustratorTwitter =
+                                                                matchResult?.groups?.get("twitter")?.value
                                                         }
 
-                                                        val illustrator = Illustrator(
-                                                            name = illustratorName,
-                                                            platformKeyMap = buildMap {
-                                                                illustratorPixiv?.let {
-                                                                    put(
-                                                                        Platform.Pixiv,
-                                                                        it,
-                                                                    )
-                                                                }
-                                                                illustratorTwitter?.let {
-                                                                    put(
-                                                                        Platform.Twitter,
-                                                                        it,
-                                                                    )
-                                                                }
-                                                            },
-                                                        )
+                                                        val illustrator =
+                                                            illustratorName?.let { name ->
+                                                                Illustrator(
+                                                                    name = name,
+                                                                    platformKeyMap = buildMap {
+                                                                        illustratorPixiv?.let {
+                                                                            put(
+                                                                                Platform.Pixiv,
+                                                                                it,
+                                                                            )
+                                                                        }
+                                                                        illustratorTwitter?.let {
+                                                                            put(
+                                                                                Platform.Twitter,
+                                                                                it,
+                                                                            )
+                                                                        }
+                                                                    },
+                                                                )
+                                                            }
+
 
                                                         Client.uploadPic(
                                                             storageLabel = it.label,
-                                                            file.name,
-                                                            file.readBytes(),
-                                                            illustrator = illustrator,
+                                                            picBytes = file.readBytes(),
+                                                            pic = Pic(
+                                                                filename = file.name,
+                                                                illustrator = illustrator
+                                                            )
                                                         )
                                                     }
                                                 }

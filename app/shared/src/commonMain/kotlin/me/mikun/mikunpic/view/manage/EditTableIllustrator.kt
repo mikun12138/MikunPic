@@ -82,7 +82,7 @@ fun EditTableIllustrator() {
                     val pics = Client.randomPic(
                         picPreIllustrator,
                         illustrators = listOf(illustrator),
-                        storageLabels = ""
+                        storageLabels = emptyList()
                     )?.pics ?: emptyList()
 
                     val picCaches = pics.map { pic ->

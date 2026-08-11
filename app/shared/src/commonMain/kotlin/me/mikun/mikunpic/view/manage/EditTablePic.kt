@@ -87,25 +87,21 @@ fun EditTablePic(
     }
 
     val editContext = object {
-        var illustrator by remember(picOnTable) { mutableStateOf(picOnTable?.illustrator) }
         var tags =
             remember(picOnTable) { picOnTable?.tags?.toMutableStateList() ?: mutableStateListOf() }
         var isEdited = remember(
             picOnTable,
-            illustrator,
             tags,
         ) {
             derivedStateOf {
                 picOnTable != null &&
                         (
-                                picOnTable?.illustrator != illustrator ||
-                                        picOnTable?.tags?.toSet() != tags.toSet()
+                                picOnTable?.tags?.toSet() != tags.toSet()
                                 )
             }
         }
     }
 
-    var showBottomSheetIllustrator by remember { mutableStateOf(false) }
     var showBottomSheetTag by remember { mutableStateOf(false) }
 
     Box(
@@ -201,21 +197,11 @@ fun EditTablePic(
                         ElevatedAssistChip(
                             onClick = { },
                             label = {
-                                editContext.illustrator?.let {
-                                    Text(it)
+                                picOnTable?.illustrator?.let {
+                                    Text(it.name)
                                 }
                             },
                         )
-
-                        ElevatedButton(
-                            onClick = {
-                                scope.launch {
-                                    showBottomSheetIllustrator = true
-                                }
-                            },
-                        ) {
-                            Text("Edit Illustrator")
-                        }
                     }
 
                     Row(
@@ -253,7 +239,7 @@ fun EditTablePic(
                                 if (editContext.isEdited.value) {
                                     picOnTable = Pic(
                                         picOnTable!!.filename,
-                                        editContext.illustrator,
+                                        picOnTable!!.illustrator,
                                         editContext.tags.toList(),
                                     )
 
@@ -276,19 +262,6 @@ fun EditTablePic(
         }
 
         SearchBottomSheet(
-            showBottomSheetIllustrator,
-            onCloseSheet = {
-                showBottomSheetIllustrator = false
-            },
-        ) {
-            EditPicIllustratorSheet(
-                onEditIllustrator = {
-                    editContext.illustrator = it
-                },
-            )
-        }
-
-        SearchBottomSheet(
             showBottomSheetTag,
             onCloseSheet = {
                 showBottomSheetTag = false
@@ -302,7 +275,6 @@ fun EditTablePic(
                 },
                 picTags = picOnTable?.tags,
                 editContextTags = editContext.tags,
-                currentPicStorageLabel
             )
         }
     }
@@ -339,66 +311,10 @@ private fun SearchBottomSheet(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ColumnScope.EditPicIllustratorSheet(
-    onEditIllustrator: (String) -> Unit,
-) {
-    val scope = rememberCoroutineScope()
-
-    val searchResults by produceState(mutableListOf()) {
-        value = Client.searchIllustrator(100)?.let {
-            it.illustrators.map { it.name ?: "" }.toMutableList()
-        } ?: mutableListOf()
-    }
-
-    val searchBarState = rememberContainedSearchBarState()
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth(),
-        contentAlignment = Alignment.Center,
-    ) {
-        SearchBar(
-            searchBarState,
-            inputField = {
-                SearchBarDefaults.InputField(
-                    textFieldState = rememberTextFieldState(),
-                    searchBarState = searchBarState,
-                    onSearch = { text ->
-                        scope.launch {
-                            searchResults.clear()
-                            searchResults.addAll(
-                                Client.searchIllustrator(
-                                    count = 100,
-                                    keyword = text,
-                                )?.illustrators?.map { it.name ?: "" } ?: emptyList(),
-                            )
-                        }
-                    },
-                )
-            },
-        )
-    }
-
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        searchResults.forEach {
-            ElevatedAssistChip(
-                onClick = { onEditIllustrator(it) },
-                label = { Text(it) },
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 private fun ColumnScope.EditPicTagsSheet(
     onEditTag: (String) -> Unit,
     picTags: List<String>?,
     editContextTags: SnapshotStateList<String>,
-    currentPicStorageLabel: String,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -406,7 +322,6 @@ private fun ColumnScope.EditPicTagsSheet(
 
     val searchResults by produceState(mutableListOf()) {
         value = Client.searchTag(
-            storageLabel = currentPicStorageLabel,
             count = 100
         )?.let {
             it.tags.toMutableList()
@@ -425,7 +340,6 @@ private fun ColumnScope.EditPicTagsSheet(
                     searchResults.clear()
                     searchResults.addAll(
                         Client.searchTag(
-                            storageLabel = currentPicStorageLabel,
                             count = 100,
                             keyword = textFieldState.text.toString(),
                         )?.tags ?: emptyList(),

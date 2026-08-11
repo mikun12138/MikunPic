@@ -329,10 +329,6 @@ class StorageDB(
                         it[PicTable.filename]
                     }
 
-                result.also {
-                    println(it)
-                }
-
                 emptyList()
             }
         }

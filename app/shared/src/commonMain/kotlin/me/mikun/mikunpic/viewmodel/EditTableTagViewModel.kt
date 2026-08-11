@@ -15,17 +15,13 @@ class EditTableTagViewModel : ViewModel() {
     private val _tagsSelected = MutableStateFlow<List<String>>(emptyList())
     val tagsSelected = _tagsSelected.asStateFlow()
 
-
     private val _imageShowing = MutableStateFlow<List<String>>(emptyList())
     val imageShowing = _imageShowing.asStateFlow()
 
-    fun updateTags(
-        storageLabel: String,
-    ) {
+    fun updateTags() {
         viewModelScope.launch {
             try {
                 _tags.value = Client.searchTag(
-                    storageLabel = storageLabel,
                     count = Int.MAX_VALUE
                 )?.let {
                     it.tags
@@ -61,7 +57,7 @@ class EditTableTagViewModel : ViewModel() {
                     count = 10,
                     illustrators = emptyList(),
                     tags = tagsSelected.value,
-                    storageLabels = storageLabel
+                    storageLabels = listOf(storageLabel)
                 )?.let {
                     it.pics.map { it.filename }
                 } ?: emptyList()

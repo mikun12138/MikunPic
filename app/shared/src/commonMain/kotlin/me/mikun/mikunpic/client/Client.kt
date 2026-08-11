@@ -93,54 +93,6 @@ object Client {
         }
     }
 
-    suspend fun uploadPic(
-        storageLabel: String,
-        picName: String,
-        picBytes: ByteArray,
-        illustrator: Illustrator?,
-    ) {
-        httpClient.post(
-            OhMyRouting.Manage.Pic.Upload(),
-        ) {
-            setBody(
-                MultiPartFormDataContent(
-                    formData {
-                        appendInput(
-                            "file",
-                            Headers.build {
-                                append(
-                                    HttpHeaders.ContentDisposition,
-                                    """form-data; name="file"; filename="$picName"""",
-                                )
-                            },
-                        ) {
-                            Buffer().apply {
-                                write(picBytes)
-                            }
-                        }
-
-                        illustrator?.let {
-                            append(
-                                "illustrator",
-                                Json.encodeToString(illustrator),
-                                headers = Headers.build {
-                                    append(
-                                        HttpHeaders.ContentType,
-                                        ContentType.Application.Json.toString(),
-                                    )
-                                },
-                            )
-                        }
-                        append(
-                            "storage_label",
-                            storageLabel,
-                        )
-                    },
-                ),
-            )
-        }
-    }
-
     @Suppress("ktlint:standard:function-naming")
     private suspend fun HttpResponse.`get bytes`(): ByteArray? = when (this.status) {
         HttpStatusCode.OK -> this.readRawBytes()
@@ -153,11 +105,6 @@ object Client {
         else -> null
     }
 
-    suspend fun sync() = httpClient
-        .post(
-            OhMyRouting.Manage.Sync(),
-        )
-
     suspend fun fetchPic(
         filename: String,
         thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Thumb,
@@ -169,6 +116,48 @@ object Client {
                 thumbnail,
             ),
         ).`get bytes`()
+
+    suspend fun uploadPic(
+        storageLabel: String,
+        picBytes: ByteArray,
+        pic: Pic
+    ) {
+        httpClient.post(
+            OhMyRouting.Manage.Pic.Upload(),
+        ) {
+            setBody(
+                MultiPartFormDataContent(
+                    formData {
+                        appendInput(
+                            "file",
+                            Headers.build {
+                                append(
+                                    HttpHeaders.ContentDisposition,
+                                    """form-data; name="file"; filename="${pic.filename}"""",
+                                )
+                            },
+                        ) {
+                            Buffer().apply {
+                                write(picBytes)
+                            }
+                        }
+
+                        append(
+                            "storage_label",
+                            storageLabel,
+                        )
+
+                        append(
+                            "pic",
+                            Json.encodeToString(
+                                pic
+                            )
+                        )
+                    },
+                ),
+            )
+        }
+    }
 
     suspend fun randomPic(
         count: Int = 1,
@@ -222,7 +211,6 @@ object Client {
         ).`get any`<OhMyRouting.Manage.Illustrator.Search.Response>()
 
     suspend fun createTag(
-        storageLabel: String,
         tagName: String,
     ) {
         httpClient
@@ -232,7 +220,6 @@ object Client {
                 contentType(ContentType.Application.Json)
                 setBody(
                     OhMyRouting.Manage.Tag.Create.Body(
-                        storageLabel = storageLabel,
                         name = tagName
                     )
                 )
@@ -240,20 +227,19 @@ object Client {
     }
 
     suspend fun searchTag(
-        storageLabel: String,
         count: Int,
         keyword: String = "",
+        page: Int = 0
     ) = httpClient
         .get(
             OhMyRouting.Manage.Tag.Search(
                 count = count,
                 keyword = keyword,
-                storageLabel = storageLabel
+                page = page
             ),
         ).`get any`<OhMyRouting.Manage.Tag.Search.Response>()
 
     suspend fun deleteTag(
-        storageLabel: String,
         tagName: String,
     ) {
         httpClient
@@ -263,8 +249,7 @@ object Client {
                 contentType(ContentType.Application.Json)
                 setBody(
                     OhMyRouting.Manage.Tag.Delete.Body(
-                        storageLabel,
-                        tagName
+                        name = tagName
                     )
                 )
             }
@@ -275,4 +260,10 @@ object Client {
             .get(
                 OhMyRouting.Manage.Storages()
             ).`get any`<OhMyRouting.Manage.Storages.Response>()
+
+    suspend fun sync() = httpClient
+        .post(
+            OhMyRouting.Manage.Sync(),
+        )
+
 }
