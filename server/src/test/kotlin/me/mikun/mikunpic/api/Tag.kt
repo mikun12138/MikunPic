@@ -12,9 +12,9 @@ class Tag {
 
     @Test
     fun create() = ohMyTest {
-        val tags = generateSequence("oi") { it + "oi" }
+        val tags = generateSequence('a') { it + 1 }
 
-        tags.take(16).forEach { tag ->
+        tags.take(26).forEach { tag ->
             client.post(
                 OhMyRouting.Manage.Tag.Create(),
             ) {
@@ -22,7 +22,7 @@ class Tag {
 
                 setBody(
                     OhMyRouting.Manage.Tag.Create.Body(
-                        tag,
+                        tag.toString(),
                     ),
                 )
             }

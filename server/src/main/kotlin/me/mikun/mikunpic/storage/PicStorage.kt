@@ -75,10 +75,40 @@ sealed class PicStorage {
         }
 
         suspend fun random(): InputStream? = storages.random().random()
+
+        suspend fun byKey(
+            label: String,
+            key: String,
+            thumbnail: OhMyRouting.Pic.Thumbnail = OhMyRouting.Pic.Thumbnail.Orig,
+        ): InputStream? {
+            storages.find { it.label == label }?.let { storage ->
+                try {
+                    storage.byKey(key, thumbnail)?.let {
+                        return it
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } ?: run {
+                storages.forEach { storage ->
+                    try {
+                        storage.byKey(key, thumbnail)?.let {
+                            return it
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+            return null
+
+        }
+
         suspend fun byName(
             label: String,
             name: String,
-            thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Orig,
+            thumbnail: OhMyRouting.Pic.Thumbnail = OhMyRouting.Pic.Thumbnail.Orig,
         ): InputStream? {
             storages.find { it.label == label }?.let { storage ->
                 try {
@@ -121,9 +151,15 @@ sealed class PicStorage {
 
     abstract suspend fun random(): InputStream?
 
+    @Deprecated("use byKey() instead")
     abstract suspend fun byName(
         name: String,
-        thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Orig,
+        thumbnail: OhMyRouting.Pic.Thumbnail = OhMyRouting.Pic.Thumbnail.Orig,
+    ): InputStream?
+
+    abstract suspend fun byKey(
+        key: String,
+        thumbnail: OhMyRouting.Pic.Thumbnail = OhMyRouting.Pic.Thumbnail.Orig,
     ): InputStream?
 
     abstract suspend fun upload(

@@ -21,21 +21,30 @@ interface OhMyRouting {
     class Pic : OhMyRouting {
         override val parent = OhMyRouting.Companion
 
-        @Resource("{filename...}")
-        class Filename(
-            val filename: String,
+        enum class Thumbnail {
+            Thumb,
+            Small,
+            Medium,
+            Large,
+            Orig,
+        }
+
+        @Resource("/id/{id}")
+        class Id(
+            val id: String,
             val thumbnail: Thumbnail = Thumbnail.Orig,
         ) : OhMyRouting {
             override val parent = Pic()
-
-            enum class Thumbnail {
-                Thumb,
-                Small,
-                Medium,
-                Large,
-                Orig,
-            }
         }
+
+        @Resource("/platform/{platform}/{key}")
+        class Platform(
+            val thumbnail: Thumbnail = Thumbnail.Orig,
+        ): OhMyRouting {
+            override val parent = Pic()
+        }
+
+
     }
 
     @Resource("/manage")
@@ -49,7 +58,7 @@ interface OhMyRouting {
             @Serializable
             data class Response(
                 @SerialName("storages")
-                val storages: List<Storage>
+                val storages: List<Storage>,
             )
         }
 
@@ -60,7 +69,7 @@ interface OhMyRouting {
             @Serializable
             data class Body(
                 @SerialName("config")
-                val mikunPicConfig: MikunPicConfig
+                val mikunPicConfig: MikunPicConfig,
             )
         }
 
@@ -74,7 +83,7 @@ interface OhMyRouting {
             }
 
             @Resource("/random")
-            class Random: OhMyRouting {
+            class Random : OhMyRouting {
                 override val parent = Pic()
 
                 @Serializable
@@ -86,7 +95,7 @@ interface OhMyRouting {
                     @SerialName("tags")
                     val tags: QueryParameterList<String> = emptyList(),
                     @SerialName("storage_label")
-                    val storageLabels: QueryParameterList<String> = emptyList()
+                    val storageLabels: QueryParameterList<String> = emptyList(),
                 )
 
                 @Serializable
@@ -94,7 +103,7 @@ interface OhMyRouting {
                     @SerialName("pics")
                     val pics: List<me.mikun.mikunpic.dto.data.Pic>,
                     @SerialName("storage_label")
-                    val storageLabel: String
+                    val storageLabel: String,
                 )
             }
 
@@ -159,7 +168,7 @@ interface OhMyRouting {
             }
 
             @Resource("/delete")
-            class Delete: OhMyRouting {
+            class Delete : OhMyRouting {
                 override val parent = Tag()
 
                 @Serializable
@@ -173,7 +182,7 @@ interface OhMyRouting {
             class Search(
                 val count: Int,
                 val keyword: String,
-                val page: Int = 0
+                val page: Int = 0,
             ) : OhMyRouting {
                 override val parent = Tag()
 

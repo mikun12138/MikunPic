@@ -97,9 +97,14 @@ class PicStorageCos(
 
     override suspend fun byName(
         name: String,
-        thumbnail: OhMyRouting.Pic.Filename.Thumbnail,
+        thumbnail: OhMyRouting.Pic.Thumbnail,
+    ): InputStream? = byKey(name, thumbnail)
+
+    override suspend fun byKey(
+        key: String,
+        thumbnail: OhMyRouting.Pic.Thumbnail,
     ): InputStream? {
-        val reqKey = "$name${thumbnail.asParam()}"
+        val reqKey = "$key${thumbnail.asParam()}"
         return cosClient.getObject(
             GetObjectRequest(
                 bucket.name,
@@ -126,11 +131,11 @@ class PicStorageCos(
         cosClient.putObject(request)
     }
 
-    private fun OhMyRouting.Pic.Filename.Thumbnail.asParam(): String = when (this) {
-        OhMyRouting.Pic.Filename.Thumbnail.Thumb -> "/thumb"
-        OhMyRouting.Pic.Filename.Thumbnail.Small -> "/small"
-        OhMyRouting.Pic.Filename.Thumbnail.Medium -> "/medium"
-        OhMyRouting.Pic.Filename.Thumbnail.Large -> "/large"
-        OhMyRouting.Pic.Filename.Thumbnail.Orig -> ""
+    private fun OhMyRouting.Pic.Thumbnail.asParam(): String = when (this) {
+        OhMyRouting.Pic.Thumbnail.Thumb -> "/thumb"
+        OhMyRouting.Pic.Thumbnail.Small -> "/small"
+        OhMyRouting.Pic.Thumbnail.Medium -> "/medium"
+        OhMyRouting.Pic.Thumbnail.Large -> "/large"
+        OhMyRouting.Pic.Thumbnail.Orig -> ""
     }
 }

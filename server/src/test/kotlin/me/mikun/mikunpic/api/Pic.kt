@@ -23,8 +23,8 @@ class Pic {
     @Test
     fun upload() = ohMyTest {
 
-        val picName = "rua.jpg"
-        val response =
+        repeat(3) {
+            val picName = "rua$it.jpg"
             client.post("/manage/pic/upload") {
 //                bearerAuth(
 //                    config.property("auth.bearer.token").getString(),
@@ -49,7 +49,7 @@ class Pic {
 
                             append(
                                 "storage_label",
-                                "sandbox1",
+                                "sandbox$it",
                             )
                             append(
                                 "pic",
@@ -60,10 +60,10 @@ class Pic {
                                             name = "mikun",
                                             platformKeyMap = mapOf(
                                                 Platform.Pixiv to "mikun12138",
-                                                Platform.Twitter to "mikun12139"
+                                                Platform.Twitter to "mikun_12138",
                                             )
                                         ),
-                                        tags = listOf("12139")
+                                        tags = listOf("a", "b", "y", "z")
                                     )
                                 ),
                                 headers = Headers.build {
@@ -77,33 +77,37 @@ class Pic {
                     ),
                 )
             }
+        }
+
     }
 
     @Test
     fun update() = ohMyTest {
-        client.post(
-            OhMyRouting.Manage.Pic.Update(),
-        ) {
-            contentType(ContentType.Application.Json)
-            setBody(
-                OhMyRouting.Manage.Pic.Update.Body(
-                    storageLabel = "sandbox1",
-                    pic = Pic(
-                        filename = "rua.jpg",
-                        illustrator = me.mikun.mikunpic.dto.data.Illustrator(
-                            name = "aaa",
-                            platformKeyMap = mapOf(
-                                Platform.Pixiv to "12138",
-                                Platform.Twitter to "mikun12139"
-                            )
+        repeat(3) {
+
+            client.post(
+                OhMyRouting.Manage.Pic.Update(),
+            ) {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    OhMyRouting.Manage.Pic.Update.Body(
+                        storageLabel = "sandbox$it",
+                        pic = Pic(
+                            filename = "rua$it.jpg",
+                            illustrator = me.mikun.mikunpic.dto.data.Illustrator(
+                                name = "mikun",
+                                platformKeyMap = mapOf(
+                                    Platform.Pixiv to "mikun${12138 + it}",
+                                    Platform.Twitter to "mikun_${12138 + it}",
+                                )
+                            ),
+                            tags = listOf('a' + it, 'z' - it).map { it.toString() }
                         ),
-                        tags = listOf("oo", "oooi")
                     ),
-                ),
-            )
+                )
+            }
         }
     }
-
 
     @Test
     fun random() = ohMyTest {
@@ -113,15 +117,15 @@ class Pic {
             contentType(ContentType.Application.Json)
             setBody(
                 OhMyRouting.Manage.Pic.Random.Body(
-                    storageLabels = listOf("sandbox1", "sandbox2", "sandbox3"),
-                    count = 1,
-                    illustratorIds = emptyList(),
-                    tags = listOf("oo"),
+                    storageLabels = listOf("sandbox0", "sandbox1", "sandbox2"),
+                    count = 2,
+                    illustratorIds = listOf(1),
+                    tags = listOf("z", "z"),
                 )
             )
         }.let {
             it.body<OhMyRouting.Manage.Pic.Random.Response>().let {
-                println(it.pics)
+                println(it.pics.map { it.filename })
             }
         }
     }

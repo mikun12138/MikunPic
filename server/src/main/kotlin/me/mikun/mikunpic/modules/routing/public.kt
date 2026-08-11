@@ -20,15 +20,25 @@ fun Route.public() {
         } ?: call.respond(HttpStatusCode.NotFound)
     }
 
-    get<OhMyRouting.Pic.Filename> { req ->
+//    get<OhMyRouting.Pic.Filename> { req ->
+//        PicStorage.byName(
+//            label = "",
+//            name =  call.parameters.getAll("filename")?.joinToString("/") ?: "",
+//            thumbnail = req.thumbnail,
+//        )?.let {
+//            call.respondBytes {
+//                it.readBytes()
+//            }
+//        } ?: call.respond(HttpStatusCode.NotFound)
+//    }
+
+    get<OhMyRouting.Pic.Id> {
         PicStorage.byName(
             label = "",
-            name =  call.parameters.getAll("filename")?.joinToString("/") ?: "",
-            thumbnail = req.thumbnail,
+            name = it.id,
+            thumbnail = it.thumbnail,
         )?.let {
-            call.respondBytes {
-                it.readBytes()
-            }
+
         } ?: call.respond(HttpStatusCode.NotFound)
     }
 }

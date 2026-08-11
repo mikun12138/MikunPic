@@ -22,7 +22,8 @@ class Illustrator {
                     illustrator = me.mikun.mikunpic.dto.data.Illustrator(
                         name = "mikun",
                         platformKeyMap = mapOf(
-                            Platform.Pixiv to "mikun12138"
+                            Platform.Pixiv to "mikun12138",
+                            Platform.Twitter to "mikun_12138"
                         )
                     )
                 ),
