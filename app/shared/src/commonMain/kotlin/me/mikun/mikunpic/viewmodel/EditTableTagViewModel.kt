@@ -15,7 +15,7 @@ class EditTableTagViewModel : ViewModel() {
     private val _tagsSelected = MutableStateFlow<List<String>>(emptyList())
     val tagsSelected = _tagsSelected.asStateFlow()
 
-    private val _imageShowing = MutableStateFlow<List<String>>(emptyList())
+    private val _imageShowing = MutableStateFlow<List<Pair<String, String>>>(emptyList())
     val imageShowing = _imageShowing.asStateFlow()
 
     fun updateTags() {
@@ -58,9 +58,9 @@ class EditTableTagViewModel : ViewModel() {
                     illustrators = emptyList(),
                     tags = tagsSelected.value,
                     storageLabels = listOf(storageLabel)
-                )?.let {
-                    it.pics.map { it.filename }
-                } ?: emptyList()
+                )?.label2Pics.orEmpty().flatMap { (storageLabel, pics) ->
+                    pics.map { storageLabel to it.id }
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }

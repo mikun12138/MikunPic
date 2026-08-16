@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Pic constructor(
+    @SerialName("id")
+    val id: String,
     @SerialName("filename")
     val filename: String,
     @SerialName("illustrator")
@@ -13,7 +15,13 @@ data class Pic constructor(
     val tags: List<String> = emptyList(),
     @SerialName("store_key")
     val storeKey: String? = null,
-)
+) {
+    fun update() = PicUpdate(
+        id = this.id,
+        illustrator = this.illustrator,
+        tags = this.tags,
+    )
+}
 
 @Serializable
 data class PicSelect(
@@ -27,6 +35,24 @@ data class PicSelect(
     val storeKey: String,
 )
 
-// TODO::
-class PicCreate
-class PicUpload
+@Serializable
+data class PicCreate(
+    @SerialName("filename")
+    val filename: String,
+    @SerialName("store_key")
+    val storeKey: String,
+    @SerialName("illustrator")
+    val illustrator: Illustrator?,
+    @SerialName("tags")
+    val tags: List<String> = emptyList(),
+)
+
+@Serializable
+data class PicUpdate(
+    @SerialName("id")
+    val id: String,
+    @SerialName("illustrator")
+    val illustrator: Illustrator?,
+    @SerialName("tags")
+    val tags: List<String> = emptyList(),
+)

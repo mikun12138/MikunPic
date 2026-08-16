@@ -3,20 +3,25 @@ package me.mikun.mikunpic.operator
 import io.ktor.server.routing.Route
 import io.ktor.util.Digest
 import me.mikun.mikunpic.database.StorageDB
-import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.storage.PicStorage
 
 suspend fun Route.uploadPic(
     storageLabel: String,
     byteArray: ByteArray,
-    pic: Pic,
+    pic: PicCreate,
     uploadFile: Boolean = true,
 ) {
+    // TODO:: hash, no
+    val hash = Digest("md5").let {
+        it += byteArray
+        it.build()
+    }.toHexString()
+
     StorageDB.byNameNoEx(storageLabel)?.apply {
         selectPic(
-            // TODO::
-            id = 1
-        ) ?: run {
+            hash = hash
+        )?.run {
             return
         }
 
@@ -24,14 +29,9 @@ suspend fun Route.uploadPic(
             PicStorage.upload(
                 storageLabel,
                 byteArray,
-                pic.filename,
+                pic.storeKey,
             )
         }
-
-        val hash = Digest("md5").let {
-            it += byteArray
-            it.build()
-        }.toHexString()
 
         createPic(
             pic = pic,

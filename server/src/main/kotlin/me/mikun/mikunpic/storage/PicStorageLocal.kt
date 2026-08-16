@@ -154,14 +154,14 @@ class PicStorageLocal(
 
     override suspend fun upload(
         byteArray: ByteArray,
-        filename: String,
+        storeKey: String,
     ) {
         withContext(Dispatchers.IO) {
-            val path = writablePath(filename) ?: error("Invalid local storage key: $filename")
-            if (path.hasSymbolicLink()) error("Invalid local storage key: $filename")
+            val path = writablePath(storeKey) ?: error("Invalid local storage key: $storeKey")
+            if (path.hasSymbolicLink()) error("Invalid local storage key: $storeKey")
 
             if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
-                println("file: $filename already exist!")
+                println("file: $storeKey already exist!")
             } else {
                 Files.write(
                     path,

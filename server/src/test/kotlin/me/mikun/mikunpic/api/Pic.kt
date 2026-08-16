@@ -15,6 +15,8 @@ import io.ktor.utils.io.streams.asInput
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.api.ApiTest.ohMyTest
 import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.dto.data.PicCreate
+import me.mikun.mikunpic.dto.data.PicUpdate
 import me.mikun.mikunpic.dto.data.Platform
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import kotlin.test.Test
@@ -55,7 +57,7 @@ class Pic {
                             append(
                                 "pic",
                                 Json.encodeToString(
-                                    Pic(
+                                    PicCreate(
                                         filename = picName,
                                         illustrator = me.mikun.mikunpic.dto.data.Illustrator(
                                             name = "mikun",
@@ -64,7 +66,8 @@ class Pic {
                                                 Platform.Twitter to "mikun_12138",
                                             )
                                         ),
-                                        tags = listOf("a", "b", "y", "z")
+                                        tags = listOf("a", "b", "y", "z"),
+                                        storeKey = picName
                                     )
                                 ),
                                 headers = Headers.build {
@@ -93,8 +96,8 @@ class Pic {
                 setBody(
                     OhMyRouting.Manage.Pic.Update.Body(
                         storageLabel = "sandbox$it",
-                        pic = Pic(
-                            filename = "rua$it.jpg",
+                        pic = PicUpdate(
+                            id = it.toString(),
                             illustrator = me.mikun.mikunpic.dto.data.Illustrator(
                                 name = "mikun",
                                 platformKeyMap = mapOf(
@@ -125,9 +128,7 @@ class Pic {
                 )
             )
         }.let {
-            it.body<OhMyRouting.Manage.Pic.Random.Response>().let {
-                println(it.pics.map { it.filename })
-            }
+            it.body<OhMyRouting.Manage.Pic.Random.Response>()
         }
     }
 

@@ -2,14 +2,9 @@ package me.mikun.mikunpic.view.manage
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowColumn
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -17,7 +12,6 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -26,6 +20,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -35,13 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
-import coil3.request.CachePolicy
 import coil3.request.ImageRequest
-import coil3.size.Size
-import io.ktor.http.encodeURLPathPart
 import kotlinx.coroutines.launch
-import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.client.Client
+import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.viewmodel.EditTableTagViewModel
 import me.mikun.mikunpic.viewmodel.ManageViewModel
 
@@ -199,28 +191,24 @@ fun EditTableTag(
             modifier = Modifier.weight(1f)
         ) {
 
-            fun encodePathKeepingSlash(path: String): String {
-                return path
-                    .split("/")
-                    .joinToString("/") { segment ->
-                        segment.encodeURLPathPart()
-                    }
-            }
+            items(imagesShowing) { (storageLabel, picId) ->
+                // TODO:: no bytes
+                val imageBytes by produceState<ByteArray?>(
+                    initialValue = null,
+                    storageLabel,
+                    picId,
+                ) {
+                    value = Client.fetchPic(
+                        id = picId,
+                        thumbnail = OhMyRouting.Pic.Thumbnail.Thumb,
+                        storageLabel = storageLabel,
+                    )
+                }
 
-            items(imagesShowing) {
                 AsyncImage(
                     model = ImageRequest.Builder(localPlatformContext)
-                        .data(
-                            "${LocalConfig.current.server}/pic/${
-                                encodePathKeepingSlash(
-                                    it
-                                )
-                            }"
-                        )
-                        .size(Size.ORIGINAL)
-                        .memoryCachePolicy(CachePolicy.DISABLED)
-                        .diskCachePolicy(CachePolicy.DISABLED)
-//                            .precision(Precision.EXACT)
+                        .data(imageBytes)
+                        .memoryCacheKey("${storageLabel}:${picId}")
                         .build(),
                     contentDescription = null
                 )
@@ -228,4 +216,3 @@ fun EditTableTag(
         }
     }
 }
-

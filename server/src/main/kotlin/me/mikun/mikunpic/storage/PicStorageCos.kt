@@ -14,7 +14,6 @@ import com.qcloud.cos.model.ObjectMetadata
 import com.qcloud.cos.model.PutObjectRequest
 import com.qcloud.cos.region.Region
 import io.ktor.server.application.Application
-import me.mikun.mikunpic.LocalMikunPicConfig
 import me.mikun.mikunpic.dto.data.MikunPicConfig
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import java.io.InputStream
@@ -110,7 +109,7 @@ class PicStorageCos(
 
     override suspend fun upload(
         byteArray: ByteArray,
-        filename: String,
+        storeKey: String,
     ) {
         val metadata = ObjectMetadata().apply {
             contentLength = byteArray.size.toLong()
@@ -118,7 +117,7 @@ class PicStorageCos(
 
         val request = PutObjectRequest(
             bucket.name,
-            filename,
+            storeKey,
             byteArray.inputStream(),
             metadata,
         )

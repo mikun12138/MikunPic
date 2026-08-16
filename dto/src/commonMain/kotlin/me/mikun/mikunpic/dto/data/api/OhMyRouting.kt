@@ -101,10 +101,8 @@ interface OhMyRouting {
 
                 @Serializable
                 data class Response(
-                    @SerialName("pics")
-                    val pics: List<me.mikun.mikunpic.dto.data.Pic>,
-                    @SerialName("storage_label")
-                    val storageLabel: String,
+                    @SerialName("pics_by_storage")
+                    val label2Pics: Map<String, Set<me.mikun.mikunpic.dto.data.Pic>> = emptyMap(),
                 )
             }
 
@@ -117,7 +115,7 @@ interface OhMyRouting {
                     @SerialName("storage_label")
                     val storageLabel: String,
                     @SerialName("pic")
-                    val pic: me.mikun.mikunpic.dto.data.Pic,
+                    val pic: me.mikun.mikunpic.dto.data.PicUpdate,
                 )
             }
         }

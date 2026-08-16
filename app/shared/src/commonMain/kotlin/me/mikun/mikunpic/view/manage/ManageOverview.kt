@@ -57,7 +57,7 @@ import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.awesome.FileExtension
 import me.mikun.mikunpic.dto.awesome.dfs
 import me.mikun.mikunpic.dto.data.Illustrator
-import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.dto.data.Platform
 import me.mikun.mikunpic.viewmodel.ManageStorageViewModel
 
@@ -224,16 +224,25 @@ fun BoxScope.ManageOverview(
 
                                                         val dirnames = path.map { it.name }
 
-                                                        for (i in 0 until path.size) {
-                                                            val regex = uploadRule[i].asRegex()
+                                                        for (i in path.indices) {
+                                                            val holders = uploadRule[i]
+                                                            val regex = holders.asRegex()
                                                             val matchResult =
                                                                 regex.matchEntire(dirnames[i])
-                                                            illustratorName =
-                                                                matchResult?.groups?.get("illustrator_name")?.value
-                                                            illustratorPixiv =
-                                                                matchResult?.groups?.get("pixiv")?.value
-                                                            illustratorTwitter =
-                                                                matchResult?.groups?.get("twitter")?.value
+                                                            if (holders.any { it.type == UploadRule.PlaceHolder.Type.IllustratorName }) {
+                                                                illustratorName =
+                                                                    matchResult?.groups["illustratorName"]?.value
+                                                            }
+
+                                                            if (holders.any { it.type == UploadRule.PlaceHolder.Type.IllustratorPixiv }) {
+                                                                illustratorPixiv =
+                                                                    matchResult?.groups["pixiv"]?.value
+                                                            }
+
+                                                            if (holders.any { it.type == UploadRule.PlaceHolder.Type.IllustratorTwitter }) {
+                                                                illustratorTwitter =
+                                                                    matchResult?.groups["twitter"]?.value
+                                                            }
                                                         }
 
                                                         val illustrator =
@@ -257,12 +266,16 @@ fun BoxScope.ManageOverview(
                                                                 )
                                                             }
 
+                                                        val storeKey = path.joinToString("/") { pathItem ->
+                                                            pathItem.name
+                                                        }
 
                                                         Client.uploadPic(
                                                             storageLabel = it.label,
                                                             picBytes = file.readBytes(),
-                                                            pic = Pic(
+                                                            pic = PicCreate(
                                                                 filename = file.name,
+                                                                storeKey = storeKey,
                                                                 illustrator = illustrator
                                                             )
                                                         )

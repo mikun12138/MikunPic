@@ -60,7 +60,7 @@ private fun makeUploadRule(s: String): List<List<PlaceHolder>> {
             val type =
                 if (it.startsWith("{") and it.endsWith("}")) {
                     when (it.removePrefix("{").removeSuffix("}")) {
-                        "illustrator_name" -> PlaceHolder.Type.IllustratorName
+                        "illustratorName" -> PlaceHolder.Type.IllustratorName
                         "pixiv" -> PlaceHolder.Type.IllustratorPixiv
                         "twitter" -> PlaceHolder.Type.IllustratorTwitter
                         "filename" -> PlaceHolder.Type.Filename
@@ -84,6 +84,7 @@ private fun List<PlaceHolder>.asRegex(): Regex {
                 PlaceHolder.Type.Simple -> {
                     append(Regex.escape(it.value))
                 }
+
                 else -> {
                     val v = it.value.removePrefix("{").removeSuffix("}")
                     append("""(?<$v>.+?)""")
@@ -100,12 +101,23 @@ class RandomTest {
     @Test
     fun test() {
         println()
-        makeUploadRule("{pixiv}_{twitter}").first().asRegex()
-            .let {
-                val match = it.matchEntire("1__1")
-                println(match?.groups["pixiv"]?.value)
-                println(match?.groups["twitter"]?.value)
+        val split = "ana/pixiv_123/456.jpg".split("/")
+        makeUploadRule("{illustratorName}/pixiv_{pixiv}/{filename}").forEachIndexed { index, holders ->
+            holders.asRegex().let {
+                val matchResult = it.matchEntire(split[index])
+                if (holders.any { it.type == PlaceHolder.Type.IllustratorName }) {
+                    println(matchResult?.groups["illustratorName"]?.value)
+                }
+
+                if (holders.any { it.type == PlaceHolder.Type.IllustratorPixiv }) {
+                    println(matchResult?.groups["pixiv"]?.value)
+                }
+
+                if (holders.any { it.type == PlaceHolder.Type.Filename }) {
+                    println(matchResult?.groups["filename"]?.value)
+                }
             }
+        }
 
         println()
 

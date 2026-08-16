@@ -9,7 +9,9 @@ import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
 import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.dto.data.PicSelect
+import me.mikun.mikunpic.dto.data.PicUpdate
 import me.mikun.mikunpic.dto.data.Platform
 import org.jetbrains.exposed.v1.core.IColumnType
 import org.jetbrains.exposed.v1.core.IntegerColumnType
@@ -57,7 +59,7 @@ class StorageDB(
         }
 
     suspend fun createPic(
-        pic: Pic,
+        pic: PicCreate,
         hash: String,
     ) {
         transaction(db) {
@@ -127,10 +129,12 @@ class StorageDB(
             }
 
 
-            val newPicId = PicEntity.new {
-                this.filename = pic.filename
-                this.hash = hash
-            }.id.value
+            val newPicId = PicTable.insert {
+                it[PicTable.filename] = pic.filename
+                it[PicTable.hash] = hash
+                it[PicTable.platform] = Platform.Other
+                it[PicTable.storeKey] = pic.storeKey
+            }[PicTable.id].value
 
             newIllustratorId?.let { newIllustratorId ->
                 Pic2IllustratorTable.insert {
@@ -150,9 +154,9 @@ class StorageDB(
     }
 
     suspend fun updatePic(
-        pic: Pic,
+        pic: PicUpdate,
     ) = transaction(db) {
-        PicEntity.findSingleByAndUpdate(PicTable.filename eq pic.filename) { picEntity ->
+        PicEntity.findSingleByAndUpdate(PicTable.id eq pic.id.toInt()) { picEntity ->
 
             var newIllustratorId: Int? = null
             val newTagIds = mutableListOf<Int>()
@@ -272,6 +276,21 @@ class StorageDB(
         }
     }
 
+    suspend fun selectPic(
+        hash: String
+    ): PicSelect? = transaction(db) {
+        PicTable.selectAll().where {
+            PicTable.hash eq hash
+        }.firstOrNull()?.let {
+            PicSelect(
+                id = it[PicTable.id].value,
+                filename = it[PicTable.filename],
+                platform = it[PicTable.platform].name,
+                storeKey = it[PicTable.storeKey],
+            )
+        }
+    }
+
     companion object {
         val dbs = mutableListOf<StorageDB>()
 
@@ -287,6 +306,8 @@ class StorageDB(
         )
 
         private data class MutablePic(
+            val id: String,
+            val storageLabel: String,
             val filename: String,
             val illustratorId: Int?,
             val illustratorName: String?,
@@ -483,15 +504,15 @@ class StorageDB(
             count: Int,
             illustratorIds: Set<Int>,
             tags: Set<String> = setOf(),
-        ): List<Pic> {
-            if (count <= 0) return emptyList()
+        ): Map<String, Set<Pic>> {
+            if (count <= 0) return emptyMap()
 
             val storages = if (storageLabels.isEmpty()) {
                 dbs.toList()
             } else {
                 storageLabels.mapNotNull { byNameNoEx(it) }
             }
-            if (storages.isEmpty()) return emptyList()
+            if (storages.isEmpty()) return emptyMap()
 
             val attachedStorages = storages.mapIndexed { index, storage ->
                 AttachedStorage(
@@ -534,6 +555,8 @@ class StorageDB(
                             val key = storageLabel to picId
                             val pic = result.getOrPut(key) {
                                 MutablePic(
+                                    id = picId.toString(),
+                                    storageLabel = storageLabel,
                                     filename = resultSet.getString("filename"),
                                     illustratorId = (resultSet.getObject("illustrator_id") as? Number)?.toInt(),
                                     illustratorName = resultSet.getString("illustrator_name"),
@@ -551,8 +574,10 @@ class StorageDB(
                             resultSet.getString("tag_name")?.let { pic.tags += it }
                         }
 
-                        result.values.map { pic ->
-                            Pic(
+                        val picsByStorage = linkedMapOf<String, MutableSet<Pic>>()
+                        result.values.forEach { pic ->
+                            picsByStorage.getOrPut(pic.storageLabel) { linkedSetOf() } += Pic(
+                                id = pic.id,
                                 filename = pic.filename,
                                 illustrator = pic.illustratorId?.let { illustratorId ->
                                     pic.illustratorName?.let { illustratorName ->
@@ -566,6 +591,8 @@ class StorageDB(
                                 tags = pic.tags.toList(),
                             )
                         }
+
+                        picsByStorage.mapValues { (_, pics) -> pics.toSet() }
                     }.orEmpty()
                 } finally {
                     attached.asReversed().forEach { storage ->

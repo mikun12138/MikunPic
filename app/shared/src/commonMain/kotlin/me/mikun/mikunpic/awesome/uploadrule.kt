@@ -59,7 +59,7 @@ object UploadRule {
                 val type =
                     if (it.startsWith("{") and it.endsWith("}")) {
                         when (it.removePrefix("{").removeSuffix("}")) {
-                            "illustrator_name" -> PlaceHolder.Type.IllustratorName
+                            "illustratorName" -> PlaceHolder.Type.IllustratorName
                             "pixiv" -> PlaceHolder.Type.IllustratorPixiv
                             "twitter" -> PlaceHolder.Type.IllustratorTwitter
                             "filename" -> PlaceHolder.Type.Filename

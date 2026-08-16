@@ -14,14 +14,12 @@ import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.database.MetadataDB
 import me.mikun.mikunpic.database.StorageDB
-import me.mikun.mikunpic.dto.data.Illustrator
-import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.dto.data.Storage
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.sync
 import me.mikun.mikunpic.operator.uploadPic
 import me.mikun.mikunpic.storage.PicStorage
-import me.mikun.mikunpic.utils.mapToNullable
 
 fun Route.manage() {
     fun storage() {
@@ -44,7 +42,7 @@ fun Route.manage() {
 
             var storageLabel: String? = null
             var byteArray: ByteArray? = null
-            var pic: Pic? = null
+            var pic: PicCreate? = null
             multipart.forEachPart { part ->
                 when (part) {
                     is PartData.FileItem -> {
@@ -105,11 +103,10 @@ fun Route.manage() {
                 receive.count,
                 receive.illustratorIds.toSet(),
                 receive.tags.toSet(),
-            ).let {
+            ).let { label2Pics ->
                 call.respond(
                     OhMyRouting.Manage.Pic.Random.Response(
-                        it,
-                        ""
+                        label2Pics = label2Pics,
                     ),
                 )
             }

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -21,7 +20,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
@@ -72,17 +70,28 @@ fun EditTablePic(
 
     var picOnTable by remember { mutableStateOf<Pic?>(null) }
 
-    var currentPicStorageLabel by remember { mutableStateOf("") }
+    var storageLabelOnTable by remember { mutableStateOf("") }
 
     val currentStorageLabel = manageViewModel.currentStorageLabel.collectAsState().value
+
+    fun Map<String, Set<Pic>>.firstPicWithStorage(): Pair<String, Pic>? {
+        for ((storageLabel, pics) in this) {
+            val pic = pics.firstOrNull()
+            if (pic != null) {
+                return storageLabel to pic
+            }
+        }
+
+        return null
+    }
 
     LaunchedEffect(Unit) {
         Client.randomPic(
             count = 1,
             storageLabels = listOf(currentStorageLabel)
-        )?.let {
-            picOnTable = it.pics.firstOrNull()
-            currentPicStorageLabel = it.storageLabel
+        )?.label2Pics?.firstPicWithStorage()?.let { (storageLabel, pic) ->
+            picOnTable = pic
+            storageLabelOnTable = storageLabel
         }
     }
 
@@ -121,9 +130,9 @@ fun EditTablePic(
                         Client.randomPic(
                             count = 1,
                             storageLabels = listOf(currentStorageLabel)
-                        )?.let {
-                            picOnTable = it.pics.firstOrNull()
-                            currentPicStorageLabel = it.storageLabel
+                        )?.label2Pics?.firstPicWithStorage()?.let { (storageLabel, pic) ->
+                            picOnTable = pic
+                            storageLabelOnTable = storageLabel
                         }
                     }
                 },
@@ -133,9 +142,9 @@ fun EditTablePic(
                             count = 1,
                             storageLabels = listOf(currentStorageLabel),
                             illustrators = listOf(Illustrator.UnExist),
-                        )?.let {
-                            picOnTable = it.pics.firstOrNull()
-                            currentPicStorageLabel = it.storageLabel
+                        )?.label2Pics?.firstPicWithStorage()?.let { (storageLabel, pic) ->
+                            picOnTable = pic
+                            storageLabelOnTable = storageLabel
                         }
                     }
                 },
@@ -145,9 +154,9 @@ fun EditTablePic(
                             count = 1,
                             storageLabels = listOf(currentStorageLabel),
                             tags = listOf(""),
-                        )?.let {
-                            picOnTable = it.pics.firstOrNull()
-                            currentPicStorageLabel = it.storageLabel
+                        )?.label2Pics?.firstPicWithStorage()?.let { (storageLabel, pic) ->
+                            picOnTable = pic
+                            storageLabelOnTable = storageLabel
                         }
                     }
                 },
@@ -237,16 +246,15 @@ fun EditTablePic(
                         ElevatedButton(
                             onClick = {
                                 if (editContext.isEdited.value) {
-                                    picOnTable = Pic(
-                                        picOnTable!!.filename,
-                                        picOnTable!!.illustrator,
-                                        editContext.tags.toList(),
+                                    picOnTable = picOnTable!!.copy(
+                                        illustrator = picOnTable!!.illustrator,
+                                        tags = editContext.tags.toList()
                                     )
 
                                     scope.launch {
                                         Client.updatePic(
-                                            storageLabel = currentPicStorageLabel,
-                                            picOnTable!!,
+                                            storageLabel = storageLabelOnTable,
+                                            picOnTable!!.update()
                                         )
                                     }
                                 }
@@ -255,7 +263,7 @@ fun EditTablePic(
                             Text("Apply")
                         }
 
-                        Text("To Storage: $currentPicStorageLabel")
+                        Text("To Storage: $storageLabelOnTable")
                     }
                 }
             }

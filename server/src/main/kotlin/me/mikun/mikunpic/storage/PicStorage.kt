@@ -108,10 +108,10 @@ sealed class PicStorage {
         suspend fun upload(
             label: String,
             byteArray: ByteArray,
-            filename: String,
+            storeKey: String,
         ) = storages.find { it.label == label }?.upload(
             byteArray,
-            filename,
+            storeKey,
         )
 
     }
@@ -131,6 +131,6 @@ sealed class PicStorage {
 
     abstract suspend fun upload(
         byteArray: ByteArray,
-        filename: String,
+        storeKey: String,
     )
 }

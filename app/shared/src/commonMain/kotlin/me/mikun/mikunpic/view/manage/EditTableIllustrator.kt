@@ -79,16 +79,20 @@ fun EditTableIllustrator() {
         supervisorScope {
             illustrators.forEachIndexed { index, illustrator ->
                 launch {
-                    val pics = Client.randomPic(
+                    val picsWithStorage = Client.randomPic(
                         picPreIllustrator,
                         illustrators = listOf(illustrator),
                         storageLabels = emptyList()
-                    )?.pics ?: emptyList()
+                    )?.label2Pics.orEmpty().flatMap { (storageLabel, pics) ->
+                        pics.map { storageLabel to it }
+                    }
+                    val pics = picsWithStorage.map { (_, pic) -> pic }
 
-                    val picCaches = pics.map { pic ->
+                    val picCaches = picsWithStorage.map { (storageLabel, pic) ->
                         val bytes = Client.fetchPic(
-                            pic.filename,
-                            OhMyRouting.Pic.Filename.Thumbnail.Thumb,
+                            id = pic.id,
+                            thumbnail = OhMyRouting.Pic.Thumbnail.Thumb,
+                            storageLabel = storageLabel,
                         )
 
                         ImageRequest.Builder(localPlatformContext)

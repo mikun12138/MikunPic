@@ -34,6 +34,8 @@ import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.LocalPref
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.dto.data.PicCreate
+import me.mikun.mikunpic.dto.data.PicUpdate
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 
 object Client {
@@ -106,21 +108,22 @@ object Client {
     }
 
     suspend fun fetchPic(
-        filename: String,
-        thumbnail: OhMyRouting.Pic.Filename.Thumbnail = OhMyRouting.Pic.Filename.Thumbnail.Thumb,
-        storageLabel: String = "",
+        id: String,
+        thumbnail: OhMyRouting.Pic.Thumbnail = OhMyRouting.Pic.Thumbnail.Thumb,
+        storageLabel: String,
     ) = httpClient
         .get(
-            OhMyRouting.Pic.Filename(
-                filename,
-                thumbnail,
+            OhMyRouting.Pic.Id(
+                id = id,
+                thumbnail = thumbnail,
+                storageLabel = storageLabel
             ),
         ).`get bytes`()
 
     suspend fun uploadPic(
         storageLabel: String,
         picBytes: ByteArray,
-        pic: Pic
+        pic: PicCreate
     ) {
         httpClient.post(
             OhMyRouting.Manage.Pic.Upload(),
@@ -182,7 +185,7 @@ object Client {
 
     suspend fun updatePic(
         storageLabel: String,
-        pic: Pic,
+        pic: PicUpdate,
     ) {
         httpClient.post(
             OhMyRouting.Manage.Pic.Update(),
