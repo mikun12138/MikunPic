@@ -15,7 +15,7 @@ fun Route.public() {
      * @description get random image
      */
     get<OhMyRouting.Random> {
-        PicStorage.random()?.let {
+        PicStorage.weightRandom()?.let {
             call.respondBytes {
                 it.readBytes()
             }

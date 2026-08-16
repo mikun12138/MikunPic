@@ -9,7 +9,7 @@ data class Illustrator(
     val platformKeyMap: Map<Platform, String> = mapOf(),
 ) {
     companion object {
-        val UnExist = Illustrator(name = "")
+        val UnExist = Illustrator(id = -1, name = "")
     }
 }
 
@@ -26,7 +26,7 @@ enum class Platform(
         return when(this) {
             Pixiv -> {
                 val id = key.substringBefore("_")
-                "https://www.pixiv.net/artworks/$id}"
+                "https://www.pixiv.net/artworks/$id"
                 // TODO:: fetch date and the direct link
             }
             Twitter -> {

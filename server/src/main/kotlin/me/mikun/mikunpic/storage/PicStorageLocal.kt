@@ -36,9 +36,6 @@ class PicStorageLocal(
 
             flashStorage()
         }
-        picKeys.forEach {
-            println(it)
-        }
     }
 
     private fun pathOf(key: String): Path? {

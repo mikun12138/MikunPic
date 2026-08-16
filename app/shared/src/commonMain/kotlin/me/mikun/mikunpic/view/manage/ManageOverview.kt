@@ -244,6 +244,7 @@ fun BoxScope.ManageOverview(
                                                             }
                                                         }
 
+
                                                         val illustrator =
                                                             illustratorName?.let { name ->
                                                                 Illustrator(
@@ -265,13 +266,15 @@ fun BoxScope.ManageOverview(
                                                                 )
                                                             }
 
-                                                        val platform = if (illustratorPixiv != null) {
-                                                            Platform.Pixiv.value
-                                                        } else if (illustratorTwitter != null) {
-                                                            Platform.Twitter.value
-                                                        } else {
-                                                            Platform.Other.value
-                                                        }
+                                                        val platform =
+                                                            if (illustratorPixiv != null) {
+                                                                Platform.Pixiv.value
+                                                            } else if (illustratorTwitter != null) {
+                                                                Platform.Twitter.value
+                                                            } else {
+                                                                Platform.Other.value
+                                                            }
+
 
                                                         val storeKey =
                                                             path.joinToString("/") { pathItem ->

@@ -67,7 +67,8 @@ class Pic {
                                             )
                                         ),
                                         tags = listOf("a", "b", "y", "z"),
-                                        storeKey = picName
+                                        storeKey = picName,
+                                        platform = "pixiv"
                                     )
                                 ),
                                 headers = Headers.build {
@@ -121,14 +122,16 @@ class Pic {
             contentType(ContentType.Application.Json)
             setBody(
                 OhMyRouting.Manage.Pic.Random.Body(
-                    storageLabels = listOf("sandbox0", "sandbox1", "sandbox2"),
+                    storageLabels = listOf("sandbox0"),
                     count = 2,
-                    illustratorIds = listOf(1),
-                    tags = listOf("z", "z"),
+                    illustratorIds = listOf(),
+                    tags = listOf(),
                 )
             )
         }.let {
-            it.body<OhMyRouting.Manage.Pic.Random.Response>()
+            it.body<OhMyRouting.Manage.Pic.Random.Response>().let {
+                println(it)
+            }
         }
     }
 

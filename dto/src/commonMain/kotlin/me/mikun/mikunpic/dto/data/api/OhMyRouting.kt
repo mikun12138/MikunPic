@@ -30,9 +30,12 @@ interface OhMyRouting {
         }
 
         @Resource("/id/{id}")
-        class Id(
+        data class Id(
+            @SerialName("id")
             val id: String,
+            @SerialName("thumbnail")
             val thumbnail: Thumbnail = Thumbnail.Orig,
+            @SerialName("storage_label")
             val storageLabel: String,
         ) : OhMyRouting {
             override val parent = Pic()

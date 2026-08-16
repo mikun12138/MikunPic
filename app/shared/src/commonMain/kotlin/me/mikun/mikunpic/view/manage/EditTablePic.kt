@@ -49,7 +49,9 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.size.Size
-import io.ktor.http.encodeURLPathPart
+import io.ktor.http.URLBuilder
+import io.ktor.http.path
+import io.ktor.http.takeFrom
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.client.Client
@@ -86,13 +88,12 @@ fun EditTablePic(
     }
 
     LaunchedEffect(Unit) {
-        Client.randomPic(
+        val (storageLabel, pic) = Client.randomPic(
             count = 1,
             storageLabels = listOf(currentStorageLabel)
-        )?.label2Pics?.firstPicWithStorage()?.let { (storageLabel, pic) ->
-            picOnTable = pic
-            storageLabelOnTable = storageLabel
-        }
+        )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
+        storageLabelOnTable = storageLabel
+        picOnTable = pic
     }
 
     val editContext = object {
@@ -127,37 +128,34 @@ fun EditTablePic(
             HeaderSelection(
                 onSelectionRandom = {
                     scope.launch {
-                        Client.randomPic(
+                        val (storageLabel, pic) = Client.randomPic(
                             count = 1,
                             storageLabels = listOf(currentStorageLabel)
-                        )?.label2Pics?.firstPicWithStorage()?.let { (storageLabel, pic) ->
-                            picOnTable = pic
-                            storageLabelOnTable = storageLabel
-                        }
+                        )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
+                        storageLabelOnTable = storageLabel
+                        picOnTable = pic
                     }
                 },
                 onSelectionNoAuthor = {
                     scope.launch {
-                        Client.randomPic(
+                        val (storageLabel, pic) = Client.randomPic(
                             count = 1,
                             storageLabels = listOf(currentStorageLabel),
                             illustrators = listOf(Illustrator.UnExist),
-                        )?.label2Pics?.firstPicWithStorage()?.let { (storageLabel, pic) ->
-                            picOnTable = pic
-                            storageLabelOnTable = storageLabel
-                        }
+                        )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
+                        storageLabelOnTable = storageLabel
+                        picOnTable = pic
                     }
                 },
                 onSelectionNoTag = {
                     scope.launch {
-                        Client.randomPic(
+                        val (storageLabel, pic) = Client.randomPic(
                             count = 1,
                             storageLabels = listOf(currentStorageLabel),
                             tags = listOf(""),
-                        )?.label2Pics?.firstPicWithStorage()?.let { (storageLabel, pic) ->
-                            picOnTable = pic
-                            storageLabelOnTable = storageLabel
-                        }
+                        )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
+                        storageLabelOnTable = storageLabel
+                        picOnTable = pic
                     }
                 },
             )
@@ -167,27 +165,19 @@ fun EditTablePic(
                     modifier = Modifier
                         .weight(0.6f),
                 ) {
-
-                    fun encodePathKeepingSlash(path: String): String {
-                        return path
-                            .split("/")
-                            .joinToString("/") { segment ->
-                                segment.encodeURLPathPart()
-                            }
-                    }
+                    val picUrl = URLBuilder().apply {
+                        takeFrom(LocalConfig.current.server)
+                        path("pic", "id", picOnTable!!.id)
+                        parameters.append("storage_label", storageLabelOnTable)
+                    }.buildString()
 
                     PicShowingTable(
                         ImageRequest.Builder(localPlatformContext)
-                            .data(
-                                "${LocalConfig.current.server}/pic/${
-                                    encodePathKeepingSlash(
-                                        picOnTable!!.filename
-                                    )
-                                }"
-                            )
+                            .data(picUrl)
                             .size(Size.ORIGINAL)
                             .memoryCachePolicy(CachePolicy.DISABLED)
                             .diskCachePolicy(CachePolicy.DISABLED)
+                            .memoryCacheKey("${storageLabelOnTable}:${picOnTable!!.id}")
 //                            .precision(Precision.EXACT)
                             .build(),
                     )

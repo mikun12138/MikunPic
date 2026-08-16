@@ -102,22 +102,30 @@ class RandomTest {
     fun test() {
         println()
         val split = "ana/pixiv_123/456.jpg".split("/")
+        var illustratorName: String? = null
+        var pixiv: String? = null
+        var filename: String? = null
         makeUploadRule("{illustratorName}/pixiv_{pixiv}/{filename}").forEachIndexed { index, holders ->
+            println(holders)
             holders.asRegex().let {
                 val matchResult = it.matchEntire(split[index])
                 if (holders.any { it.type == PlaceHolder.Type.IllustratorName }) {
-                    println(matchResult?.groups["illustratorName"]?.value)
+                    illustratorName = matchResult?.groups["illustratorName"]?.value
                 }
 
                 if (holders.any { it.type == PlaceHolder.Type.IllustratorPixiv }) {
-                    println(matchResult?.groups["pixiv"]?.value)
+                    pixiv = matchResult?.groups["pixiv"]?.value
                 }
 
                 if (holders.any { it.type == PlaceHolder.Type.Filename }) {
-                    println(matchResult?.groups["filename"]?.value)
+                    filename = matchResult?.groups["filename"]?.value
                 }
             }
         }
+
+        println(illustratorName)
+        println(pixiv)
+        println(filename)
 
         println()
 

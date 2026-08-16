@@ -373,7 +373,7 @@ class StorageDB(
             tagNames: Set<String>,
         ): PreparedSql {
             val args = mutableListOf(stringArg(storage.label))
-            val where = buildList {
+            val conditions = buildList {
                 if (illustratorIds.isNotEmpty()) {
                     add(
                         "pic2illustrator.illustrator_id IN ${placeholders(illustratorIds.size)}"
@@ -388,18 +388,23 @@ class StorageDB(
                     add(tagFilter.sql)
                     args += tagFilter.args
                 }
-            }.joinToString(
-                prefix = "\nWHERE\n",
-                separator = "\nAND\n",
-            ).takeIf { it.isNotBlank() }.orEmpty()
+            }
+            val where = if (conditions.isEmpty()) {
+                ""
+            } else {
+                conditions.joinToString(
+                    prefix = "\nWHERE\n",
+                    separator = "\nAND\n",
+                )
+            }
 
             return PreparedSql(
                 sql = """
                     SELECT
-                        ? storage_label,
-                        pic.id pic_id,
-                        pic.filename,
-                        pic2illustrator.illustrator_id
+                        ? AS storage_label,
+                        pic.id AS pic_id,
+                        pic.filename AS filename,
+                        pic2illustrator.illustrator_id AS illustrator_id
                     FROM ${storage.alias}.pic
                     LEFT JOIN ${storage.alias}.pic2illustrator
                         ON pic2illustrator.pic_id = pic.id
@@ -414,9 +419,9 @@ class StorageDB(
         ) = PreparedSql(
             sql = """
                 SELECT
-                    ? storage_label,
-                    pics2tags.pic_id,
-                    tag.name tag_name
+                    ? AS storage_label,
+                    pics2tags.pic_id AS pic_id,
+                    tag.name AS tag_name
                 FROM ${storage.alias}.pics2tags
                 JOIN picked
                     ON picked.storage_label = ?
@@ -463,7 +468,7 @@ class StorageDB(
                             pic_id,
                             filename,
                             illustrator_id,
-                            random() sort_key
+                            random() AS sort_key
                         FROM candidate
                         ORDER BY sort_key
                         LIMIT ?
@@ -480,9 +485,9 @@ class StorageDB(
                         picked.pic_id,
                         picked.filename,
                         picked.illustrator_id,
-                        illustrator.name illustrator_name,
-                        platform_key.platform,
-                        platform_key.key platform_key,
+                        illustrator.name AS illustrator_name,
+                        platform_key.platform AS platform,
+                        platform_key.key AS platform_key,
                         picked_tags.tag_name
                     FROM picked
                     LEFT JOIN illustrator
@@ -508,6 +513,7 @@ class StorageDB(
         ): Map<String, Set<Pic>> {
             if (count <= 0) return emptyMap()
 
+            val storageLabels = storageLabels.filter { it.isNotEmpty() }
             val storages = if (storageLabels.isEmpty()) {
                 dbs.toList()
             } else {

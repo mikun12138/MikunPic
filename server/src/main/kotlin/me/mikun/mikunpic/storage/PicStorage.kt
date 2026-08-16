@@ -8,6 +8,8 @@ import me.mikun.mikunpic.dto.data.MikunPicConfig
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import java.io.InputStream
 import java.util.concurrent.CopyOnWriteArraySet
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 sealed class PicStorage {
     abstract val label: String
@@ -75,6 +77,21 @@ sealed class PicStorage {
         }
 
         suspend fun random(): InputStream? = storages.random().random()
+
+        suspend fun weightRandom(): InputStream? {
+            val weights = storages.map { it.picKeys.count() }
+            val sum = weights.sum()
+            if (sum == 0) return null
+            var random = Random.nextInt(sum)
+            weights.forEachIndexed { index, weight ->
+                random -= weight
+                if (random < 0) {
+                    return storages[index].random()
+                }
+            }
+
+            error("it should be unreachable...")
+        }
 
         suspend fun byKey(
             label: String,
