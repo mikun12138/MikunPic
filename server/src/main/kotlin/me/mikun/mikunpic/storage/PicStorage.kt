@@ -105,34 +105,6 @@ sealed class PicStorage {
 
         }
 
-        suspend fun byName(
-            label: String,
-            name: String,
-            thumbnail: OhMyRouting.Pic.Thumbnail = OhMyRouting.Pic.Thumbnail.Orig,
-        ): InputStream? {
-            storages.find { it.label == label }?.let { storage ->
-                try {
-                    storage.byName(name, thumbnail)?.let {
-                        return it
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            } ?: run {
-                storages.forEach { storage ->
-                    try {
-                        storage.byName(name, thumbnail)?.let {
-                            return it
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            return null
-        }
-
         suspend fun upload(
             label: String,
             byteArray: ByteArray,
@@ -151,11 +123,6 @@ sealed class PicStorage {
 
     abstract suspend fun random(): InputStream?
 
-    @Deprecated("use byKey() instead")
-    abstract suspend fun byName(
-        name: String,
-        thumbnail: OhMyRouting.Pic.Thumbnail = OhMyRouting.Pic.Thumbnail.Orig,
-    ): InputStream?
 
     abstract suspend fun byKey(
         key: String,

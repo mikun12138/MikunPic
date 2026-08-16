@@ -1,6 +1,7 @@
 package me.mikun.mikunpic.api
 
 import io.ktor.client.call.body
+import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
@@ -127,6 +128,30 @@ class Pic {
             it.body<OhMyRouting.Manage.Pic.Random.Response>().let {
                 println(it.pics.map { it.filename })
             }
+        }
+    }
+
+    @Test
+    fun id() = ohMyTest {
+        client.get(
+            OhMyRouting.Pic.Id(
+                id = "1",
+                storageLabel = "sandbox1",
+            )
+        ) {
+
+        }
+    }
+
+    @Test
+    fun platformKey() = ohMyTest {
+        client.get(
+            OhMyRouting.Pic.PlatformKey(
+                platform = "pixiv",
+                key = "abcde"
+            )
+        ) {
+
         }
     }
 }

@@ -33,18 +33,19 @@ interface OhMyRouting {
         class Id(
             val id: String,
             val thumbnail: Thumbnail = Thumbnail.Orig,
+            val storageLabel: String,
         ) : OhMyRouting {
             override val parent = Pic()
         }
 
-        @Resource("/platform/{platform}/{key}")
-        class Platform(
+        @Resource("/{platform}/{key}")
+        class PlatformKey(
+            val platform: String,
+            val key: String,
             val thumbnail: Thumbnail = Thumbnail.Orig,
         ): OhMyRouting {
             override val parent = Pic()
         }
-
-
     }
 
     @Resource("/manage")

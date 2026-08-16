@@ -14,11 +14,10 @@ suspend fun Route.uploadPic(
 ) {
     StorageDB.byNameNoEx(storageLabel)?.apply {
         selectPic(
-            filename = pic.filename
-        ).let {
-            if (!it.isEmpty()) {
-                return
-            }
+            // TODO::
+            id = 1
+        ) ?: run {
+            return
         }
 
         if (uploadFile) {

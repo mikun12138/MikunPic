@@ -14,8 +14,18 @@ data class Illustrator(
 }
 
 // fanbox? 抱歉没有那种东西
-enum class Platform {
-    Other,
-    Pixiv,
-    Twitter,
+enum class Platform(
+    val eName: String,
+) {
+    Other(""),
+    Pixiv("pixiv"),
+    Twitter("twitter")
+    ;
+
+    companion object {
+        fun byName(name: String): Platform? {
+            return entries.find { it.eName == name }
+        }
+    }
+
 }

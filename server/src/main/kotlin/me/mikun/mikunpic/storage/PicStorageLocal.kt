@@ -36,6 +36,9 @@ class PicStorageLocal(
 
             flashStorage()
         }
+        picKeys.forEach {
+            println(it)
+        }
     }
 
     private fun pathOf(key: String): Path? {
@@ -69,10 +72,10 @@ class PicStorageLocal(
             Files.isHidden(path)
         }.getOrDefault(false)
 
+    // for read
     private fun existingRegularFile(key: String): Path? {
         val path = pathOf(key) ?: return null
         if (path.hasSymbolicLink()) return null
-        if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) return null
 
         val realPath = try {
             path.toRealPath(LinkOption.NOFOLLOW_LINKS)
@@ -85,6 +88,7 @@ class PicStorageLocal(
         }
     }
 
+    // for write
     private fun writablePath(key: String): Path? {
         val path = pathOf(key) ?: return null
         val parent = path.parent ?: rootPath
@@ -131,17 +135,9 @@ class PicStorageLocal(
                 return null
             }
 
-            findExist(10) ?: run {
-                flashStorage()
-                findExist(1)
-            }
+            findExist(10)
         }
     }
-
-    override suspend fun byName(
-        name: String,
-        thumbnail: OhMyRouting.Pic.Thumbnail,
-    ): InputStream? = byKey(name, thumbnail)
 
     override suspend fun byKey(
         key: String,

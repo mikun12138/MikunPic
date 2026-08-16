@@ -9,6 +9,7 @@ import me.mikun.mikunpic.database.table.relation.Pic2IllustratorTable
 import me.mikun.mikunpic.database.table.relation.Pic2TagsTable
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.dto.data.PicSelect
 import me.mikun.mikunpic.dto.data.Platform
 import org.jetbrains.exposed.v1.core.IColumnType
 import org.jetbrains.exposed.v1.core.IntegerColumnType
@@ -117,12 +118,12 @@ class StorageDB(
 
                 newTagIds.addAll(
                     TagTable.select(
-                    TagTable.id
-                ).where {
-                    TagTable.name inList pic.tags
-                }.map {
-                    it[TagTable.id].value
-                })
+                        TagTable.id
+                    ).where {
+                        TagTable.name inList pic.tags
+                    }.map {
+                        it[TagTable.id].value
+                    })
             }
 
 
@@ -210,12 +211,12 @@ class StorageDB(
 
                 newTagIds.addAll(
                     TagTable.select(
-                    TagTable.id
-                ).where {
-                    TagTable.name inList pic.tags
-                }.map {
-                    it[TagTable.id].value
-                })
+                        TagTable.id
+                    ).where {
+                        TagTable.name inList pic.tags
+                    }.map {
+                        it[TagTable.id].value
+                    })
             }
 
             newIllustratorId?.let { newIllustratorId ->
@@ -241,12 +242,33 @@ class StorageDB(
     }
 
     suspend fun selectPic(
-        filename: String,
-    ) = transaction(db) {
+        id: Int,
+    ): PicSelect? = transaction(db) {
         PicTable.selectAll().where {
-            PicTable.filename eq filename
-        }.map {
-            it[PicTable.filename]
+            PicTable.id eq id
+        }.firstOrNull()?.let {
+            PicSelect(
+                id = it[PicTable.id].value,
+                filename = it[PicTable.filename],
+                platform = it[PicTable.platform].name,
+                storeKey = it[PicTable.storeKey],
+            )
+        }
+    }
+
+    suspend fun selectPic(
+        platform: Platform,
+        key: String
+    ): PicSelect? = transaction(db) {
+        PicTable.selectAll().where {
+            (PicTable.platform eq platform) and (PicTable.filename eq key)
+        }.firstOrNull()?.let {
+            PicSelect(
+                id = it[PicTable.id].value,
+                filename = it[PicTable.filename],
+                platform = it[PicTable.platform].name,
+                storeKey = it[PicTable.storeKey],
+            )
         }
     }
 
@@ -401,15 +423,17 @@ class StorageDB(
             }
             val pickedTags = storages.map(::pickedTagsSql)
             val args = candidates.flatMap { it.args } +
-                intArg(count) +
-                pickedTags.flatMap { it.args }
+                    intArg(count) +
+                    pickedTags.flatMap { it.args }
 
             return PreparedSql(
                 sql = """
                     WITH candidate AS (
-                        ${candidates.joinToString(
-                separator = "\nUNION ALL\n",
-            ) { it.sql }}
+                        ${
+                    candidates.joinToString(
+                        separator = "\nUNION ALL\n",
+                    ) { it.sql }
+                }
                     ),
                     picked AS (
                         SELECT
@@ -423,9 +447,11 @@ class StorageDB(
                         LIMIT ?
                     ),
                     picked_tags AS (
-                        ${pickedTags.joinToString(
-                separator = "\nUNION ALL\n",
-            ) { it.sql }}
+                        ${
+                    pickedTags.joinToString(
+                        separator = "\nUNION ALL\n",
+                    ) { it.sql }
+                }
                     )
                     SELECT
                         picked.storage_label,

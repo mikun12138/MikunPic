@@ -95,11 +95,6 @@ class PicStorageCos(
         cosClient.getObject(request)
     }.objectContent
 
-    override suspend fun byName(
-        name: String,
-        thumbnail: OhMyRouting.Pic.Thumbnail,
-    ): InputStream? = byKey(name, thumbnail)
-
     override suspend fun byKey(
         key: String,
         thumbnail: OhMyRouting.Pic.Thumbnail,
