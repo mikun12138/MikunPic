@@ -12,27 +12,74 @@ import io.ktor.server.routing.Route
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
+import me.mikun.mikunpic.LocalMikunPicConfig
 import me.mikun.mikunpic.database.MetadataDB
 import me.mikun.mikunpic.database.StorageDB
+import me.mikun.mikunpic.dto.data.MikunPicConfig
 import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.dto.data.Storage
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.sync
 import me.mikun.mikunpic.operator.uploadPic
 import me.mikun.mikunpic.storage.PicStorage
+import me.mikun.mikunpic.storage.PicStorageLocal
+import me.mikun.mikunpic.utils.toStorageConfig
 
 fun Route.manage() {
     fun storage() {
-        get<OhMyRouting.Manage.Storages> {
+        get<OhMyRouting.Manage.Storage.List> {
             call.respond(
-                OhMyRouting.Manage.Storages.Response(
-                    PicStorage.storages.map {
-                        Storage(
-                            it.label
-                        )
+                OhMyRouting.Manage.Storage.List.Response(
+                    LocalMikunPicConfig.storages.map {
+                        when (it) {
+                            is MikunPicConfig.Storage.Local -> Storage.Local(
+                                label = it.label,
+                                path = it.path
+                            )
+
+                            is MikunPicConfig.Storage.Cos -> Storage.Cos(
+                                label = it.label,
+                                secretId = "",
+                                secretKey = "",
+                                bucketName = it.bucketName,
+                                region = it.region
+                            )
+                        }
                     }
                 )
             )
+        }
+
+        post<OhMyRouting.Manage.Storage.Add> {
+            val receive = call.receive<OhMyRouting.Manage.Storage.Add.Body>()
+            if (LocalMikunPicConfig.storages.any { it.label == receive.storage.label }) {
+                return@post call.respond(HttpStatusCode.Conflict)
+            }
+            LocalMikunPicConfig = LocalMikunPicConfig.copy(
+                storages = LocalMikunPicConfig.storages + receive.storage.toStorageConfig()
+            )
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post<OhMyRouting.Manage.Storage.Edit> {
+            val receive = call.receive<OhMyRouting.Manage.Storage.Edit.Body>()
+            if (LocalMikunPicConfig.storages.none { it.label == receive.storage.label }) {
+                return@post call.respond(HttpStatusCode.Conflict)
+            }
+            LocalMikunPicConfig = LocalMikunPicConfig.copy(
+                storages = LocalMikunPicConfig.storages.filter { it.label != receive.storage.label } + receive.storage.toStorageConfig()
+            )
+            call.respond(HttpStatusCode.OK)
+        }
+        post<OhMyRouting.Manage.Storage.Delete> {
+            val receive = call.receive<OhMyRouting.Manage.Storage.Delete.Body>()
+            if (LocalMikunPicConfig.storages.none { it.label == receive.storageLabel }) {
+                return@post call.respond(HttpStatusCode.Conflict)
+            }
+            LocalMikunPicConfig = LocalMikunPicConfig.copy(
+                storages = LocalMikunPicConfig.storages.filter { it.label != receive.storageLabel }
+            )
+            call.respond(HttpStatusCode.OK)
         }
     }
 

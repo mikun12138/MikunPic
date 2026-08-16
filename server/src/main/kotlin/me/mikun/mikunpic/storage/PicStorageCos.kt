@@ -83,7 +83,6 @@ class PicStorageCos(
                 }
             }
             initBucket()
-            println(picKeys)
         }
     }
 

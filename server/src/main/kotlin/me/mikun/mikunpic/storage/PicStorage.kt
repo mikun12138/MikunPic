@@ -72,7 +72,8 @@ sealed class PicStorage {
                 }
             }.onFailure { e ->
                 application.log.error(e.message)
-                throw e
+                // TODO::
+//                throw e
             }
         }
 

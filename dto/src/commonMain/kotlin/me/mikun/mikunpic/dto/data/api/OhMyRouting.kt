@@ -4,7 +4,6 @@ import io.ktor.resources.Resource
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import me.mikun.mikunpic.dto.data.MikunPicConfig
-import me.mikun.mikunpic.dto.data.Storage
 
 interface OhMyRouting {
     val parent: Any
@@ -46,7 +45,7 @@ interface OhMyRouting {
             val platform: String,
             val key: String,
             val thumbnail: Thumbnail = Thumbnail.Orig,
-        ): OhMyRouting {
+        ) : OhMyRouting {
             override val parent = Pic()
         }
     }
@@ -55,15 +54,53 @@ interface OhMyRouting {
     class Manage : OhMyRouting {
         override val parent = OhMyRouting.Companion
 
-        @Resource("/storages")
-        class Storages : OhMyRouting {
+        @Resource("/storage")
+        class Storage : OhMyRouting {
             override val parent = Manage()
 
-            @Serializable
-            data class Response(
-                @SerialName("storages")
-                val storages: List<Storage>,
-            )
+            @Resource("/list")
+            class List : OhMyRouting {
+                override val parent = Storage()
+
+                @Serializable
+                data class Response(
+                    @SerialName("storages")
+                    val storages: kotlin.collections.List<me.mikun.mikunpic.dto.data.Storage>,
+                )
+            }
+
+            @Resource("/add")
+            class Add : OhMyRouting {
+                override val parent = Storage()
+
+                @Serializable
+                data class Body(
+                    @SerialName("storage")
+                    val storage: me.mikun.mikunpic.dto.data.Storage,
+                )
+            }
+
+            @Resource("/edit")
+            class Edit : OhMyRouting {
+                override val parent = Storage()
+
+                @Serializable
+                data class Body(
+                    @SerialName("storage")
+                    val storage: me.mikun.mikunpic.dto.data.Storage,
+                )
+            }
+
+            @Resource("delete")
+            class Delete : OhMyRouting {
+                override val parent = Storage()
+
+                @Serializable
+                data class Body(
+                    @SerialName("storage_label")
+                    val storageLabel: String,
+                )
+            }
         }
 
         @Resource("/config")
