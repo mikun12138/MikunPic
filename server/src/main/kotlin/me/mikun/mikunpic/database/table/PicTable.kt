@@ -25,7 +25,6 @@ object PicTable : IntIdTable("pic") {
             512,
         )
 
-    // TODO::
     val link =
         char(
             "link",

@@ -41,6 +41,8 @@ data class PicCreate(
     val filename: String,
     @SerialName("store_key")
     val storeKey: String,
+    @SerialName("platform")
+    val platform: String,
     @SerialName("illustrator")
     val illustrator: Illustrator?,
     @SerialName("tags")

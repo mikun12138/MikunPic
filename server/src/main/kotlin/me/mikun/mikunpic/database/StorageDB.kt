@@ -132,8 +132,9 @@ class StorageDB(
             val newPicId = PicTable.insert {
                 it[PicTable.filename] = pic.filename
                 it[PicTable.hash] = hash
-                it[PicTable.platform] = Platform.Other
+                it[PicTable.platform] = Platform.byName(pic.platform) ?: Platform.Other
                 it[PicTable.storeKey] = pic.storeKey
+                it[PicTable.link] = Platform.byName(pic.platform)?.buildLink(key = pic.filename) ?: ""
             }[PicTable.id].value
 
             newIllustratorId?.let { newIllustratorId ->

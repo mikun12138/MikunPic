@@ -48,7 +48,6 @@ import io.github.vinceglb.filekit.isRegularFile
 import io.github.vinceglb.filekit.list
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
-import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.LocalPref
 import me.mikun.mikunpic.awesome.UploadRule
@@ -266,9 +265,18 @@ fun BoxScope.ManageOverview(
                                                                 )
                                                             }
 
-                                                        val storeKey = path.joinToString("/") { pathItem ->
-                                                            pathItem.name
+                                                        val platform = if (illustratorPixiv != null) {
+                                                            Platform.Pixiv.value
+                                                        } else if (illustratorTwitter != null) {
+                                                            Platform.Twitter.value
+                                                        } else {
+                                                            Platform.Other.value
                                                         }
+
+                                                        val storeKey =
+                                                            path.joinToString("/") { pathItem ->
+                                                                pathItem.name
+                                                            }
 
                                                         Client.uploadPic(
                                                             storageLabel = it.label,
@@ -276,6 +284,7 @@ fun BoxScope.ManageOverview(
                                                             pic = PicCreate(
                                                                 filename = file.name,
                                                                 storeKey = storeKey,
+                                                                platform = platform,
                                                                 illustrator = illustrator
                                                             )
                                                         )
