@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import me.mikun.mikunpic.component.card.AcrylicCard
 import me.mikun.mikunpic.shared.generated.resources.Res
 import me.mikun.mikunpic.shared.generated.resources.rua
 import me.mikun.mikunpic.view.LocalNavController
@@ -54,7 +55,7 @@ fun PageApi() {
                     ApiCards(
                         *Array(1) {
                             {
-                                Card(
+                                AcrylicCard(
                                     modifier = Modifier
                                         .animateItem()
                                         .fillMaxWidth()

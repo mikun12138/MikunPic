@@ -23,9 +23,9 @@ sealed class Storage {
         @SerialName("label")
         override val label: String,
         @SerialName("secret_id")
-        val secretId: String,
+        val secretId: String? = null,
         @SerialName("secret_key")
-        val secretKey: String,
+        val secretKey: String? = null,
         @SerialName("bucket_name")
         val bucketName: String,
         @SerialName("region")

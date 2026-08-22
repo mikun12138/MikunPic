@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,12 +21,26 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.shadow
-import io.ktor.util.collections.getValue
+import me.mikun.mikunpic.component.act.AddStorageAlertDialog
+import me.mikun.mikunpic.component.act.DeleteStorageAlertDialog
+import me.mikun.mikunpic.component.act.EditStorageAlertDialog
 import me.mikun.mikunpic.dto.data.Storage
 import me.mikun.mikunpic.viewmodel.ManageStorageViewModel
 import me.mikun.mikunpic.viewmodel.ManageViewModel
 
+enum class StorageType(
+    val value: String,
+) {
+    None(""),
+    Local("local"),
+    Cos("cos")
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageStorages(
     viewModel: ManageStorageViewModel = viewModel { ManageStorageViewModel() },
@@ -32,48 +48,112 @@ fun ManageStorages(
 ) {
     val storages by viewModel.storages.collectAsState()
 
+    var showAddStorageDialog by remember { mutableStateOf(false) }
+    AddStorageAlertDialog(
+        show = showAddStorageDialog,
+        onDismissRequest = {
+            showAddStorageDialog = false
+        },
+        onClose = {
+            showAddStorageDialog = false
+            viewModel.flashStorages()
+        }
+    )
+
+    var showEditStorageDialog by remember { mutableStateOf(false) }
+    var storageToEdit by remember { mutableStateOf<Storage?>(null) }
+    EditStorageAlertDialog(
+        show = showEditStorageDialog && storageToEdit != null,
+        storageToEdit = storageToEdit,
+        onDismissRequest = {
+            showEditStorageDialog = false
+            storageToEdit = null
+        },
+        onClose = {
+            showEditStorageDialog = false
+            storageToEdit = null
+            viewModel.flashStorages()
+        }
+    )
+
+    var showDeleteStorageDialog by remember { mutableStateOf(false) }
+    var storageToDelete by remember { mutableStateOf<Storage?>(null) }
+
+    DeleteStorageAlertDialog(
+        show = showDeleteStorageDialog && storageToDelete != null,
+        storageToDelete = storageToDelete,
+        onDismissRequest = {
+            showDeleteStorageDialog = false
+            storageToDelete = null
+        },
+        onClose = {
+            showDeleteStorageDialog = false
+            storageToDelete = null
+            viewModel.flashStorages()
+        }
+    )
+
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxSize()
     ) {
-        Button(
-            onClick = {
-
-            }
+        Box(
+            modifier = Modifier.weight(0.1f),
         ) {
-            Text("Add")
+            Button(
+                onClick = {
+                    showAddStorageDialog = true
+                }
+            ) {
+                Text("Add")
+            }
         }
 
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(8.dp)
+            maxItemsInEachRow = 4,
+            modifier = Modifier
+                .padding(8.dp)
+                .weight(0.9f)
         ) {
             val currentStorageLabel by manageViewModel.currentStorageLabel.collectAsState()
 
             storages.forEach { storage ->
-                StorageCard(storage, onToggleStorage = { label ->
+                StorageCard(
+                    storage, onToggleStorage = { label ->
                         manageViewModel.switchStorage(label)
-                    }, currentStorageLabel)
+                    },
+                    storage.label == currentStorageLabel,
+                    onEditClicked = {
+                        showEditStorageDialog = true
+                        storageToEdit = storage
+                    },
+                    onDeleteClicked = {
+                        showDeleteStorageDialog = true
+                        storageToDelete = storage
+                    }
+                )
             }
         }
     }
+
 }
 
 @Composable
 private fun StorageCard(
     storage: Storage,
     onToggleStorage: (String) -> Unit,
-    currentStorageLabel: String,
+    isSelected: Boolean,
+    onEditClicked: () -> Unit,
+    onDeleteClicked: () -> Unit,
 ) {
-    val selected = storage.label == currentStorageLabel
     ElevatedCard(
         onClick = {
             onToggleStorage(storage.label)
         },
         modifier = Modifier.padding(8.dp)
             .then(
-                if (selected) {
+                if (isSelected) {
                     Modifier.shadow(
                         elevation = 12.dp,
                         shape = RoundedCornerShape(12.dp)
@@ -99,7 +179,7 @@ private fun StorageCard(
             ) {
                 ElevatedButton(
                     onClick = {
-
+                        onEditClicked()
                     },
                     contentPadding = PaddingValues(
                         horizontal = 8.dp,
@@ -111,7 +191,7 @@ private fun StorageCard(
 
                 ElevatedButton(
                     onClick = {
-
+                        onDeleteClicked()
                     },
                     contentPadding = PaddingValues(
                         horizontal = 8.dp,

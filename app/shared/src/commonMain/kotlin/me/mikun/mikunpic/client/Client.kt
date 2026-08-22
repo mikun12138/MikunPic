@@ -36,6 +36,7 @@ import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.dto.data.PicUpdate
+import me.mikun.mikunpic.dto.data.Storage
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 
 object Client {
@@ -123,7 +124,7 @@ object Client {
     suspend fun uploadPic(
         storageLabel: String,
         picBytes: ByteArray,
-        pic: PicCreate
+        pic: PicCreate,
     ) {
         httpClient.post(
             OhMyRouting.Manage.Pic.Upload(),
@@ -232,7 +233,7 @@ object Client {
     suspend fun searchTag(
         count: Int,
         keyword: String = "",
-        page: Int = 0
+        page: Int = 0,
     ) = httpClient
         .get(
             OhMyRouting.Manage.Tag.Search(
@@ -261,8 +262,54 @@ object Client {
     suspend fun fetchStorages() =
         httpClient
             .get(
-                OhMyRouting.Manage.Storages()
-            ).`get any`<OhMyRouting.Manage.Storages.Response>()
+                OhMyRouting.Manage.Storage.List()
+            ).`get any`<OhMyRouting.Manage.Storage.List.Response>()
+
+    suspend fun addStorage(
+        storage: Storage
+    ) =
+        httpClient
+            .post(
+                OhMyRouting.Manage.Storage.Add()
+            ) {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    OhMyRouting.Manage.Storage.Add.Body(
+                        storage = storage
+                    )
+                )
+            }
+
+    suspend fun editStorage(
+        storage: Storage
+    ) =
+        httpClient
+            .post(
+                OhMyRouting.Manage.Storage.Edit()
+            ) {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    OhMyRouting.Manage.Storage.Edit.Body(
+                        storage = storage
+                    )
+                )
+            }
+
+    suspend fun deleteStorage(
+        storageLabel: String
+    ) =
+        httpClient
+            .post(
+                OhMyRouting.Manage.Storage.Delete()
+            ) {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    OhMyRouting.Manage.Storage.Delete.Body(
+                        storageLabel = storageLabel
+                    )
+                )
+            }
+
 
     suspend fun sync() = httpClient
         .post(

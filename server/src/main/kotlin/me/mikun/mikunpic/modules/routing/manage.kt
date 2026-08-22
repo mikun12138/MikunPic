@@ -10,6 +10,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.utils.io.readRemaining
+import kotlinx.coroutines.delay
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.LocalMikunPicConfig
@@ -24,6 +25,7 @@ import me.mikun.mikunpic.operator.uploadPic
 import me.mikun.mikunpic.storage.PicStorage
 import me.mikun.mikunpic.storage.PicStorageLocal
 import me.mikun.mikunpic.utils.toStorageConfig
+import kotlin.time.Duration.Companion.milliseconds
 
 fun Route.manage() {
     fun storage() {
@@ -66,8 +68,16 @@ fun Route.manage() {
             if (LocalMikunPicConfig.storages.none { it.label == receive.storage.label }) {
                 return@post call.respond(HttpStatusCode.Conflict)
             }
+
+            val newStorage =
+                LocalMikunPicConfig.storages.find { it.label == receive.storage.label }?.takeIf {
+                    it::class == receive.storage.toStorageConfig()::class
+                }?.let {
+                    receive.storage.toStorageConfig(old = it)
+                } ?: receive.storage.toStorageConfig()
+
             LocalMikunPicConfig = LocalMikunPicConfig.copy(
-                storages = LocalMikunPicConfig.storages.filter { it.label != receive.storage.label } + receive.storage.toStorageConfig()
+                storages = LocalMikunPicConfig.storages.filter { it.label != receive.storage.label } + newStorage
             )
             call.respond(HttpStatusCode.OK)
         }

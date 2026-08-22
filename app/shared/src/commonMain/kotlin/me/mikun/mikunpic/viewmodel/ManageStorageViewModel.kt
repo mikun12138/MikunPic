@@ -3,7 +3,6 @@ package me.mikun.mikunpic.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.client.Client
@@ -14,10 +13,10 @@ class ManageStorageViewModel : ViewModel() {
     val storages = _storages.asStateFlow()
 
     init {
-        fetchStorages()
+        flashStorages()
     }
 
-    fun fetchStorages() {
+    fun flashStorages() {
         viewModelScope.launch {
             try {
                 val response = Client.fetchStorages()
