@@ -7,6 +7,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,10 +38,9 @@ fun BoxScope.PicCarousel(
 
     val carouselState = rememberCarouselState(
         initialItem =
-        Int.MAX_VALUE / 2 -
-            (Int.MAX_VALUE / 2) % actualSize,
+            114514 / 2,
     ) {
-        Int.MAX_VALUE
+        114514
     }
 
     val bgBlurRadius by animateDpAsState(
@@ -81,39 +82,80 @@ fun BoxScope.PicCarousel(
         fun shouldLoad(index: Int): Boolean = abs(index - carouselState.currentItem) <= 2
         if (shouldLoad(index)) {
             val painter = painters[realIndex]
+            val imageShape = MaterialTheme.shapes.extraLarge
+            val painterSize = painter.intrinsicSize
+            val painterAspectRatio =
+                if (
+                    painterSize.width.isFinite() &&
+                    painterSize.height.isFinite() &&
+                    painterSize.width > 0f &&
+                    painterSize.height > 0f
+                ) {
+                    painterSize.width / painterSize.height
+                } else {
+                    null
+                }
 
             Image(
                 painter = painter,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .maskClip(MaterialTheme.shapes.extraLarge)
+                    .maskClip(imageShape)
                     .blur(bgBlurRadius),
                 alignment = Alignment.Center,
                 contentScale = ContentScale.Crop,
             )
 
             if (index == carouselState.currentItem) {
-                Image(
-                    painter = painter,
-                    contentDescription = null,
+                BoxWithConstraints(
                     modifier = Modifier
                         .padding(32.dp)
-                        .fillMaxHeight()
-                        .align(Alignment.Center)
-                        .graphicsLayer {
-                            alpha = fgAlpha
-
-                            val scale =
-                                0.95f + (fgAlpha * 0.05f)
-
-                            scaleX = scale
-                            scaleY = scale
+                        .fillMaxSize()
+                        .align(Alignment.Center),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val availableAspectRatio =
+                        if (maxHeight.value > 0f) {
+                            maxWidth.value / maxHeight.value
+                        } else {
+                            0f
                         }
-                        .maskClip(MaterialTheme.shapes.extraLarge),
-                    alignment = Alignment.Center,
-                    contentScale = ContentScale.Fit,
-                )
+
+                    val foregroundModifier =
+                        if (painterAspectRatio != null && availableAspectRatio > 0f) {
+                            if (painterAspectRatio > availableAspectRatio) {
+                                Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(painterAspectRatio)
+                            } else {
+                                Modifier
+                                    .fillMaxHeight()
+                                    .aspectRatio(painterAspectRatio)
+                            }
+                        } else {
+                            Modifier.fillMaxHeight()
+                        }
+
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = foregroundModifier
+                            .graphicsLayer {
+                                alpha = fgAlpha
+                                shape = imageShape
+                                clip = true
+
+                                val scale =
+                                    0.95f + (fgAlpha * 0.05f)
+
+                                scaleX = scale
+                                scaleY = scale
+                            },
+                        alignment = Alignment.Center,
+                        contentScale = ContentScale.Fit,
+                    )
+                }
             }
         }
     }

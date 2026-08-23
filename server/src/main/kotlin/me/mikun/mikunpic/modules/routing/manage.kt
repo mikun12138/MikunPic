@@ -179,7 +179,7 @@ fun Route.manage() {
             )
         }
 
-        post<OhMyRouting.Manage.Illustrator.Search> { req ->
+        get<OhMyRouting.Manage.Illustrator.Search> { req ->
             MetadataDB.searchIllustrator(
                 count = req.count,
                 keyword = req.keyword,

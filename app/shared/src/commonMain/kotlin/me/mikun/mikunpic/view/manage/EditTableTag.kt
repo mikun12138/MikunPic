@@ -31,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
@@ -78,7 +79,6 @@ fun EditTableTag(
             when (editMode) {
                 EditMode.None -> {
                     Button(
-                        enabled = currentStorageLabel.isNotEmpty(),
                         onClick = {
                             tagToRemove.clear()
                             editMode = EditMode.Remove
@@ -88,7 +88,6 @@ fun EditTableTag(
                     }
 
                     Button(
-                        enabled = currentStorageLabel.isNotEmpty(),
                         onClick = {
                             editMode = EditMode.Add
                         }
@@ -209,6 +208,7 @@ fun EditTableTag(
                     model = ImageRequest.Builder(localPlatformContext)
                         .data(imageBytes)
                         .memoryCacheKey("${storageLabel}:${picId}")
+                        .crossfade(true)
                         .build(),
                     contentDescription = null
                 )

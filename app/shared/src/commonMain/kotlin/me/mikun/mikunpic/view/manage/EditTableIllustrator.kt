@@ -34,6 +34,7 @@ import coil3.request.crossfade
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import me.mikun.mikunpic.client.Client
+import me.mikun.mikunpic.component.act.IllustratorCardPopup
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
@@ -50,6 +51,19 @@ private class IllustratorContext(
 
 @Composable
 fun EditTableIllustrator() {
+    var showIllustratorCardPopup by remember { mutableStateOf(false) }
+    var illustratorToPopup by remember { mutableStateOf<Illustrator?>(null) }
+    if (showIllustratorCardPopup && illustratorToPopup != null) {
+        IllustratorCardPopup(
+            show = showIllustratorCardPopup,
+            onDismissRequest = {
+                showIllustratorCardPopup = false
+                illustratorToPopup = null
+            },
+            illustrator = illustratorToPopup!!
+        )
+    }
+
     val illustratorCount = 20
     val picPreIllustrator = 5
     var pageIndex by remember { mutableStateOf(0) }
@@ -132,6 +146,10 @@ fun EditTableIllustrator() {
             ) {
                 IllustratorCard(
                     it,
+                    onClick = {
+                        showIllustratorCardPopup = true
+                        illustratorToPopup = it?.illustrator
+                    }
                 )
             }
         }
@@ -141,11 +159,13 @@ fun EditTableIllustrator() {
 @Composable
 private fun IllustratorCard(
     illustratorContext: IllustratorContext?,
+    onClick: () -> Unit
 ) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f),
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier

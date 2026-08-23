@@ -48,6 +48,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import coil3.size.Size
 import io.ktor.http.URLBuilder
 import io.ktor.http.path
@@ -178,6 +179,7 @@ fun EditTablePic(
                             .memoryCachePolicy(CachePolicy.DISABLED)
                             .diskCachePolicy(CachePolicy.DISABLED)
                             .memoryCacheKey("${storageLabelOnTable}:${picOnTable!!.id}")
+                            .crossfade(true)
 //                            .precision(Precision.EXACT)
                             .build(),
                     )

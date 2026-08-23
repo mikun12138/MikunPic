@@ -95,8 +95,11 @@ object MetadataDB {
             IllustratorTable.name,
             PlatformKeyTable.platform,
             PlatformKeyTable.key
-        )
-            .where { IllustratorTable.name like "%$keyword%" }
+        ).apply {
+            if (keyword != null) {
+                where { IllustratorTable.name like "%$keyword%" }
+            }
+        }
             .orderBy(IllustratorTable.id to SortOrder.ASC)
             .limit(count)
             .offset(offset)

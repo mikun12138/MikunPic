@@ -15,18 +15,24 @@ import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.plugins.resources.get
+import io.ktor.client.plugins.resources.href
 import io.ktor.client.plugins.resources.post
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readRawBytes
+import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
 import io.ktor.http.contentType
+import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.io.Buffer
 import kotlinx.serialization.json.Json
@@ -42,10 +48,12 @@ import me.mikun.mikunpic.dto.data.api.OhMyRouting
 object Client {
     lateinit var httpClient: HttpClient
 
+    lateinit var server: String
+
     @OptIn(ExperimentalCoilApi::class)
     @Composable
     fun Init() {
-        val server = LocalConfig.current.server
+        server = LocalConfig.current.server
         httpClient =
             HttpClient {
                 install(HttpRequestRetry) {
@@ -203,7 +211,7 @@ object Client {
 
     suspend fun searchIllustrator(
         count: Int,
-        keyword: String = "",
+        keyword: String? = null,
         page: Int = 0,
     ) = httpClient
         .get(
@@ -315,5 +323,22 @@ object Client {
         .post(
             OhMyRouting.Manage.Sync(),
         )
+
+    fun buildPicLink(
+        id: String,
+        thumbnail: OhMyRouting.Pic.Thumbnail = OhMyRouting.Pic.Thumbnail.Orig,
+        storageLabel: String,
+    ): String {
+        val resource = OhMyRouting.Pic.Id(
+            id = id,
+            thumbnail = thumbnail,
+            storageLabel = storageLabel,
+        )
+
+        return URLBuilder().apply {
+            takeFrom(server)
+            httpClient.href(resource, this)
+        }.buildString()
+    }
 
 }

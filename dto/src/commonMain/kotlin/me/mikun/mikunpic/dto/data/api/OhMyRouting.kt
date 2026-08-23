@@ -178,7 +178,7 @@ interface OhMyRouting {
             @Resource("/search")
             class Search(
                 val count: Int,
-                val keyword: String,
+                val keyword: String? = null,
                 val page: Int = 0,
             ) : OhMyRouting {
                 override val parent = Illustrator()
