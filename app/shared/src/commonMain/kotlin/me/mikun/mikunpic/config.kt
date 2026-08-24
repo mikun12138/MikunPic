@@ -16,7 +16,37 @@ expect fun LoadConfig(): Config
 data class Config(
     @SerialName("server")
     val server: String = "http://127.0.0.1:8080",
+    @SerialName("preview_api")
+    val previewApi: String = "/random",
+    @SerialName("apis")
+    val apis: List<Api> = listOf(
+        Api(
+            name = "-随机图-",
+            url = "http://127.0.0.1:8080/random"
+        ),
+        Api(
+            name = "+随机图-",
+            url = "http://127.0.0.1:8080/random"
+        ),
+        Api(
+            name = "-随机图+",
+            url = "http://127.0.0.1:8080/random"
+        ),
+        Api(
+            name = "+随机图+",
+            url = "http://127.0.0.1:8080/random"
+        ),
+    ),
 ) {
+
+    @Serializable
+    data class Api(
+        @SerialName("name")
+        val name: String,
+        @SerialName("url")
+        val url: String,
+    )
+
     companion object {
         val Def = Config()
     }

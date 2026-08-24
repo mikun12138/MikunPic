@@ -173,8 +173,10 @@ object Client {
 
     suspend fun randomPic(
         count: Int = 1,
-        illustrators: List<Illustrator> = emptyList(),
-        tags: List<String> = emptyList(),
+        illustratorFilter: OhMyRouting.Manage.Pic.Random.IllustratorFilter =
+            OhMyRouting.Manage.Pic.Random.IllustratorFilter.Any,
+        tagFilter: OhMyRouting.Manage.Pic.Random.TagFilter =
+            OhMyRouting.Manage.Pic.Random.TagFilter.Any,
         storageLabels: List<String> = emptyList(),
     ) = httpClient
         .post(
@@ -184,8 +186,8 @@ object Client {
             setBody(
                 OhMyRouting.Manage.Pic.Random.Body(
                     count = count,
-                    illustratorIds = illustrators.mapNotNull { it.id },
-                    tags = tags,
+                    illustrator = illustratorFilter,
+                    tag = tagFilter,
                     storageLabels = storageLabels
                 )
             )

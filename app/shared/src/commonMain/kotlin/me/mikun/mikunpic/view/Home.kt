@@ -1,8 +1,11 @@
 package me.mikun.mikunpic.view
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import me.mikun.mikunpic.LocalPref
@@ -17,10 +20,17 @@ fun Home(
 ) {
     val pages = listOf<@Composable () -> Unit>(
         {
-            PagePicPreview(
-                onReady,
-                readyPop,
-            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+            ) {
+                PagePicPreview(
+                    onReady,
+                    readyPop,
+                )
+            }
         },
         {
             SimpleBgBox(

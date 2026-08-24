@@ -24,6 +24,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.size.Size
@@ -33,6 +34,8 @@ fun PicCardPopup(
     show: Boolean,
     onDismissRequest: () -> Unit,
     picUrl: String,
+    memoryCacheKey: String? = picUrl,
+    diskCacheKey: String? = picUrl,
 ) {
     val localPlatformContext = LocalPlatformContext.current
     var imageAspectRatio by remember(picUrl) { mutableStateOf<Float?>(null) }
@@ -82,8 +85,15 @@ fun PicCardPopup(
                             ImageRequest.Builder(localPlatformContext)
                                 .data(picUrl)
                                 .size(Size.ORIGINAL)
-                                .memoryCacheKey(picUrl)
-                                .diskCacheKey(picUrl)
+                                .apply {
+                                    memoryCacheKey?.let {
+                                        memoryCacheKey(it)
+                                    } ?: memoryCachePolicy(CachePolicy.DISABLED)
+                                }.apply {
+                                    diskCacheKey?.let {
+                                        diskCacheKey(it)
+                                    } ?: diskCachePolicy(CachePolicy.DISABLED)
+                                }
                                 .crossfade(true)
                                 .build(),
                             contentDescription = null,

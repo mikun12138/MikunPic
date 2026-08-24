@@ -6,13 +6,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,6 +34,7 @@ import androidx.compose.ui.draw.shadow
 import me.mikun.mikunpic.component.act.AddStorageAlertDialog
 import me.mikun.mikunpic.component.act.DeleteStorageAlertDialog
 import me.mikun.mikunpic.component.act.EditStorageAlertDialog
+import me.mikun.mikunpic.component.card.AcrylicCard
 import me.mikun.mikunpic.dto.data.Storage
 import me.mikun.mikunpic.viewmodel.ManageStorageViewModel
 import me.mikun.mikunpic.viewmodel.ManageViewModel
@@ -96,43 +103,51 @@ fun ManageStorages(
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
         Box(
-            modifier = Modifier.weight(0.1f),
+            modifier = Modifier.weight(0.05f),
         ) {
             Button(
                 onClick = {
                     showAddStorageDialog = true
-                }
+                },
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .aspectRatio(2.5f)
             ) {
                 Text("Add")
             }
         }
 
-        FlowRow(
-            maxItemsInEachRow = 4,
+        Box(
             modifier = Modifier
-                .padding(8.dp)
-                .weight(0.9f)
+                .weight(0.95f)
         ) {
             val currentStorageLabel by manageViewModel.currentStorageLabel.collectAsState()
-
-            storages.forEach { storage ->
-                StorageCard(
-                    storage, onToggleStorage = { label ->
-                        manageViewModel.switchStorage(label)
-                    },
-                    storage.label == currentStorageLabel,
-                    onEditClicked = {
-                        showEditStorageDialog = true
-                        storageToEdit = storage
-                    },
-                    onDeleteClicked = {
-                        showDeleteStorageDialog = true
-                        storageToDelete = storage
-                    }
-                )
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(256.dp),
+                modifier = Modifier
+                    .padding(8.dp)
+            ) {
+                items(storages) { storage ->
+                    StorageCard(
+                        storage, onToggleStorage = { label ->
+                            manageViewModel.switchStorage(label)
+                        },
+                        storage.label == currentStorageLabel,
+                        onEditClicked = {
+                            showEditStorageDialog = true
+                            storageToEdit = storage
+                        },
+                        onDeleteClicked = {
+                            showDeleteStorageDialog = true
+                            storageToDelete = storage
+                        }
+                    )
+                }
             }
         }
     }
@@ -147,11 +162,13 @@ private fun StorageCard(
     onEditClicked: () -> Unit,
     onDeleteClicked: () -> Unit,
 ) {
-    ElevatedCard(
+    AcrylicCard(
         onClick = {
             onToggleStorage(storage.label)
         },
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier
+            .padding(8.dp)
+            .aspectRatio(16 / 9f)
             .then(
                 if (isSelected) {
                     Modifier.shadow(
@@ -164,15 +181,19 @@ private fun StorageCard(
             ),
     ) {
         Column(
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxSize()
         ) {
             Box(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(storage.label)
             }
+
+            HorizontalDivider()
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),

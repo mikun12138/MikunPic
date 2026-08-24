@@ -158,8 +158,8 @@ fun Route.manage() {
             StorageDB.randomPic(
                 receive.storageLabels.toSet(),
                 receive.count,
-                receive.illustratorIds.toSet(),
-                receive.tags.toSet(),
+                receive.illustrator,
+                receive.tag,
             ).let { label2Pics ->
                 call.respond(
                     OhMyRouting.Manage.Pic.Random.Response(

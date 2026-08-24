@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.client.Client
+import me.mikun.mikunpic.dto.data.api.OhMyRouting.Manage.Pic.Random.TagFilter
 
 class EditTableTagViewModel : ViewModel() {
     private val _tags = MutableStateFlow<List<String>>(emptyList())
@@ -55,8 +56,9 @@ class EditTableTagViewModel : ViewModel() {
             try {
                 _imageShowing.value = Client.randomPic(
                     count = 10,
-                    illustrators = emptyList(),
-                    tags = tagsSelected.value,
+                    tagFilter = tagsSelected.value.takeIf { it.isNotEmpty() }?.let {
+                        TagFilter.All(it)
+                    } ?: TagFilter.Any,
                     storageLabels = listOf(storageLabel)
                 )?.label2Pics.orEmpty().flatMap { (storageLabel, pics) ->
                     pics.map { storageLabel to it.id }

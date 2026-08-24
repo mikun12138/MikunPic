@@ -124,8 +124,6 @@ class Pic {
                 OhMyRouting.Manage.Pic.Random.Body(
                     storageLabels = listOf("sandbox0"),
                     count = 2,
-                    illustratorIds = listOf(),
-                    tags = listOf(),
                 )
             )
         }.let {

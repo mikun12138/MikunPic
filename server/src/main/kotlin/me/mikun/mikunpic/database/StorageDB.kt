@@ -13,6 +13,7 @@ import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.dto.data.PicSelect
 import me.mikun.mikunpic.dto.data.PicUpdate
 import me.mikun.mikunpic.dto.data.Platform
+import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import org.jetbrains.exposed.v1.core.IColumnType
 import org.jetbrains.exposed.v1.core.IntegerColumnType
 import org.jetbrains.exposed.v1.core.JoinType
@@ -346,44 +347,81 @@ class StorageDB(
         private fun detachSql(storage: AttachedStorage) =
             "DETACH DATABASE ${storage.alias}"
 
+        private fun illustratorFilterSql(
+            illustratorFilter: OhMyRouting.Manage.Pic.Random.IllustratorFilter,
+        ): PreparedSql? = when (illustratorFilter) {
+            OhMyRouting.Manage.Pic.Random.IllustratorFilter.Any -> null
+            OhMyRouting.Manage.Pic.Random.IllustratorFilter.None -> PreparedSql(
+                sql = "pic2illustrator.illustrator_id IS NULL",
+            )
+
+            is OhMyRouting.Manage.Pic.Random.IllustratorFilter.Ids -> {
+                val illustratorIds = illustratorFilter.ids.toSet()
+                if (illustratorIds.isEmpty()) {
+                    null
+                } else {
+                    PreparedSql(
+                        sql = "pic2illustrator.illustrator_id IN ${placeholders(illustratorIds.size)}",
+                        args = illustratorIds.map(::intArg),
+                    )
+                }
+            }
+        }
+
         private fun tagFilterSql(
             storage: AttachedStorage,
-            tagNames: Set<String>,
-        ): PreparedSql? {
-            if (tagNames.isEmpty()) return null
-
-            return PreparedSql(
+            tagFilter: OhMyRouting.Manage.Pic.Random.TagFilter,
+        ): PreparedSql? = when (tagFilter) {
+            OhMyRouting.Manage.Pic.Random.TagFilter.Any -> null
+            OhMyRouting.Manage.Pic.Random.TagFilter.None -> PreparedSql(
                 sql = """
-                    (
-                        SELECT COUNT(DISTINCT tag.name)
-                        FROM ${storage.alias}.pics2tags
-                        JOIN tag
-                            ON tag.id = pics2tags.tag_id
-                        WHERE pics2tags.pic_id = pic.id
-                            AND tag.name IN ${placeholders(tagNames.size)}
-                    ) = ?
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM ${storage.alias}.pics2tags AS pic_tag
+                        WHERE pic_tag.pic_id = pic.id
+                    )
                 """.trimIndent(),
-                args = tagNames.map(::stringArg) + intArg(tagNames.size),
             )
+
+            is OhMyRouting.Manage.Pic.Random.TagFilter.All -> {
+                val tagNames = tagFilter.names.filter { it.isNotEmpty() }.toSet()
+                if (tagNames.isEmpty()) {
+                    null
+                } else {
+                    PreparedSql(
+                        sql = """
+                            (
+                                SELECT COUNT(DISTINCT tag.name)
+                                FROM ${storage.alias}.pics2tags AS pic_tag
+                                JOIN tag
+                                    ON tag.id = pic_tag.tag_id
+                                WHERE pic_tag.pic_id = pic.id
+                                    AND tag.name IN ${placeholders(tagNames.size)}
+                            ) = ?
+                        """.trimIndent(),
+                        args = tagNames.map(::stringArg) + intArg(tagNames.size),
+                    )
+                }
+            }
         }
 
         private fun candidateSql(
             storage: AttachedStorage,
-            illustratorIds: Set<Int>,
-            tagNames: Set<String>,
+            illustratorFilter: OhMyRouting.Manage.Pic.Random.IllustratorFilter,
+            tagFilter: OhMyRouting.Manage.Pic.Random.TagFilter,
         ): PreparedSql {
             val args = mutableListOf(stringArg(storage.label))
             val conditions = buildList {
-                if (illustratorIds.isNotEmpty()) {
-                    add(
-                        "pic2illustrator.illustrator_id IN ${placeholders(illustratorIds.size)}"
-                    )
-                    args += illustratorIds.map(::intArg)
+                illustratorFilterSql(
+                    illustratorFilter = illustratorFilter,
+                )?.let { illustratorFilter ->
+                    add(illustratorFilter.sql)
+                    args += illustratorFilter.args
                 }
 
                 tagFilterSql(
                     storage = storage,
-                    tagNames = tagNames,
+                    tagFilter = tagFilter,
                 )?.let { tagFilter ->
                     add(tagFilter.sql)
                     args += tagFilter.args
@@ -438,14 +476,14 @@ class StorageDB(
         private fun randomPicSql(
             storages: List<AttachedStorage>,
             count: Int,
-            illustratorIds: Set<Int>,
-            tagNames: Set<String>,
+            illustratorFilter: OhMyRouting.Manage.Pic.Random.IllustratorFilter,
+            tagFilter: OhMyRouting.Manage.Pic.Random.TagFilter,
         ): PreparedSql {
             val candidates = storages.map { storage ->
                 candidateSql(
                     storage = storage,
-                    illustratorIds = illustratorIds,
-                    tagNames = tagNames,
+                    illustratorFilter = illustratorFilter,
+                    tagFilter = tagFilter,
                 )
             }
             val pickedTags = storages.map(::pickedTagsSql)
@@ -508,8 +546,8 @@ class StorageDB(
         suspend fun randomPic(
             storageLabels: Set<String>,
             count: Int,
-            illustratorIds: Set<Int>,
-            tags: Set<String> = setOf(),
+            illustratorFilter: OhMyRouting.Manage.Pic.Random.IllustratorFilter,
+            tagFilter: OhMyRouting.Manage.Pic.Random.TagFilter = OhMyRouting.Manage.Pic.Random.TagFilter.Any,
         ): Map<String, Set<Pic>> {
             if (count <= 0) return emptyMap()
 
@@ -545,8 +583,8 @@ class StorageDB(
                     val preparedSql = randomPicSql(
                         storages = attachedStorages,
                         count = count,
-                        illustratorIds = illustratorIds,
-                        tagNames = tags,
+                        illustratorFilter = illustratorFilter,
+                        tagFilter = tagFilter,
                     )
 
                     exec(

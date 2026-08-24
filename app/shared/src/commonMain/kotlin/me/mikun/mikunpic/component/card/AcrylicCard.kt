@@ -2,6 +2,7 @@ package me.mikun.mikunpic.component.card
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -15,6 +16,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AcrylicCard(
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = { },
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -22,6 +24,9 @@ fun AcrylicCard(
 
     Card(
         modifier = modifier
+            .clickable {
+                onClick()
+            }
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(

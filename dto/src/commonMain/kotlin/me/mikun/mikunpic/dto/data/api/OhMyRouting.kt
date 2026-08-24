@@ -128,15 +128,51 @@ interface OhMyRouting {
                 override val parent = Pic()
 
                 @Serializable
+                sealed interface IllustratorFilter {
+                    @Serializable
+                    @SerialName("any")
+                    data object Any : IllustratorFilter
+
+                    @Serializable
+                    @SerialName("none")
+                    data object None : IllustratorFilter
+
+                    @Serializable
+                    @SerialName("ids")
+                    data class Ids(
+                        @SerialName("ids")
+                        val ids: List<Int>,
+                    ) : IllustratorFilter
+                }
+
+                @Serializable
+                sealed interface TagFilter {
+                    @Serializable
+                    @SerialName("any")
+                    data object Any : TagFilter
+
+                    @Serializable
+                    @SerialName("none")
+                    data object None : TagFilter
+
+                    @Serializable
+                    @SerialName("all")
+                    data class All(
+                        @SerialName("names")
+                        val names: List<String>,
+                    ) : TagFilter
+                }
+
+                @Serializable
                 data class Body(
                     @SerialName("count")
                     val count: Int,
-                    @SerialName("illustrator_ids")
-                    val illustratorIds: QueryParameterList<Int> = emptyList(),
-                    @SerialName("tags")
-                    val tags: QueryParameterList<String> = emptyList(),
+                    @SerialName("illustrator")
+                    val illustrator: IllustratorFilter = IllustratorFilter.Any,
+                    @SerialName("tag")
+                    val tag: TagFilter = TagFilter.Any,
                     @SerialName("storage_label")
-                    val storageLabels: QueryParameterList<String> = emptyList(),
+                    val storageLabels: List<String> = emptyList(),
                 )
 
                 @Serializable

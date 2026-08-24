@@ -2,18 +2,13 @@ package me.mikun.mikunpic.view.home
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.carousel.HorizontalCenteredHeroCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.CachePolicy
@@ -21,25 +16,43 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.component.PicCarousel
+import me.mikun.mikunpic.component.act.PicCardPopup
 
 @Composable
 fun PagePicPreview(
     onReady: () -> Unit,
     readyPop: Boolean,
 ) {
-    val context = LocalPlatformContext.current
 
-    val randomApi = "${LocalConfig.current.server}/random"
+    var showPicCardPopup by remember { mutableStateOf(false) }
+    var picUrlToPopup by remember { mutableStateOf<String?>(null) }
+    var picToPopupMemoryCacheKey by remember { mutableStateOf<String?>(null) }
+    if (showPicCardPopup && picUrlToPopup != null) {
+        PicCardPopup(
+            show = showPicCardPopup,
+            onDismissRequest = {
+                showPicCardPopup = false
+                picUrlToPopup = null
+            },
+            picUrl = picUrlToPopup!!,
+            memoryCacheKey = picToPopupMemoryCacheKey,
+            diskCacheKey = null,
+        )
+    }
 
-    val imageReqs = remember(context, randomApi) {
+    val localPlatformContext = LocalPlatformContext.current
+
+    val previewApi = "${LocalConfig.current.server}${LocalConfig.current.previewApi}"
+
+    val imageReqs = remember(localPlatformContext, previewApi) {
         List(10) {
-            ImageRequest.Builder(context)
+            ImageRequest.Builder(localPlatformContext)
                 .data(
-                    randomApi,
+                    previewApi,
                 )
                 .crossfade(true)
                 .diskCachePolicy(CachePolicy.DISABLED)
-                .memoryCacheKey(it.toString())
+                .memoryCacheKey("$previewApi$it")
                 .build()
         }
     }
@@ -67,6 +80,11 @@ fun PagePicPreview(
 
         PicCarousel(
             painters = painters,
+            onClick = { index ->
+                showPicCardPopup = true
+                picUrlToPopup = previewApi
+                picToPopupMemoryCacheKey = "$previewApi$index"
+            },
             readyPop = readyPop,
         )
     }

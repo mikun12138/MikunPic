@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
@@ -32,6 +33,7 @@ import kotlin.math.abs
 @Composable
 fun BoxScope.PicCarousel(
     painters: List<Painter>,
+    onClick: (index: Int) -> Unit,
     readyPop: Boolean,
 ) {
     val actualSize = painters.size
@@ -151,7 +153,11 @@ fun BoxScope.PicCarousel(
 
                                 scaleX = scale
                                 scaleY = scale
-                            },
+                            }
+                            .clickable {
+                                onClick(realIndex)
+                            }
+                        ,
                         alignment = Alignment.Center,
                         contentScale = ContentScale.Fit,
                     )

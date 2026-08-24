@@ -36,10 +36,10 @@ import me.mikun.mikunpic.dto.data.api.OhMyRouting.Manage.Pic.Random.IllustratorF
 import kotlin.collections.buildMap
 
 @Composable
-fun IllustratorCardPopup(
+fun TagCardPopup(
     show: Boolean,
     onDismissRequest: () -> Unit,
-    illustrator: Illustrator,
+    tag: String,
 ) {
     var showPicCardPopup by remember { mutableStateOf(false) }
     var picUrlToPopup by remember { mutableStateOf<String?>(null) }
@@ -58,8 +58,7 @@ fun IllustratorCardPopup(
         value = buildMap {
             val label2Pics = Client.randomPic(
                 count = Int.MAX_VALUE,
-                illustratorFilter = illustrator.id?.let { IllustratorFilter.Ids(listOf(it)) }
-                    ?: IllustratorFilter.Any,
+                tagFilter = OhMyRouting.Manage.Pic.Random.TagFilter.All(listOf(tag)),
             )?.label2Pics
             label2Pics?.forEach { (label, pics) ->
                 pics.forEach {
@@ -88,7 +87,7 @@ fun IllustratorCardPopup(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        Profile(illustrator.name)
+                        Profile(tag)
                     }
 
                     item(span = { GridItemSpan(maxLineSpan) }) {

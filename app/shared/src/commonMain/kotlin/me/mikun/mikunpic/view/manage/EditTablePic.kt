@@ -2,6 +2,7 @@ package me.mikun.mikunpic.view.manage
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
@@ -9,15 +10,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SearchBarDefaults
@@ -32,7 +38,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -40,8 +45,8 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
@@ -56,17 +61,46 @@ import io.ktor.http.takeFrom
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.client.Client
+import me.mikun.mikunpic.component.act.IllustratorCardPopup
+import me.mikun.mikunpic.component.act.TagCardPopup
+import me.mikun.mikunpic.component.card.AcrylicCard
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.Pic
+import me.mikun.mikunpic.dto.data.api.OhMyRouting.Manage.Pic.Random.IllustratorFilter
+import me.mikun.mikunpic.dto.data.api.OhMyRouting.Manage.Pic.Random.TagFilter
 import me.mikun.mikunpic.viewmodel.ManageViewModel
 import kotlin.collections.emptyList
-import kotlin.collections.mutableListOf
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EditTablePic(
     manageViewModel: ManageViewModel = viewModel { ManageViewModel() },
 ) {
+    var showIllustratorCardPopup by remember { mutableStateOf(false) }
+    var illustratorToPopup by remember { mutableStateOf<Illustrator?>(null) }
+    if (showIllustratorCardPopup && illustratorToPopup != null) {
+        IllustratorCardPopup(
+            show = showIllustratorCardPopup,
+            onDismissRequest = {
+                showIllustratorCardPopup = false
+                illustratorToPopup = null
+            },
+            illustrator = illustratorToPopup!!
+        )
+    }
+    var showTagCardPopup by remember { mutableStateOf(false) }
+    var tagToPopup by remember { mutableStateOf<String?>(null) }
+    if (showTagCardPopup && tagToPopup != null) {
+        TagCardPopup(
+            show = showTagCardPopup,
+            onDismissRequest = {
+                showTagCardPopup = false
+                tagToPopup = null
+            },
+            tag = tagToPopup!!
+        )
+    }
+
     val scope = rememberCoroutineScope()
 
     val localPlatformContext = LocalPlatformContext.current
@@ -88,7 +122,7 @@ fun EditTablePic(
         return null
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(currentStorageLabel) {
         val (storageLabel, pic) = Client.randomPic(
             count = 1,
             storageLabels = listOf(currentStorageLabel)
@@ -97,24 +131,60 @@ fun EditTablePic(
         picOnTable = pic
     }
 
-    val editContext = object {
-        var tags =
-            remember(picOnTable) { picOnTable?.tags?.toMutableStateList() ?: mutableStateListOf() }
-        var isEdited = remember(
-            picOnTable,
-            tags,
-        ) {
-            derivedStateOf {
-                picOnTable != null &&
-                        (
-                                picOnTable?.tags?.toSet() != tags.toSet()
-                                )
-            }
+    val editingTags =
+        remember(picOnTable) { picOnTable?.tags?.toMutableStateList() ?: mutableStateListOf() }
+    val isEdited by remember(
+        picOnTable,
+        editingTags,
+    ) {
+        derivedStateOf {
+            picOnTable != null && picOnTable?.tags?.toSet() != editingTags.toSet()
         }
     }
 
     var showBottomSheetTag by remember { mutableStateOf(false) }
 
+    var headerSelectionIndex by remember { mutableStateOf(0) }
+    var onHeaderSelectionsClicked = listOf(
+        {
+            headerSelectionIndex = 0
+            scope.launch {
+                val (storageLabel, pic) = Client.randomPic(
+                    count = 1,
+                    storageLabels = listOf(currentStorageLabel)
+                )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
+                storageLabelOnTable = storageLabel
+                picOnTable = pic
+            }
+            Unit
+        },
+        {
+            headerSelectionIndex = 1
+            scope.launch {
+                val (storageLabel, pic) = Client.randomPic(
+                    count = 1,
+                    storageLabels = listOf(currentStorageLabel),
+                    illustratorFilter = IllustratorFilter.None,
+                )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
+                storageLabelOnTable = storageLabel
+                picOnTable = pic
+            }
+            Unit
+        },
+        {
+            headerSelectionIndex = 2
+            scope.launch {
+                val (storageLabel, pic) = Client.randomPic(
+                    count = 1,
+                    storageLabels = listOf(currentStorageLabel),
+                    tagFilter = TagFilter.None,
+                )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
+                storageLabelOnTable = storageLabel
+                picOnTable = pic
+            }
+            Unit
+        }
+    )
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -127,135 +197,146 @@ fun EditTablePic(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             HeaderSelection(
-                onSelectionRandom = {
-                    scope.launch {
-                        val (storageLabel, pic) = Client.randomPic(
-                            count = 1,
-                            storageLabels = listOf(currentStorageLabel)
-                        )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
-                        storageLabelOnTable = storageLabel
-                        picOnTable = pic
-                    }
-                },
-                onSelectionNoAuthor = {
-                    scope.launch {
-                        val (storageLabel, pic) = Client.randomPic(
-                            count = 1,
-                            storageLabels = listOf(currentStorageLabel),
-                            illustrators = listOf(Illustrator.UnExist),
-                        )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
-                        storageLabelOnTable = storageLabel
-                        picOnTable = pic
-                    }
-                },
-                onSelectionNoTag = {
-                    scope.launch {
-                        val (storageLabel, pic) = Client.randomPic(
-                            count = 1,
-                            storageLabels = listOf(currentStorageLabel),
-                            tags = listOf(""),
-                        )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
-                        storageLabelOnTable = storageLabel
-                        picOnTable = pic
-                    }
-                },
+                headerSelectionIndex,
+                onSelectionRandom = onHeaderSelectionsClicked[0],
+                onSelectionNoAuthor = onHeaderSelectionsClicked[1],
+                onSelectionNoTag = onHeaderSelectionsClicked[2],
             )
 
-            if (picOnTable != null) {
-                Box(
+            val currentPic = picOnTable
+            if (currentPic == null) {
+                AcrylicCard(
                     modifier = Modifier
-                        .weight(0.6f),
+                        .fillMaxWidth()
+                        .weight(1f),
                 ) {
-                    val picUrl = URLBuilder().apply {
-                        takeFrom(LocalConfig.current.server)
-                        path("pic", "id", picOnTable!!.id)
-                        parameters.append("storage_label", storageLabelOnTable)
-                    }.buildString()
-
-                    PicShowingTable(
-                        ImageRequest.Builder(localPlatformContext)
-                            .data(picUrl)
-                            .size(Size.ORIGINAL)
-                            .memoryCachePolicy(CachePolicy.DISABLED)
-                            .diskCachePolicy(CachePolicy.DISABLED)
-                            .memoryCacheKey("${storageLabelOnTable}:${picOnTable!!.id}")
-                            .crossfade(true)
-//                            .precision(Precision.EXACT)
-                            .build(),
-                    )
-                }
-
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Text("illustrator: ")
-
-                        ElevatedAssistChip(
-                            onClick = { },
-                            label = {
-                                picOnTable?.illustrator?.let {
-                                    Text(it.name)
-                                }
-                            },
+                        Text(
+                            text = "No picture",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
+                }
+            } else {
+                val picUrl = URLBuilder().apply {
+                    takeFrom(LocalConfig.current.server)
+                    path("pic", "id", currentPic.id)
+                    parameters.append("storage_label", storageLabelOnTable)
+                }.buildString()
+                val imageRequest = remember(
+                    localPlatformContext,
+                    picUrl,
+                    storageLabelOnTable,
+                    currentPic.id,
+                ) {
+                    ImageRequest.Builder(localPlatformContext)
+                        .data(picUrl)
+                        .size(Size.ORIGINAL)
+                        .memoryCachePolicy(CachePolicy.DISABLED)
+                        .diskCachePolicy(CachePolicy.DISABLED)
+                        .memoryCacheKey("${storageLabelOnTable}:${currentPic.id}")
+                        .crossfade(true)
+                        .build()
+                }
 
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("tags: ")
-
-                        editContext.tags.forEach { tag ->
-                            ElevatedAssistChip(
-                                onClick = { },
-                                label = {
-                                    Text(tag)
-                                },
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) {
+                    val openTagEditor: () -> Unit = {
+                        showBottomSheetTag = true
+                    }
+                    val applyEdit: () -> Unit = {
+                        if (isEdited) {
+                            val updatedPic = currentPic.copy(
+                                illustrator = currentPic.illustrator,
+                                tags = editingTags.toList(),
                             )
-                        }
+                            picOnTable = updatedPic
 
-                        ElevatedButton(
-                            onClick = {
-                                scope.launch {
-                                    showBottomSheetTag = true
-                                }
-                            },
-                        ) {
-                            Text("Edit Tags")
+                            scope.launch {
+                                Client.updatePic(
+                                    storageLabel = storageLabelOnTable,
+                                    updatedPic.update(),
+                                )
+                            }
                         }
                     }
+                    val onNext: () -> Unit = {
+                        applyEdit()
+                        onHeaderSelectionsClicked[headerSelectionIndex]()
+                    }
 
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        ElevatedButton(
-                            onClick = {
-                                if (editContext.isEdited.value) {
-                                    picOnTable = picOnTable!!.copy(
-                                        illustrator = picOnTable!!.illustrator,
-                                        tags = editContext.tags.toList()
-                                    )
-
-                                    scope.launch {
-                                        Client.updatePic(
-                                            storageLabel = storageLabelOnTable,
-                                            picOnTable!!.update()
-                                        )
-                                    }
-                                }
-                            },
+                    if (maxWidth < 720.dp) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
-                            Text("Apply")
-                        }
+                            PicPreviewPanel(
+                                model = imageRequest,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(0.62f),
+                            )
 
-                        Text("To Storage: $storageLabelOnTable")
+                            PicDetailsPanel(
+                                pic = currentPic,
+                                storageLabel = storageLabelOnTable,
+                                tags = editingTags,
+                                onIllustratorChipClicked = {
+                                    showIllustratorCardPopup = true
+                                    illustratorToPopup = it
+                                },
+                                onTagChipClicked = {
+                                    showTagCardPopup = true
+                                    tagToPopup = it
+                                },
+                                isEdited = isEdited,
+                                onEditTags = openTagEditor,
+                                onApply = applyEdit,
+                                onNext = onNext,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(0.38f),
+                            )
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            PicPreviewPanel(
+                                model = imageRequest,
+                                modifier = Modifier
+                                    .weight(0.68f)
+                                    .fillMaxHeight(),
+                            )
+
+                            PicDetailsPanel(
+                                pic = currentPic,
+                                storageLabel = storageLabelOnTable,
+                                tags = editingTags,
+                                onIllustratorChipClicked = {
+                                    showIllustratorCardPopup = true
+                                    illustratorToPopup = currentPic.illustrator
+                                },
+                                onTagChipClicked = {
+                                    showTagCardPopup = true
+                                    tagToPopup = it
+                                },
+                                isEdited = isEdited,
+                                onEditTags = openTagEditor,
+                                onApply = applyEdit,
+                                onNext = onNext,
+                                modifier = Modifier
+                                    .weight(0.32f)
+                                    .fillMaxHeight(),
+                            )
+                        }
                     }
                 }
             }
@@ -269,15 +350,213 @@ fun EditTablePic(
         ) {
             EditPicTagsSheet(
                 onEditTag = {
-                    editContext.tags.apply {
+                    editingTags.apply {
                         remove(it) || add(it)
                     }
                 },
                 picTags = picOnTable?.tags,
-                editContextTags = editContext.tags,
+                editContextTags = editingTags,
             )
         }
     }
+}
+
+@Composable
+private fun PicPreviewPanel(
+    model: Any,
+    modifier: Modifier = Modifier,
+) {
+    AcrylicCard(
+        modifier = modifier,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            PicShowingTable(model)
+        }
+    }
+}
+
+@Composable
+private fun PicDetailsPanel(
+    pic: Pic,
+    storageLabel: String,
+    tags: List<String>,
+    onIllustratorChipClicked: (Illustrator) -> Unit,
+    onTagChipClicked: (String) -> Unit,
+    isEdited: Boolean,
+    onEditTags: () -> Unit,
+    onApply: () -> Unit,
+    onNext: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scrollState = rememberScrollState()
+
+    AcrylicCard(
+        modifier = modifier,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "Picture",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+
+                HorizontalDivider()
+
+                DetailRow(
+                    label = "ID",
+                    value = pic.id,
+                )
+
+                DetailRow(
+                    label = "File",
+                    value = pic.filename,
+                )
+
+                DetailRow(
+                    label = "Storage",
+                    value = storageLabel,
+                )
+
+                SectionLabel("Illustrator")
+
+                pic.illustrator?.let { illustrator ->
+                    ElevatedAssistChip(
+                        onClick = {
+                            onIllustratorChipClicked(illustrator)
+                        },
+                        label = {
+                            Text(
+                                text = illustrator.name,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
+                        modifier = Modifier.widthIn(max = 220.dp),
+                    )
+                }
+
+                SectionLabel("Tags")
+
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    if (tags.isEmpty()) {
+                        Text(
+                            text = "No tags",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        tags.forEach { tag ->
+                            ElevatedAssistChip(
+                                onClick = {
+                                    onTagChipClicked(tag)
+                                },
+                                label = {
+                                    ChipText(tag)
+                                },
+                                modifier = Modifier.widthIn(max = 220.dp),
+                            )
+                        }
+                    }
+                }
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(top = 12.dp),
+            )
+
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(
+                    space = 8.dp,
+                    alignment = Alignment.End,
+                ),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ElevatedButton(
+                    onClick = onEditTags,
+                ) {
+                    Text("Edit Tags")
+                }
+
+                ElevatedButton(
+                    onClick = onApply,
+                    enabled = isEdited,
+                ) {
+                    Text("Apply")
+                }
+
+                ElevatedButton(
+                    onClick = onNext,
+                ) {
+                    Text("Next")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionLabel(
+    text: String,
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun DetailRow(
+    label: String,
+    value: String,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
+@Composable
+private fun ChipText(
+    text: String,
+) {
+    Text(
+        text = text,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -320,12 +599,14 @@ private fun ColumnScope.EditPicTagsSheet(
 
     val textFieldState = rememberTextFieldState()
 
-    val searchResults by produceState(mutableListOf()) {
-        value = Client.searchTag(
-            count = 100
-        )?.let {
-            it.tags.toMutableList()
-        } ?: mutableListOf()
+    val searchResults = remember { mutableStateListOf<String>() }
+    LaunchedEffect(Unit) {
+        searchResults.clear()
+        searchResults.addAll(
+            Client.searchTag(
+                count = 100,
+            )?.tags ?: emptyList(),
+        )
     }
 
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
@@ -355,82 +636,113 @@ private fun ColumnScope.EditPicTagsSheet(
         inputField = inputField,
     )
 
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (picTags.isNullOrEmpty() && editContextTags.isEmpty()) {
-            ElevatedAssistChip(
-                onClick = { },
-                label = { },
-                modifier = Modifier.alpha(0.0f),
-            )
-        } else {
-            /*
-                unchange
-             */
-            picTags!!.intersect(editContextTags.toSet()).forEach {
-                ElevatedAssistChip(
-                    onClick = { onEditTag(it) },
-                    label = { Text(it) },
-                )
-            }
+        val originalPicTags = picTags ?: emptyList()
+        val originalPicTagSet = originalPicTags.toSet()
+        val editingTagSet = editContextTags.toSet()
 
-            /*
-                toAdd
-             */
-            (editContextTags - picTags.toSet()).forEach {
-                ElevatedAssistChip(
-                    onClick = { onEditTag(it) },
-                    label = { Text(it) },
-                    colors = AssistChipDefaults.elevatedAssistChipColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    ),
-                )
-            }
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                if (originalPicTags.isEmpty() && editContextTags.isEmpty()) {
+                    Box(
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        Text(
+                            text = "No tags",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.widthIn(max = 260.dp),
+                        )
+                    }
+                } else {
+                    originalPicTags.intersect(editingTagSet).forEach {
+                        ElevatedAssistChip(
+                            onClick = { onEditTag(it) },
+                            label = { ChipText(it) },
+                            modifier = Modifier.widthIn(max = 260.dp),
+                        )
+                    }
 
-            /*
-                toRemove
-             */
-            (picTags - editContextTags.toSet()).forEach {
-                ElevatedAssistChip(
-                    onClick = { onEditTag(it) },
-                    label = { Text(it) },
-                    colors = AssistChipDefaults.elevatedAssistChipColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                    ),
-                )
+                    (editContextTags - originalPicTagSet).forEach {
+                        ElevatedAssistChip(
+                            onClick = { onEditTag(it) },
+                            label = { ChipText(it) },
+                            modifier = Modifier.widthIn(max = 260.dp),
+                            colors = AssistChipDefaults.elevatedAssistChipColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            ),
+                        )
+                    }
+
+                    (originalPicTags - editingTagSet).forEach {
+                        ElevatedAssistChip(
+                            onClick = { onEditTag(it) },
+                            label = { ChipText(it) },
+                            modifier = Modifier.widthIn(max = 260.dp),
+                            colors = AssistChipDefaults.elevatedAssistChipColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                            ),
+                        )
+                    }
+                }
             }
         }
-    }
 
-    Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider()
 
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        (searchResults - editContextTags - (picTags?.toSet() ?: emptySet())).forEach {
-            ElevatedAssistChip(
-                onClick = { onEditTag(it) },
-                label = { Text(it) },
-            )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                (searchResults - editingTagSet - originalPicTagSet).forEach {
+                    ElevatedAssistChip(
+                        onClick = { onEditTag(it) },
+                        label = { ChipText(it) },
+                        modifier = Modifier.widthIn(max = 260.dp),
+                    )
+                }
+            }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun HeaderSelection(
+    selectedIndex: Int,
     onSelectionRandom: () -> Unit,
     onSelectionNoAuthor: () -> Unit,
     onSelectionNoTag: () -> Unit,
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(
+            space = 8.dp,
+            alignment = Alignment.CenterHorizontally,
+        ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        var selectedIndex by remember { mutableStateOf(0) }
 
         val buttons = List<@Composable () -> Unit>(3) { index ->
             {
@@ -439,7 +751,6 @@ private fun HeaderSelection(
                         ToggleButton(
                             checked = selectedIndex == index,
                             onCheckedChange = {
-                                selectedIndex = index
                                 onSelectionRandom()
                             },
                         ) {
@@ -451,7 +762,6 @@ private fun HeaderSelection(
                         ToggleButton(
                             checked = selectedIndex == index,
                             onCheckedChange = {
-                                selectedIndex = index
                                 onSelectionNoAuthor()
                             },
                         ) {
@@ -463,7 +773,6 @@ private fun HeaderSelection(
                         ToggleButton(
                             checked = selectedIndex == index,
                             onCheckedChange = {
-                                selectedIndex = index
                                 onSelectionNoTag()
                             },
                         ) {

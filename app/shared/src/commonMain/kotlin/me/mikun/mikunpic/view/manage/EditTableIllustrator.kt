@@ -1,19 +1,21 @@
 package me.mikun.mikunpic.view.manage
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,29 +27,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
-import coil3.compose.LocalPlatformContext
-import coil3.request.ImageRequest
-import coil3.request.crossfade
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.component.act.IllustratorCardPopup
+import me.mikun.mikunpic.component.act.PicCardPopup
+import me.mikun.mikunpic.component.image.SizeCachedImage
+import me.mikun.mikunpic.component.card.AcrylicCard
 import me.mikun.mikunpic.dto.data.Illustrator
-import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
-
-private class PageContext(
-    val illustratorContexts: List<IllustratorContext?>,
-)
-
-private class IllustratorContext(
-    val illustrator: Illustrator,
-    val pics: List<Pic>,
-    val picCaches: List<ImageRequest>,
-)
+import me.mikun.mikunpic.dto.data.api.OhMyRouting.Manage.Pic.Random.IllustratorFilter
 
 @Composable
 fun EditTableIllustrator() {
@@ -64,70 +52,25 @@ fun EditTableIllustrator() {
         )
     }
 
+    var showPicCardPopup by remember { mutableStateOf(false) }
+    var picUrlToPopup by remember { mutableStateOf<String?>(null) }
+    if (showPicCardPopup && picUrlToPopup != null) {
+        PicCardPopup(
+            show = showPicCardPopup,
+            onDismissRequest = {
+                showPicCardPopup = false
+                picUrlToPopup = null
+            },
+            picUrl = picUrlToPopup!!
+        )
+    }
+
     val illustratorCount = 20
-    val picPreIllustrator = 5
-    var pageIndex by remember { mutableStateOf(0) }
 
-    val localPlatformContext = LocalPlatformContext.current
-    val pageContext by produceState(
-        initialValue = PageContext(List(illustratorCount) { null }),
-        pageIndex,
-    ) {
-        value = PageContext(List(illustratorCount) { null })
-
-        val illustrators = Client.searchIllustrator(
+    val illustrators by produceState(emptyList()) {
+        value = Client.searchIllustrator(
             count = illustratorCount,
-            page = pageIndex,
         )?.illustrators ?: emptyList()
-
-        val contexts = MutableList<IllustratorContext?>(illustrators.size) {
-            IllustratorContext(
-                illustrator = illustrators[it],
-                pics = emptyList(),
-                picCaches = emptyList(),
-            )
-        }
-
-        value = PageContext(contexts.toList())
-
-        supervisorScope {
-            illustrators.forEachIndexed { index, illustrator ->
-                launch {
-                    val picsWithStorage = Client.randomPic(
-                        picPreIllustrator,
-                        illustrators = listOf(illustrator),
-                        storageLabels = emptyList()
-                    )?.label2Pics.orEmpty().flatMap { (storageLabel, pics) ->
-                        pics.map { storageLabel to it }
-                    }
-                    val pics = picsWithStorage.map { (_, pic) -> pic }
-
-                    val picCaches = picsWithStorage.map { (storageLabel, pic) ->
-                        val bytes = Client.fetchPic(
-                            id = pic.id,
-                            thumbnail = OhMyRouting.Pic.Thumbnail.Thumb,
-                            storageLabel = storageLabel,
-                        )
-
-                        ImageRequest.Builder(localPlatformContext)
-                            .data(bytes)
-                            .memoryCacheKey(pic.filename)
-                            .crossfade(true)
-                            .build()
-                    }
-
-                    val context = IllustratorContext(
-                        illustrator = illustrator,
-                        pics = pics,
-                        picCaches = picCaches,
-                    )
-
-                    contexts[index] = context
-
-                    value = PageContext(contexts.toList())
-                }
-            }
-        }
     }
 
     Box(
@@ -135,20 +78,25 @@ fun EditTableIllustrator() {
             .fillMaxSize()
             .padding(8.dp),
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(4),
+        LazyHorizontalGrid(
+            rows = GridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(
-                items = pageContext.illustratorContexts,
+                items = illustrators,
+                key = { it.id ?: it.name },
             ) {
                 IllustratorCard(
                     it,
                     onClick = {
                         showIllustratorCardPopup = true
-                        illustratorToPopup = it?.illustrator
+                        illustratorToPopup = it
+                    },
+                    onCLickPic = { picUrl ->
+                        showPicCardPopup = true
+                        picUrlToPopup = picUrl
                     }
                 )
             }
@@ -158,10 +106,29 @@ fun EditTableIllustrator() {
 
 @Composable
 private fun IllustratorCard(
-    illustratorContext: IllustratorContext?,
-    onClick: () -> Unit
+    illustrator: Illustrator?,
+    onClick: () -> Unit,
+    onCLickPic: (String) -> Unit,
 ) {
-    ElevatedCard(
+    val picPreviewCount = 5
+    val images by produceState(emptyList(), illustrator?.id) {
+        illustrator?.let {
+            value = buildMap {
+                val label2Pics = Client.randomPic(
+                    count = picPreviewCount,
+                    illustratorFilter = illustrator.id?.let { IllustratorFilter.Ids(listOf(it)) }
+                        ?: IllustratorFilter.Any,
+                )?.label2Pics
+                label2Pics?.forEach { (label, pics) ->
+                    pics.forEach {
+                        put(it.id, label)
+                    }
+                }
+            }.toList()
+        }
+    }
+
+    AcrylicCard(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f),
@@ -178,33 +145,42 @@ private fun IllustratorCard(
             ),
         ) {
             Box(
-                modifier = Modifier.weight(0.4f),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.BottomCenter,
             ) {
                 Text(
-                    text = illustratorContext?.illustrator?.name ?: "Loading...",
-                    style = typography.headlineLarge,
+                    text = illustrator?.name ?: "Loading...",
+                    style = typography.headlineMedium,
                 )
             }
 
+            HorizontalDivider()
+
             Box(
-                modifier = Modifier.weight(0.6f),
                 contentAlignment = Alignment.Center,
             ) {
                 LazyRow(
                     modifier = Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     items(
-                        illustratorContext?.picCaches.orEmpty(),
-                    ) { cacheReq ->
-                        AsyncImage(
-                            cacheReq,
-                            contentDescription = null,
+                        images,
+                    ) { (id, label) ->
+                        val picUrl = Client.buildPicLink(
+                            id = id,
+                            thumbnail = OhMyRouting.Pic.Thumbnail.Thumb,
+                            storageLabel = label,
+                        )
+
+                        SizeCachedImage(
+                            data = picUrl,
                             modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop,
+                                .fillMaxHeight()
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    onCLickPic(picUrl)
+                                },
                         )
                     }
                 }

@@ -68,7 +68,9 @@ private fun AppInternal() {
         }
     }
 
-    AppTheme {
+    AppTheme(
+        darkTheme = true
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxSize(),
