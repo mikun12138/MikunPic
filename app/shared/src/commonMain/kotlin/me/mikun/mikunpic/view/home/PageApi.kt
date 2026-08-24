@@ -19,6 +19,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,8 +59,6 @@ fun PageApi() {
             diskCacheKey = picToPopupMemoryCacheKey,
         )
     }
-
-    val navController = LocalNavController.current
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
@@ -117,19 +117,6 @@ fun PageApi() {
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center,
-            ) {
-                ElevatedButton(
-                    onClick = {
-                        navController.navigate(Nav.Manage)
-                    },
-                ) {
-                    Text("Manage")
-                }
-            }
         }
     }
 }
@@ -150,9 +137,6 @@ private fun LazyGridItemScope.ApiCard(
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-
-
-
             AcrylicCard(
                 modifier = Modifier
                     .weight(1f)
@@ -199,7 +183,7 @@ private fun LazyGridItemScope.ApiCard(
                     }
                 }
 
-                Button(
+                OutlinedButton(
                     onClick = onTestButtonClick
                 ) {
                     Text("Test")
