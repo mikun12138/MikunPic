@@ -76,7 +76,7 @@ fun BoxScope.PicCarousel(
         state = carouselState,
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp),
+            .padding(horizontal = 8.dp),
     ) { index ->
         val realIndex =
             index % actualSize
@@ -102,7 +102,7 @@ fun BoxScope.PicCarousel(
                 painter = painter,
                 contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .maskClip(imageShape)
                     .blur(bgBlurRadius),
                 alignment = Alignment.Center,
@@ -112,7 +112,7 @@ fun BoxScope.PicCarousel(
             if (index == carouselState.currentItem) {
                 BoxWithConstraints(
                     modifier = Modifier
-                        .padding(32.dp)
+                        .padding(horizontal = 32.dp)
                         .fillMaxSize()
                         .align(Alignment.Center),
                     contentAlignment = Alignment.Center,

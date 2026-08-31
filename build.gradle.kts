@@ -52,3 +52,22 @@ tasks.register("runDesktopServer") {
     dependsOn(":app:desktopApp:hotRun")
     dependsOn(":server:run")
 }
+
+tasks.register<Exec>("adbReverse8080") {
+    group = "dev"
+    mustRunAfter(":app:androidApp:installDebug")
+    commandLine("adb", "reverse", "tcp:8080", "tcp:8080")
+}
+
+tasks.register<Exec>("runAndroid") {
+    group = "dev"
+    dependsOn(":app:androidApp:installDebug")
+    dependsOn("adbReverse8080")
+    commandLine("adb", "shell", "monkey", "-p", "me.mikun.mikunpic", "1")
+}
+
+tasks.register("runAndroidServer") {
+    group = "dev"
+    dependsOn("runAndroid")
+    dependsOn(":server:run")
+}

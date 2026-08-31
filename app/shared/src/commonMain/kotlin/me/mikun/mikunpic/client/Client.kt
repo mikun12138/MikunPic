@@ -17,18 +17,15 @@ import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.href
 import io.ktor.client.plugins.resources.post
-import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readRawBytes
-import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.contentType
@@ -38,8 +35,6 @@ import kotlinx.io.Buffer
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.LocalConfig
 import me.mikun.mikunpic.LocalPref
-import me.mikun.mikunpic.dto.data.Illustrator
-import me.mikun.mikunpic.dto.data.Pic
 import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.dto.data.PicUpdate
 import me.mikun.mikunpic.dto.data.Storage
@@ -105,13 +100,13 @@ object Client {
     }
 
     @Suppress("ktlint:standard:function-naming")
-    private suspend fun HttpResponse.`get bytes`(): ByteArray? = when (this.status) {
+    private suspend fun HttpResponse.asBytes(): ByteArray? = when (this.status) {
         HttpStatusCode.OK -> this.readRawBytes()
         else -> null
     }
 
     @Suppress("ktlint:standard:function-naming")
-    private suspend inline fun <reified T> HttpResponse.`get any`(): T? = when (this.status) {
+    private suspend inline fun <reified T> HttpResponse.asAny(): T? = when (this.status) {
         HttpStatusCode.OK -> this.body<T>()
         else -> null
     }
@@ -127,7 +122,7 @@ object Client {
                 thumbnail = thumbnail,
                 storageLabel = storageLabel
             ),
-        ).`get bytes`()
+        ).asBytes()
 
     suspend fun uploadPic(
         storageLabel: String,
@@ -192,7 +187,7 @@ object Client {
                 )
             )
         }
-        .`get any`<OhMyRouting.Manage.Pic.Random.Response>()
+        .asAny<OhMyRouting.Manage.Pic.Random.Response>()
 
     suspend fun updatePic(
         storageLabel: String,
@@ -222,7 +217,7 @@ object Client {
                 keyword = keyword,
                 page = page,
             ),
-        ).`get any`<OhMyRouting.Manage.Illustrator.Search.Response>()
+        ).asAny<OhMyRouting.Manage.Illustrator.Search.Response>()
 
     suspend fun createTag(
         tagName: String,
@@ -251,7 +246,7 @@ object Client {
                 keyword = keyword,
                 page = page
             ),
-        ).`get any`<OhMyRouting.Manage.Tag.Search.Response>()
+        ).asAny<OhMyRouting.Manage.Tag.Search.Response>()
 
     suspend fun deleteTag(
         tagName: String,
@@ -273,7 +268,7 @@ object Client {
         httpClient
             .get(
                 OhMyRouting.Manage.Storage.List()
-            ).`get any`<OhMyRouting.Manage.Storage.List.Response>()
+            ).asAny<OhMyRouting.Manage.Storage.List.Response>()
 
     suspend fun addStorage(
         storage: Storage,

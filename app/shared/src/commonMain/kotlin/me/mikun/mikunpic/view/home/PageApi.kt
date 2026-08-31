@@ -162,7 +162,7 @@ private fun LazyGridItemScope.ApiCard(
                     .padding(16.dp),
             ) {
                 Text(
-                    "-随机图-",
+                    api.name,
                     style = typography.headlineLarge,
                 )
 
@@ -175,7 +175,7 @@ private fun LazyGridItemScope.ApiCard(
                 ) {
                     SelectionContainer {
                         Text(
-                            text = api.name,
+                            text = api.url,
                             modifier = Modifier.padding(16.dp),
                             fontFamily = FontFamily.Monospace,
                             style = typography.bodyLarge,
