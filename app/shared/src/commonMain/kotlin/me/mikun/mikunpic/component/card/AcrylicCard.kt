@@ -23,10 +23,8 @@ fun AcrylicCard(
     val shape = MaterialTheme.shapes.extraLarge
 
     Card(
+        onClick = onClick,
         modifier = modifier
-            .clickable {
-                onClick()
-            }
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(

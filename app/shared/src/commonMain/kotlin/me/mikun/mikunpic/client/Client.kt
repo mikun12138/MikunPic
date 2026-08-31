@@ -276,7 +276,7 @@ object Client {
             ).`get any`<OhMyRouting.Manage.Storage.List.Response>()
 
     suspend fun addStorage(
-        storage: Storage
+        storage: Storage,
     ) =
         httpClient
             .post(
@@ -291,7 +291,7 @@ object Client {
             }
 
     suspend fun editStorage(
-        storage: Storage
+        storage: Storage,
     ) =
         httpClient
             .post(
@@ -306,7 +306,7 @@ object Client {
             }
 
     suspend fun deleteStorage(
-        storageLabel: String
+        storageLabel: String,
     ) =
         httpClient
             .post(
@@ -321,10 +321,21 @@ object Client {
             }
 
 
-    suspend fun sync() = httpClient
+    suspend fun sync(
+        storageLabel: String,
+        syncRuleText: String,
+    ) = httpClient
         .post(
-            OhMyRouting.Manage.Sync(),
-        )
+            OhMyRouting.Manage.Storage.Sync(),
+        ) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                OhMyRouting.Manage.Storage.Sync.Body(
+                    storageLabel = storageLabel,
+                    syncRuleText = syncRuleText
+                )
+            )
+        }
 
     fun buildPicLink(
         id: String,

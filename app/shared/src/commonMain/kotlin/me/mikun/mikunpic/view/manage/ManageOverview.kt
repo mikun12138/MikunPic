@@ -20,12 +20,12 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,6 +39,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.changedToDown
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.vinceglb.filekit.FileKit
@@ -50,21 +54,25 @@ import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.LocalPref
-import me.mikun.mikunpic.awesome.UploadRule
-import me.mikun.mikunpic.awesome.UploadRule.asRegex
+import me.mikun.mikunpic.dto.awesome.UploadRule
+import me.mikun.mikunpic.dto.awesome.UploadRule.asRegex
 import me.mikun.mikunpic.client.Client
+import me.mikun.mikunpic.component.card.AcrylicCard
 import me.mikun.mikunpic.dto.awesome.FileExtension
+import me.mikun.mikunpic.dto.awesome.PicPathResolver
 import me.mikun.mikunpic.dto.awesome.dfs
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.dto.data.Platform
 import me.mikun.mikunpic.viewmodel.ManageStorageViewModel
 
+
 @Composable
 fun BoxScope.ManageOverview(
     manageStorageViewModel: ManageStorageViewModel = viewModel { ManageStorageViewModel() },
 ) {
     val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
 
     val opdeque = remember { mutableStateListOf<Int>() }
 
@@ -76,7 +84,17 @@ fun BoxScope.ManageOverview(
 
     Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        if (event.changes.any { it.changedToDown() }) {
+                            focusManager.clearFocus()
+                        }
+                    }
+                }
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
@@ -143,15 +161,7 @@ fun BoxScope.ManageOverview(
                 }
 
                 "013" -> {
-                    ElevatedButton(
-                        onClick = {
-                            scope.launch {
-                                Client.sync()
-                            }
-                        },
-                    ) {
-                        Text("Sync")
-                    }
+                    // TODO:: 没活了233
                 }
 
                 "134" -> {
@@ -159,16 +169,25 @@ fun BoxScope.ManageOverview(
 
                     var showSelectStorageToUpload by remember { mutableStateOf(false) }
 
-                    Column {
-                        TextField(uploadRuleText)
-
-                        ElevatedButton(
-                            onClick = {
-                                showSelectStorageToUpload = true
-
-                            },
+                    AcrylicCard {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(
+                                8.dp,
+                                alignment = Alignment.CenterVertically,
+                            ),
                         ) {
-                            Text("Upload")
+                            OutlinedTextField(uploadRuleText)
+
+                            OutlinedButton(
+                                onClick = {
+                                    showSelectStorageToUpload = true
+
+                                },
+                            ) {
+                                Text("Upload")
+                            }
                         }
                     }
 
@@ -189,8 +208,8 @@ fun BoxScope.ManageOverview(
                                                 uploadRule = uploadRuleText.text.toString(),
                                             )
 
-                                            val uploadRule =
-                                                UploadRule.makeUploadRule(LocalPref.uploadRule)
+                                            val picPathResolver =
+                                                PicPathResolver(LocalPref.uploadRule)
                                             scope.launch {
                                                 fun isImage(file: PlatformFile): Boolean {
                                                     require(file.isRegularFile())
@@ -208,89 +227,22 @@ fun BoxScope.ManageOverview(
                                                         PlatformFile::isRegularFile,
                                                         PlatformFile::list,
                                                     ) { file, path ->
-
-                                                        if (path.size != uploadRule.size) {
-                                                            return@dfs
-                                                        }
-
                                                         if (!isImage(file)) {
                                                             return@dfs
                                                         }
 
-                                                        var illustratorName: String? = null
-                                                        var illustratorPixiv: String? = null
-                                                        var illustratorTwitter: String? = null
-
-                                                        val dirnames = path.map { it.name }
-
-                                                        for (i in path.indices) {
-                                                            val holders = uploadRule[i]
-                                                            val regex = holders.asRegex()
-                                                            val matchResult =
-                                                                regex.matchEntire(dirnames[i])
-                                                            if (holders.any { it.type == UploadRule.PlaceHolder.Type.IllustratorName }) {
-                                                                illustratorName =
-                                                                    matchResult?.groups["illustratorName"]?.value
-                                                            }
-
-                                                            if (holders.any { it.type == UploadRule.PlaceHolder.Type.IllustratorPixiv }) {
-                                                                illustratorPixiv =
-                                                                    matchResult?.groups["pixiv"]?.value
-                                                            }
-
-                                                            if (holders.any { it.type == UploadRule.PlaceHolder.Type.IllustratorTwitter }) {
-                                                                illustratorTwitter =
-                                                                    matchResult?.groups["twitter"]?.value
-                                                            }
-                                                        }
-
-
-                                                        val illustrator =
-                                                            illustratorName?.let { name ->
-                                                                Illustrator(
-                                                                    name = name,
-                                                                    platformKeyMap = buildMap {
-                                                                        illustratorPixiv?.let {
-                                                                            put(
-                                                                                Platform.Pixiv,
-                                                                                it,
-                                                                            )
-                                                                        }
-                                                                        illustratorTwitter?.let {
-                                                                            put(
-                                                                                Platform.Twitter,
-                                                                                it,
-                                                                            )
-                                                                        }
-                                                                    },
-                                                                )
-                                                            }
-
-                                                        val platform =
-                                                            if (illustratorPixiv != null) {
-                                                                Platform.Pixiv.value
-                                                            } else if (illustratorTwitter != null) {
-                                                                Platform.Twitter.value
-                                                            } else {
-                                                                Platform.Other.value
-                                                            }
-
-
-                                                        val storeKey =
-                                                            path.joinToString("/") { pathItem ->
-                                                                pathItem.name
-                                                            }
-
-                                                        Client.uploadPic(
-                                                            storageLabel = it.label,
-                                                            picBytes = file.readBytes(),
-                                                            pic = PicCreate(
-                                                                filename = file.name,
-                                                                storeKey = storeKey,
-                                                                platform = platform,
-                                                                illustrator = illustrator
-                                                            )
+                                                        val picCreate = picPathResolver.resolve(
+                                                            path = path,
+                                                            filename = PlatformFile::name
                                                         )
+
+                                                        picCreate?.let { picCreate ->
+                                                            Client.uploadPic(
+                                                                storageLabel = it.label,
+                                                                picBytes = file.readBytes(),
+                                                                pic = picCreate
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }

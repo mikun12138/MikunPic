@@ -91,6 +91,16 @@ fun Route.manage() {
             )
             call.respond(HttpStatusCode.OK)
         }
+
+        post<OhMyRouting.Manage.Storage.Sync> {
+            val receive = call.receive<OhMyRouting.Manage.Storage.Sync.Body>()
+            sync(
+                storageLabel = receive.storageLabel,
+                syncRuleText = receive.syncRuleText
+            )
+
+            call.respond(HttpStatusCode.OK)
+        }
     }
 
     fun pic() {
@@ -241,8 +251,4 @@ fun Route.manage() {
         call.respond(HttpStatusCode.OK)
     }
 
-    post<OhMyRouting.Manage.Sync> {
-        sync()
-        call.respond(HttpStatusCode.OK)
-    }
 }

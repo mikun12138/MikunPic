@@ -2,7 +2,11 @@ package me.mikun.mikunpic.operator
 
 import io.ktor.server.routing.Route
 import io.ktor.util.Digest
+import io.ktor.utils.io.jvm.javaio.toByteReadChannel
+import io.ktor.utils.io.readRemaining
+import kotlinx.io.readByteArray
 import me.mikun.mikunpic.database.StorageDB
+import me.mikun.mikunpic.dto.awesome.PicPathResolver
 import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.storage.PicStorage
 
@@ -40,18 +44,31 @@ suspend fun Route.uploadPic(
     }
 }
 
-suspend fun Route.sync() {
-    TODO()
-//    PicStorage.storages.forEach { storage ->
-//        storage.picKeys.forEach {
-//            uploadPic(
-//                storageLabel = storage.label,
-//                byteArray = PicStorage.byName(storage.label, it)!!.toByteReadChannel()
-//                    .readRemaining()
-//                    .readByteArray(),
-//                filename = it,
-//                uploadFile = false,
-//            )
-//        }
-//    }
+suspend fun Route.sync(
+    storageLabel: String,
+    syncRuleText: String,
+) {
+    val picPathResolver = PicPathResolver(
+        syncRuleText
+    )
+
+    PicStorage.storages.find { it.label == storageLabel }?.let { storage ->
+        storage.picKeys.forEach { picKey ->
+            val picCreate = picPathResolver.resolve(
+                path = picKey.split("/"),
+                filename = { picKey }
+            ) ?: return
+
+            uploadPic(
+                storageLabel = storage.label,
+                byteArray = storage.byKey(
+                    key = picKey
+                )!!.toByteReadChannel()
+                    .readRemaining()
+                    .readByteArray(),
+                pic = picCreate,
+                uploadFile = false,
+            )
+        }
+    }
 }

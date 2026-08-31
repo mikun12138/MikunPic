@@ -63,7 +63,7 @@ fun BoxScope.ManageEditTable(
         ) {
             when (editType) {
                 Edit.Pic -> {
-                    EditTablePic(manageViewModel)
+                    EditTablePic()
                 }
 
                 Edit.Illustrator -> {

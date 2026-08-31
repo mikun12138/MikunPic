@@ -1,4 +1,6 @@
-package me.mikun.mikunpic.awesome
+package me.mikun.mikunpic.dto.awesome
+
+import kotlin.text.iterator
 
 object UploadRule {
     data class PlaceHolder(

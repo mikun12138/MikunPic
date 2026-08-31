@@ -21,6 +21,7 @@ import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ElevatedToggleButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -29,6 +30,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.TonalToggleButton
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -145,7 +147,7 @@ fun EditTablePic(
     var showBottomSheetTag by remember { mutableStateOf(false) }
 
     var headerSelectionIndex by remember { mutableStateOf(0) }
-    var onHeaderSelectionsClicked = listOf(
+    val onHeaderSelectionsClicked = listOf(
         {
             headerSelectionIndex = 0
             scope.launch {
@@ -748,7 +750,7 @@ private fun HeaderSelection(
             {
                 when (index) {
                     0 -> {
-                        ToggleButton(
+                        TonalToggleButton(
                             checked = selectedIndex == index,
                             onCheckedChange = {
                                 onSelectionRandom()
@@ -759,7 +761,7 @@ private fun HeaderSelection(
                     }
 
                     1 -> {
-                        ToggleButton(
+                        TonalToggleButton(
                             checked = selectedIndex == index,
                             onCheckedChange = {
                                 onSelectionNoAuthor()
@@ -770,7 +772,7 @@ private fun HeaderSelection(
                     }
 
                     2 -> {
-                        ToggleButton(
+                        TonalToggleButton(
                             checked = selectedIndex == index,
                             onCheckedChange = {
                                 onSelectionNoTag()
