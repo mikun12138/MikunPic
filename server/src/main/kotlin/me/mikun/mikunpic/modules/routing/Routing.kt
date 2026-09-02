@@ -20,7 +20,7 @@ fun Application.configureRouting() {
     routing {
         public()
 
-//        authenticate("bearer") {
+        authenticate("bearer") {
 
             get<OhMyRouting.Manage.Config> {
                 val config = call.receive<OhMyRouting.Manage.Config.Body>().mikunPicConfig
@@ -36,6 +36,6 @@ fun Application.configureRouting() {
             }
 
             manage()
-//        }
+        }
     }.let { println(it.children) }
 }

@@ -7,12 +7,16 @@ import kotlinx.serialization.Serializable
 sealed class Storage {
     @SerialName("label")
     abstract val label: String
+    @SerialName("path_rule")
+    abstract val pathRule: String
 
     @Serializable
     @SerialName("local")
     data class Local(
         @SerialName("label")
         override val label: String,
+        @SerialName("rule_text")
+        override val pathRule: String = "",
         @SerialName("path")
         val path: String,
     ) : Storage()
@@ -22,6 +26,8 @@ sealed class Storage {
     data class Cos(
         @SerialName("label")
         override val label: String,
+        @SerialName("rule_text")
+        override val pathRule: String = "",
         @SerialName("secret_id")
         val secretId: String? = null,
         @SerialName("secret_key")

@@ -8,6 +8,10 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import java.io.File
 
 fun Application.configureDatabase() {
+    File("./data/databases").apply {
+        exists() || mkdirs()
+    }
+
     MetadataDB.init(
         Database.connect(
             "jdbc:sqlite:./data/databases/metadata.db",

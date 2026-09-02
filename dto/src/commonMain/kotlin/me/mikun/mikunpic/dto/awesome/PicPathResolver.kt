@@ -16,7 +16,7 @@ class PicPathResolver(
 
     fun <T> resolve(
         path: List<T>,
-        filename: T.() -> String,
+        filename: (T) -> String,
     ): PicCreate? {
         if (path.size != uploadRule.size) {
             return null
@@ -28,7 +28,7 @@ class PicPathResolver(
         var illustratorPixiv: String? = null
         var illustratorTwitter: String? = null
 
-        val dirnames = path.map { it.filename() }
+        val dirnames = path.map { filename(it) }
 
         for (i in path.indices) {
             val holders = uploadRule[i]
@@ -85,11 +85,11 @@ class PicPathResolver(
 
         val storeKey =
             path.joinToString("/") { pathItem ->
-                pathItem.filename()
+                filename(pathItem)
             }
 
         return PicCreate(
-            filename = file.filename(),
+            filename = filename(file),
             storeKey = storeKey,
             platform = platform,
             illustrator = illustrator

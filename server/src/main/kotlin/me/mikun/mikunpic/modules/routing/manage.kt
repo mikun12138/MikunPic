@@ -36,11 +36,13 @@ fun Route.manage() {
                         when (it) {
                             is MikunPicConfig.Storage.Local -> Storage.Local(
                                 label = it.label,
+                                pathRule = it.pathRule,
                                 path = it.path
                             )
 
                             is MikunPicConfig.Storage.Cos -> Storage.Cos(
                                 label = it.label,
+                                pathRule = it.pathRule,
                                 secretId = "",
                                 secretKey = "",
                                 bucketName = it.bucketName,
