@@ -42,6 +42,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
         }
         jvmMain.dependencies {
+            implementation("net.harawata:appdirs:1.5.0")
         }
         commonMain.dependencies {
             implementation(projects.dto)

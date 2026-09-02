@@ -19,6 +19,11 @@ compose.desktop {
     application {
         mainClass = "me.mikun.mikunpic.MainKt"
 
+        buildTypes.release.proguard {
+            optimize.set(false)
+            configurationFiles.from(project.file("proguard-rules.pro"))
+        }
+
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "me.mikun.mikunpic"
