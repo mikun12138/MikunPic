@@ -2,7 +2,7 @@ name: deploy-webapp
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "main" ]
     paths-ignore:
       - ".github/workflows/deploy.yml"
 
