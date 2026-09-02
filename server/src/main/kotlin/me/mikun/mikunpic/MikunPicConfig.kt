@@ -1,6 +1,5 @@
 package me.mikun.mikunpic
 
-import io.ktor.server.application.log
 import kotlinx.serialization.decodeFromString
 import me.mikun.mikunpic.dto.data.MikunPicConfig
 import net.mamoe.yamlkt.Yaml
@@ -11,28 +10,33 @@ import kotlin.uuid.Uuid
 @Suppress("ktlint:standard:backing-property-naming")
 private var _LocalMikunPicConfig: MikunPicConfig? = null
 
+private val configFile = File("config.yaml")
+
 @OptIn(ExperimentalUuidApi::class)
 var LocalMikunPicConfig: MikunPicConfig
     get() {
         if (_LocalMikunPicConfig == null) {
+            if (!configFile.exists() || !configFile.isFile) {
+                configFile.createNewFile()
+                configFile.writeText(
+                    Yaml.encodeToString(MikunPicConfig.Def),
+                )
+            }
+
             _LocalMikunPicConfig = runCatching {
                 Yaml.decodeFromString<MikunPicConfig>(
-                    File("config.yaml").readText(),
+                    configFile.readText()
                 )
             }.getOrElse {
                 it.printStackTrace()
-                MikunPicConfig(
-                    auth = MikunPicConfig.Auth.Bearer(
-                        token = Uuid.random().toString(),
-                    ),
-                )
+                MikunPicConfig.Def
             }
         }
 
         return _LocalMikunPicConfig!!
     }
     set(value) {
-        File("config.yaml").apply {
+        configFile.apply {
             exists() || createNewFile()
         }.writeText(
             Yaml.encodeToString(value),

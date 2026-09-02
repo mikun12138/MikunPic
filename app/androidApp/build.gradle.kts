@@ -22,15 +22,15 @@ dependencies {
 }
 
 android {
-    namespace = "me.mikun.mikunpic"
+    namespace = project.group.toString()
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "me.mikun.mikunpic"
+        applicationId = project.group.toString()
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = project.version.toString()
     }
     packaging {
         resources {

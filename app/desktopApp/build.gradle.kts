@@ -26,8 +26,8 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "me.mikun.mikunpic"
-            packageVersion = "1.0.0"
+            packageName = rootProject.name
+            packageVersion = project.version.toString()
         }
     }
 }

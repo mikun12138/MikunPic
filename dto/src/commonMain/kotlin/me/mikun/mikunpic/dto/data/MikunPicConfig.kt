@@ -2,6 +2,8 @@ package me.mikun.mikunpic.dto.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Serializable
 data class MikunPicConfig constructor(
@@ -10,6 +12,14 @@ data class MikunPicConfig constructor(
     @SerialName("auth")
     val auth: Auth? = null,
 ) {
+    companion object {
+        @OptIn(ExperimentalUuidApi::class)
+        val Def = MikunPicConfig(
+            auth = Auth.Bearer(
+                token = Uuid.random().toString(),
+            ),
+        )
+    }
 
     @Serializable
     sealed class Storage {

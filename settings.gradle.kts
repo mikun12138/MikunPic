@@ -1,4 +1,5 @@
 rootProject.name = "MikunPic"
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
