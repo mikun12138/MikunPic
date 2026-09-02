@@ -37,7 +37,7 @@ fun Route.manage() {
                             is MikunPicConfig.Storage.Local -> Storage.Local(
                                 label = it.label,
                                 pathRule = it.pathRule,
-                                path = it.path
+                                path = it.path,
                             )
 
                             is MikunPicConfig.Storage.Cos -> Storage.Cos(
@@ -46,11 +46,11 @@ fun Route.manage() {
                                 secretId = "",
                                 secretKey = "",
                                 bucketName = it.bucketName,
-                                region = it.region
+                                region = it.region,
                             )
                         }
-                    }
-                )
+                    },
+                ),
             )
         }
 
@@ -60,7 +60,7 @@ fun Route.manage() {
                 return@post call.respond(HttpStatusCode.Conflict)
             }
             LocalMikunPicConfig = LocalMikunPicConfig.copy(
-                storages = LocalMikunPicConfig.storages + receive.storage.toStorageConfig()
+                storages = LocalMikunPicConfig.storages + receive.storage.toStorageConfig(),
             )
             call.respond(HttpStatusCode.OK)
         }
@@ -79,7 +79,7 @@ fun Route.manage() {
                 } ?: receive.storage.toStorageConfig()
 
             LocalMikunPicConfig = LocalMikunPicConfig.copy(
-                storages = LocalMikunPicConfig.storages.filter { it.label != receive.storage.label } + newStorage
+                storages = LocalMikunPicConfig.storages.filter { it.label != receive.storage.label } + newStorage,
             )
             call.respond(HttpStatusCode.OK)
         }
@@ -89,7 +89,7 @@ fun Route.manage() {
                 return@post call.respond(HttpStatusCode.Conflict)
             }
             LocalMikunPicConfig = LocalMikunPicConfig.copy(
-                storages = LocalMikunPicConfig.storages.filter { it.label != receive.storageLabel }
+                storages = LocalMikunPicConfig.storages.filter { it.label != receive.storageLabel },
             )
             call.respond(HttpStatusCode.OK)
         }
@@ -98,7 +98,7 @@ fun Route.manage() {
             val receive = call.receive<OhMyRouting.Manage.Storage.Sync.Body>()
             sync(
                 storageLabel = receive.storageLabel,
-                syncRuleText = receive.syncRuleText
+                syncRuleText = receive.syncRuleText,
             )
 
             call.respond(HttpStatusCode.OK)
@@ -145,7 +145,7 @@ fun Route.manage() {
             uploadPic(
                 storageLabel,
                 byteArray,
-                pic!!
+                pic!!,
             )
 
             call.respond(
@@ -158,7 +158,7 @@ fun Route.manage() {
 
             StorageDB.byNameNoEx(receive.storageLabel)?.apply {
                 updatePic(
-                    receive.pic
+                    receive.pic,
                 )
             }
 
@@ -187,7 +187,7 @@ fun Route.manage() {
             val receive = call.receive<OhMyRouting.Manage.Illustrator.Create.Body>()
 
             MetadataDB.createIllustrator(
-                receive.illustrator
+                receive.illustrator,
             )
         }
 
@@ -212,7 +212,7 @@ fun Route.manage() {
             println(receive)
 
             MetadataDB.createTag(
-                receive.name
+                receive.name,
             )
 
             call.respond(HttpStatusCode.Created)
@@ -221,7 +221,7 @@ fun Route.manage() {
         post<OhMyRouting.Manage.Tag.Delete> {
             val receive = call.receive<OhMyRouting.Manage.Tag.Delete.Body>()
             MetadataDB.deleteTag(
-                receive.name
+                receive.name,
             )
 
             call.respond(HttpStatusCode.Accepted)
@@ -231,7 +231,7 @@ fun Route.manage() {
             MetadataDB.searchTag(
                 count = req.count,
                 keyword = req.keyword,
-                page = req.page
+                page = req.page,
             ).let {
                 call.respond(
                     OhMyRouting.Manage.Tag.Search.Response(
@@ -252,5 +252,4 @@ fun Route.manage() {
         StorageDB.backup()
         call.respond(HttpStatusCode.OK)
     }
-
 }

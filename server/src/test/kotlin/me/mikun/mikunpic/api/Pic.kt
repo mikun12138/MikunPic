@@ -25,7 +25,6 @@ class Pic {
 
     @Test
     fun upload() = ohMyTest {
-
         repeat(3) {
             val picName = "rua$it.jpg"
             client.post("/manage/pic/upload") {
@@ -38,12 +37,12 @@ class Pic {
                             appendInput(
                                 key = "file",
                                 headers =
-                                    Headers.build {
-                                        append(
-                                            HttpHeaders.ContentDisposition,
-                                            """form-data; name="file"; filename="$picName"""",
-                                        )
-                                    },
+                                Headers.build {
+                                    append(
+                                        HttpHeaders.ContentDisposition,
+                                        """form-data; name="file"; filename="$picName"""",
+                                    )
+                                },
                             ) {
                                 this::class.java.classLoader
                                     .getResourceAsStream("rua.jpg")
@@ -64,12 +63,12 @@ class Pic {
                                             platformKeyMap = mapOf(
                                                 Platform.Pixiv to "mikun12138",
                                                 Platform.Twitter to "mikun_12138",
-                                            )
+                                            ),
                                         ),
                                         tags = listOf("a", "b", "y", "z"),
                                         storeKey = picName,
-                                        platform = "pixiv"
-                                    )
+                                        platform = "pixiv",
+                                    ),
                                 ),
                                 headers = Headers.build {
                                     append(
@@ -83,13 +82,11 @@ class Pic {
                 )
             }
         }
-
     }
 
     @Test
     fun update() = ohMyTest {
         repeat(3) {
-
             client.post(
                 OhMyRouting.Manage.Pic.Update(),
             ) {
@@ -104,9 +101,9 @@ class Pic {
                                 platformKeyMap = mapOf(
                                     Platform.Pixiv to "mikun${12138 + it}",
                                     Platform.Twitter to "mikun_${12138 + it}",
-                                )
+                                ),
                             ),
-                            tags = listOf('a' + it, 'z' - it).map { it.toString() }
+                            tags = listOf('a' + it, 'z' - it).map { it.toString() },
                         ),
                     ),
                 )
@@ -124,7 +121,7 @@ class Pic {
                 OhMyRouting.Manage.Pic.Random.Body(
                     storageLabels = listOf("sandbox0"),
                     count = 2,
-                )
+                ),
             )
         }.let {
             it.body<OhMyRouting.Manage.Pic.Random.Response>().let {
@@ -139,9 +136,8 @@ class Pic {
             OhMyRouting.Pic.Id(
                 id = "1",
                 storageLabel = "sandbox1",
-            )
+            ),
         ) {
-
         }
     }
 
@@ -150,10 +146,9 @@ class Pic {
         client.get(
             OhMyRouting.Pic.PlatformKey(
                 platform = "pixiv",
-                key = "abcde"
-            )
+                key = "abcde",
+            ),
         ) {
-
         }
     }
 }

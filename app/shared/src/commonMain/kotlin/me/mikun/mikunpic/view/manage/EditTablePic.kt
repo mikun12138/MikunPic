@@ -87,7 +87,7 @@ fun EditTablePic(
                 showIllustratorCardPopup = false
                 illustratorToPopup = null
             },
-            illustrator = illustratorToPopup!!
+            illustrator = illustratorToPopup!!,
         )
     }
     var showTagCardPopup by remember { mutableStateOf(false) }
@@ -99,7 +99,7 @@ fun EditTablePic(
                 showTagCardPopup = false
                 tagToPopup = null
             },
-            tag = tagToPopup!!
+            tag = tagToPopup!!,
         )
     }
 
@@ -127,7 +127,7 @@ fun EditTablePic(
     LaunchedEffect(currentStorageLabel) {
         val (storageLabel, pic) = Client.randomPic(
             count = 1,
-            storageLabels = listOf(currentStorageLabel)
+            storageLabels = listOf(currentStorageLabel),
         )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
         storageLabelOnTable = storageLabel
         picOnTable = pic
@@ -153,7 +153,7 @@ fun EditTablePic(
             scope.launch {
                 val (storageLabel, pic) = Client.randomPic(
                     count = 1,
-                    storageLabels = listOf(currentStorageLabel)
+                    storageLabels = listOf(currentStorageLabel),
                 )?.label2Pics?.firstPicWithStorage() ?: ("" to null)
                 storageLabelOnTable = storageLabel
                 picOnTable = pic
@@ -185,7 +185,7 @@ fun EditTablePic(
                 picOnTable = pic
             }
             Unit
-        }
+        },
     )
     Box(
         modifier = Modifier
@@ -239,7 +239,7 @@ fun EditTablePic(
                         .size(Size.ORIGINAL)
                         .memoryCachePolicy(CachePolicy.DISABLED)
                         .diskCachePolicy(CachePolicy.DISABLED)
-                        .memoryCacheKey("${storageLabelOnTable}:${currentPic.id}")
+                        .memoryCacheKey("$storageLabelOnTable:${currentPic.id}")
                         .crossfade(true)
                         .build()
                 }
@@ -661,7 +661,7 @@ private fun ColumnScope.EditPicTagsSheet(
             ) {
                 if (originalPicTags.isEmpty() && editContextTags.isEmpty()) {
                     Box(
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(8.dp),
                     ) {
                         Text(
                             text = "No tags",
@@ -745,7 +745,6 @@ private fun HeaderSelection(
         ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-
         val buttons = List<@Composable () -> Unit>(3) { index ->
             {
                 when (index) {

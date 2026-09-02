@@ -15,6 +15,7 @@ data class MikunPicConfig constructor(
     sealed class Storage {
         @SerialName("label")
         abstract val label: String
+
         @SerialName("path_rule")
         abstract val pathRule: String
 

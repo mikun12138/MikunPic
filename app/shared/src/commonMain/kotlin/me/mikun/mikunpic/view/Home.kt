@@ -35,11 +35,10 @@ fun Home(
 ) {
     val pages = listOf<@Composable () -> Unit>(
         {
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLowest),
             ) {
                 PagePicPreview(
                     onReady,
@@ -54,16 +53,15 @@ fun Home(
                     OutlinedFloatingActionButton(
                         onClick = {
                             navController.navigate(Nav.Manage)
-                        }
+                        },
                     ) {
                         Icon(
                             Icons.Default.ViewTimeline,
-                            contentDescription = null
+                            contentDescription = null,
                         )
                     }
-                }
+                },
             ) {
-
                 SimpleBgBox(
                     LocalPref.bg.home.api,
                 ) {

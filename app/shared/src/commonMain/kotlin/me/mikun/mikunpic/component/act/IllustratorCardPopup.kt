@@ -50,7 +50,7 @@ fun IllustratorCardPopup(
                 showPicCardPopup = false
                 picUrlToPopup = null
             },
-            picUrl = picUrlToPopup!!
+            picUrl = picUrlToPopup!!,
         )
     }
 

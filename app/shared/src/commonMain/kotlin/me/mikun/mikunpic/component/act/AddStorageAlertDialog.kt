@@ -43,13 +43,13 @@ fun AddStorageAlertDialog(
     val scope = rememberCoroutineScope()
     SimpleAlertDialog(
         show = show,
-        onDismissRequest = onDismissRequest
+        onDismissRequest = onDismissRequest,
     ) {
         var onSubmitting by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             var expanded by remember { mutableStateOf(false) }
             var storageType by remember { mutableStateOf(StorageType.None) }
@@ -57,7 +57,7 @@ fun AddStorageAlertDialog(
                 expanded = expanded,
                 onExpandedChange = {
                     expanded = it
-                }
+                },
             ) {
                 val textFieldState = rememberTextFieldState()
                 TextField(
@@ -73,7 +73,7 @@ fun AddStorageAlertDialog(
                     expanded = expanded,
                     onDismissRequest = {
                         expanded = false
-                    }
+                    },
                 ) {
                     DropdownMenuItem(
                         text = { Text("local") },
@@ -81,7 +81,7 @@ fun AddStorageAlertDialog(
                             storageType = StorageType.Local
                             textFieldState.setTextAndPlaceCursorAtEnd(storageType.value)
                             expanded = false
-                        }
+                        },
                     )
                     DropdownMenuItem(
                         text = { Text("cos") },
@@ -89,7 +89,7 @@ fun AddStorageAlertDialog(
                             storageType = StorageType.Cos
                             textFieldState.setTextAndPlaceCursorAtEnd(storageType.value)
                             expanded = false
-                        }
+                        },
                     )
                 }
             }
@@ -112,7 +112,7 @@ fun AddStorageAlertDialog(
                             colors = TextFieldDefaults.colors(
                                 focusedLabelColor = LocalContentColor.current.copy(alpha = 0.6f),
                                 unfocusedLabelColor = LocalContentColor.current.copy(alpha = 0.4f),
-                            )
+                            ),
                         )
                     }
 
@@ -125,8 +125,8 @@ fun AddStorageAlertDialog(
                                     Client.addStorage(
                                         Storage.Local(
                                             label = form.label.text.toString(),
-                                            path = form.path.text.toString()
-                                        )
+                                            path = form.path.text.toString(),
+                                        ),
                                     )
                                 }
 
@@ -136,7 +136,7 @@ fun AddStorageAlertDialog(
 
                                 onSubmitting = false
                             }
-                        }
+                        },
                     ) {
                         Text("OK")
                         if (onSubmitting) {
@@ -168,7 +168,7 @@ fun AddStorageAlertDialog(
                             colors = TextFieldDefaults.colors(
                                 focusedLabelColor = LocalContentColor.current.copy(alpha = 0.6f),
                                 unfocusedLabelColor = LocalContentColor.current.copy(alpha = 0.4f),
-                            )
+                            ),
                         )
                     }
 
@@ -176,9 +176,7 @@ fun AddStorageAlertDialog(
                         enabled = !onSubmitting,
                         onClick = {
                             scope.launch {
-
                                 val result = runCatching {
-
                                     onSubmitting = true
                                     Client.addStorage(
                                         Storage.Cos(
@@ -187,7 +185,7 @@ fun AddStorageAlertDialog(
                                             secretKey = form.secretKey.text.toString(),
                                             bucketName = form.bucketName.text.toString(),
                                             region = form.region.text.toString(),
-                                        )
+                                        ),
                                     )
                                 }
 
@@ -197,7 +195,7 @@ fun AddStorageAlertDialog(
 
                                 onSubmitting = false
                             }
-                        }
+                        },
                     ) {
                         Text("OK")
                         if (onSubmitting) {

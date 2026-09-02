@@ -61,7 +61,7 @@ fun StorageDetailAlertDialog(
                     val result = runCatching {
                         Client.sync(
                             storageLabel = storage.label,
-                            syncRuleText = pathRule
+                            syncRuleText = pathRule,
                         )
                     }
 
@@ -74,17 +74,17 @@ fun StorageDetailAlertDialog(
             onClose = {
                 showSyncStorageDialog = false
                 storageToSync = null
-            }
+            },
         )
 
         SimpleAlertDialog(
             show = show,
-            onDismissRequest = onDismissRequest
+            onDismissRequest = onDismissRequest,
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = "${storage.label} Details",
@@ -98,7 +98,7 @@ fun StorageDetailAlertDialog(
                 Column(
                     modifier = Modifier.padding(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     when (storage) {
                         is Storage.Local -> {
@@ -132,7 +132,7 @@ fun StorageDetailAlertDialog(
                     onClick = {
                         showSyncStorageDialog = true
                         storageToSync = storageToShowDetail
-                    }
+                    },
                 ) {
                     if (!isSyncing) {
                         Text("Sync")
@@ -182,19 +182,19 @@ private fun SyncStorageAlertDialog(
     storageToSync?.let { storage ->
         SimpleAlertDialog(
             show = show,
-            onDismissRequest = onDismissRequest
+            onDismissRequest = onDismissRequest,
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 val pathRule = rememberTextFieldState(storage.pathRule)
 
                 Text("sync storage: ${storage.label}")
 
                 OutlinedTextField(
-                    state = pathRule
+                    state = pathRule,
                 )
 
                 Row(
@@ -207,8 +207,8 @@ private fun SyncStorageAlertDialog(
                         },
                         colors = ButtonDefaults.filledTonalButtonColors(
                             containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError
-                        )
+                            contentColor = MaterialTheme.colorScheme.onError,
+                        ),
                     ) {
                         Text("Y")
                     }
@@ -216,7 +216,7 @@ private fun SyncStorageAlertDialog(
                     FilledTonalButton(
                         onClick = {
                             onClose()
-                        }
+                        },
                     ) {
                         Text("N")
                     }

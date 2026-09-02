@@ -286,6 +286,5 @@ interface OhMyRouting {
         class Backup : OhMyRouting {
             override val parent = Manage()
         }
-
     }
 }

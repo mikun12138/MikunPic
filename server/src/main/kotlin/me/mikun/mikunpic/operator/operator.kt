@@ -26,7 +26,7 @@ suspend fun Route.uploadPic(
 
     StorageDB.byNameNoEx(storageLabel)?.apply {
         selectPic(
-            hash = hash
+            hash = hash,
         )?.run {
             return
         }
@@ -41,7 +41,7 @@ suspend fun Route.uploadPic(
 
         createPic(
             pic = pic,
-            hash = hash
+            hash = hash,
         )
     }
 }
@@ -60,23 +60,23 @@ suspend fun Route.sync(
             } else {
                 it
             }
-        }
+        },
     )
 
     PicStorage.storages.find { it.label == storageLabel }?.let { storage ->
         val picPathResolver = PicPathResolver(
-            syncRuleText
+            syncRuleText,
         )
         storage.picKeys.forEach { picKey ->
             val picCreate = picPathResolver.resolve(
                 path = picKey.split("/"),
-                filename = { it }
+                filename = { it },
             ) ?: return
 
             uploadPic(
                 storageLabel = storage.label,
                 byteArray = storage.byKey(
-                    key = picKey
+                    key = picKey,
                 )!!.toByteReadChannel()
                     .readRemaining()
                     .readByteArray(),

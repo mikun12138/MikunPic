@@ -28,6 +28,6 @@ object PicTable : IntIdTable("pic") {
     val link =
         char(
             "link",
-            2048
+            2048,
         ).default("")
 }

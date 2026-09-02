@@ -82,16 +82,16 @@ fun PageApi() {
                                 .coerceIn(320.dp, 480.dp)
                         LazyHorizontalGrid(
                             rows =
-                                if (apis.size < 8) {
-                                    GridCells.Fixed(1)
-                                } else {
-                                    GridCells.Adaptive(desiredHeight)
-                                },
+                            if (apis.size < 8) {
+                                GridCells.Fixed(1)
+                            } else {
+                                GridCells.Adaptive(desiredHeight)
+                            },
                             horizontalArrangement =
-                                Arrangement.spacedBy(16.dp),
+                            Arrangement.spacedBy(16.dp),
 
                             verticalArrangement =
-                                Arrangement.spacedBy(16.dp),
+                            Arrangement.spacedBy(16.dp),
                         ) {
                             items(
                                 apis,
@@ -109,14 +109,13 @@ fun PageApi() {
                                     },
                                     onTestButtonClick = {
                                         randomRefreshKey = Random.nextInt(Int.MAX_VALUE)
-                                    }
+                                    },
                                 )
                             }
                         }
                     }
                 }
             }
-
         }
     }
 }
@@ -150,7 +149,6 @@ private fun LazyGridItemScope.ApiCard(
                         .fillMaxSize()
                         .clickable {
                             onClick()
-
                         },
                     contentScale = ContentScale.Crop,
                 )
@@ -169,7 +167,7 @@ private fun LazyGridItemScope.ApiCard(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(
-                        alpha = 0.5f
+                        alpha = 0.5f,
                     ),
                     shape = RoundedCornerShape(12.dp),
                 ) {
@@ -184,11 +182,10 @@ private fun LazyGridItemScope.ApiCard(
                 }
 
                 OutlinedButton(
-                    onClick = onTestButtonClick
+                    onClick = onTestButtonClick,
                 ) {
                     Text("Test")
                 }
-
             }
         }
     }

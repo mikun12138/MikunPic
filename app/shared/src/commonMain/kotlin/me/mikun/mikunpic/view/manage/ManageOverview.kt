@@ -54,18 +54,17 @@ import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.launch
 import me.mikun.mikunpic.LocalPref
-import me.mikun.mikunpic.dto.awesome.UploadRule
-import me.mikun.mikunpic.dto.awesome.UploadRule.asRegex
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.component.card.AcrylicCard
 import me.mikun.mikunpic.dto.awesome.FileExtension
 import me.mikun.mikunpic.dto.awesome.PicPathResolver
+import me.mikun.mikunpic.dto.awesome.UploadRule
+import me.mikun.mikunpic.dto.awesome.UploadRule.asRegex
 import me.mikun.mikunpic.dto.awesome.dfs
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.PicCreate
 import me.mikun.mikunpic.dto.data.Platform
 import me.mikun.mikunpic.viewmodel.ManageStorageViewModel
-
 
 @Composable
 fun BoxScope.ManageOverview(
@@ -183,7 +182,6 @@ fun BoxScope.ManageOverview(
                             OutlinedButton(
                                 onClick = {
                                     showSelectStorageToUpload = true
-
                                 },
                             ) {
                                 Text("Upload")
@@ -194,13 +192,12 @@ fun BoxScope.ManageOverview(
                     if (showSelectStorageToUpload) {
                         val storages by manageStorageViewModel.storages.collectAsState()
                         ElevatedCard(
-                            modifier = Modifier.padding(8.dp)
+                            modifier = Modifier.padding(8.dp),
                         ) {
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.Center
+                                verticalArrangement = Arrangement.Center,
                             ) {
-
                                 storages.forEach {
                                     Button(
                                         onClick = {
@@ -216,7 +213,7 @@ fun BoxScope.ManageOverview(
                                                     return FileExtension.image.any { ext ->
                                                         file.name.endsWith(
                                                             ext,
-                                                            ignoreCase = true
+                                                            ignoreCase = true,
                                                         )
                                                     }
                                                 }
@@ -233,27 +230,26 @@ fun BoxScope.ManageOverview(
 
                                                         val picCreate = picPathResolver.resolve(
                                                             path = path,
-                                                            filename = PlatformFile::name
+                                                            filename = PlatformFile::name,
                                                         )
 
                                                         picCreate?.let { picCreate ->
                                                             Client.uploadPic(
                                                                 storageLabel = it.label,
                                                                 picBytes = file.readBytes(),
-                                                                pic = picCreate
+                                                                pic = picCreate,
                                                             )
                                                         }
                                                     }
                                                 }
                                             }
                                             showSelectStorageToUpload = false
-                                        }
+                                        },
                                     ) {
                                         Text(it.label)
                                     }
                                 }
                             }
-
                         }
                     }
                 }

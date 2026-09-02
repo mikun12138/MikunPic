@@ -15,7 +15,6 @@ object Pic2TagsTable : IntIdTable("pics2tags") {
     val tagId =
         integer("tag_id")
 
-
     init {
         uniqueIndex(picId, tagId)
     }

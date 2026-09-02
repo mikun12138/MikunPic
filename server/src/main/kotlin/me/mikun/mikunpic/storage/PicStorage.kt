@@ -17,12 +17,12 @@ sealed class PicStorage {
         object : CopyOnWriteArraySet<String>() {
 
             private fun isValid(e: String?): Boolean = e != null &&
-                    FileExtension.image.any {
-                        e.endsWith(
-                            it,
-                            ignoreCase = true,
-                        )
-                    }
+                FileExtension.image.any {
+                    e.endsWith(
+                        it,
+                        ignoreCase = true,
+                    )
+                }
 
             override fun add(e: String?): Boolean = isValid(e) && super.add(e)
 
@@ -36,33 +36,32 @@ sealed class PicStorage {
         val storages: MutableList<PicStorage> = mutableListOf()
 
         fun configure(application: Application) {
-
             runCatching {
                 LocalMikunPicConfig.storages.forEach {
                     when (it) {
                         is MikunPicConfig.Storage.Local -> {
                             storages.add(
                                 PicStorageLocal(
-                                    it.label
+                                    it.label,
                                 ).apply {
                                     init(
                                         application,
-                                        it
+                                        it,
                                     )
-                                }
+                                },
                             )
                         }
 
                         is MikunPicConfig.Storage.Cos -> {
                             storages.add(
                                 PicStorageCos(
-                                    it.label
+                                    it.label,
                                 ).apply {
                                     init(
                                         application,
-                                        it
+                                        it,
                                     )
-                                }
+                                },
                             )
                         }
 
@@ -120,7 +119,6 @@ sealed class PicStorage {
             }
 
             return null
-
         }
 
         suspend fun upload(
@@ -131,7 +129,6 @@ sealed class PicStorage {
             byteArray,
             storeKey,
         )
-
     }
 
     abstract fun init(
@@ -140,7 +137,6 @@ sealed class PicStorage {
     )
 
     abstract suspend fun random(): InputStream?
-
 
     abstract suspend fun byKey(
         key: String,

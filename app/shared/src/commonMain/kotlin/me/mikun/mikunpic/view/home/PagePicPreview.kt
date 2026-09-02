@@ -23,7 +23,6 @@ fun PagePicPreview(
     onReady: () -> Unit,
     readyPop: Boolean,
 ) {
-
     var showPicCardPopup by remember { mutableStateOf(false) }
     var picUrlToPopup by remember { mutableStateOf<String?>(null) }
     var picToPopupMemoryCacheKey by remember { mutableStateOf<String?>(null) }
@@ -77,7 +76,6 @@ fun PagePicPreview(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-
         PicCarousel(
             painters = painters,
             onClick = { index ->

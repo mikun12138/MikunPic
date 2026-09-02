@@ -120,7 +120,7 @@ object Client {
             OhMyRouting.Pic.Id(
                 id = id,
                 thumbnail = thumbnail,
-                storageLabel = storageLabel
+                storageLabel = storageLabel,
             ),
         ).asBytes()
 
@@ -157,8 +157,8 @@ object Client {
                         append(
                             "pic",
                             Json.encodeToString(
-                                pic
-                            )
+                                pic,
+                            ),
                         )
                     },
                 ),
@@ -175,7 +175,7 @@ object Client {
         storageLabels: List<String> = emptyList(),
     ) = httpClient
         .post(
-            OhMyRouting.Manage.Pic.Random()
+            OhMyRouting.Manage.Pic.Random(),
         ) {
             contentType(ContentType.Application.Json)
             setBody(
@@ -183,8 +183,8 @@ object Client {
                     count = count,
                     illustrator = illustratorFilter,
                     tag = tagFilter,
-                    storageLabels = storageLabels
-                )
+                    storageLabels = storageLabels,
+                ),
             )
         }
         .asAny<OhMyRouting.Manage.Pic.Random.Response>()
@@ -224,13 +224,13 @@ object Client {
     ) {
         httpClient
             .post(
-                OhMyRouting.Manage.Tag.Create()
+                OhMyRouting.Manage.Tag.Create(),
             ) {
                 contentType(ContentType.Application.Json)
                 setBody(
                     OhMyRouting.Manage.Tag.Create.Body(
-                        name = tagName
-                    )
+                        name = tagName,
+                    ),
                 )
             }
     }
@@ -244,7 +244,7 @@ object Client {
             OhMyRouting.Manage.Tag.Search(
                 count = count,
                 keyword = keyword,
-                page = page
+                page = page,
             ),
         ).asAny<OhMyRouting.Manage.Tag.Search.Response>()
 
@@ -253,68 +253,63 @@ object Client {
     ) {
         httpClient
             .post(
-                OhMyRouting.Manage.Tag.Delete()
+                OhMyRouting.Manage.Tag.Delete(),
             ) {
                 contentType(ContentType.Application.Json)
                 setBody(
                     OhMyRouting.Manage.Tag.Delete.Body(
-                        name = tagName
-                    )
+                        name = tagName,
+                    ),
                 )
             }
     }
 
-    suspend fun fetchStorages() =
-        httpClient
-            .get(
-                OhMyRouting.Manage.Storage.List()
-            ).asAny<OhMyRouting.Manage.Storage.List.Response>()
+    suspend fun fetchStorages() = httpClient
+        .get(
+            OhMyRouting.Manage.Storage.List(),
+        ).asAny<OhMyRouting.Manage.Storage.List.Response>()
 
     suspend fun addStorage(
         storage: Storage,
-    ) =
-        httpClient
-            .post(
-                OhMyRouting.Manage.Storage.Add()
-            ) {
-                contentType(ContentType.Application.Json)
-                setBody(
-                    OhMyRouting.Manage.Storage.Add.Body(
-                        storage = storage
-                    )
-                )
-            }
+    ) = httpClient
+        .post(
+            OhMyRouting.Manage.Storage.Add(),
+        ) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                OhMyRouting.Manage.Storage.Add.Body(
+                    storage = storage,
+                ),
+            )
+        }
 
     suspend fun editStorage(
         storage: Storage,
-    ) =
-        httpClient
-            .post(
-                OhMyRouting.Manage.Storage.Edit()
-            ) {
-                contentType(ContentType.Application.Json)
-                setBody(
-                    OhMyRouting.Manage.Storage.Edit.Body(
-                        storage = storage
-                    )
-                )
-            }
+    ) = httpClient
+        .post(
+            OhMyRouting.Manage.Storage.Edit(),
+        ) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                OhMyRouting.Manage.Storage.Edit.Body(
+                    storage = storage,
+                ),
+            )
+        }
 
     suspend fun deleteStorage(
         storageLabel: String,
-    ) =
-        httpClient
-            .post(
-                OhMyRouting.Manage.Storage.Delete()
-            ) {
-                contentType(ContentType.Application.Json)
-                setBody(
-                    OhMyRouting.Manage.Storage.Delete.Body(
-                        storageLabel = storageLabel
-                    )
-                )
-            }
-
+    ) = httpClient
+        .post(
+            OhMyRouting.Manage.Storage.Delete(),
+        ) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                OhMyRouting.Manage.Storage.Delete.Body(
+                    storageLabel = storageLabel,
+                ),
+            )
+        }
 
     suspend fun sync(
         storageLabel: String,
@@ -327,8 +322,8 @@ object Client {
             setBody(
                 OhMyRouting.Manage.Storage.Sync.Body(
                     storageLabel = storageLabel,
-                    syncRuleText = syncRuleText
-                )
+                    syncRuleText = syncRuleText,
+                ),
             )
         }
 
@@ -348,5 +343,4 @@ object Client {
             httpClient.href(resource, this)
         }.buildString()
     }
-
 }

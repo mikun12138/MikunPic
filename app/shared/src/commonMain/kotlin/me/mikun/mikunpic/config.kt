@@ -22,19 +22,19 @@ data class Config(
     val apis: List<Api> = listOf(
         Api(
             name = "-随机图-",
-            url = "http://127.0.0.1:8080/random"
+            url = "http://127.0.0.1:8080/random",
         ),
         Api(
             name = "+随机图-",
-            url = "http://127.0.0.1:8080/random"
+            url = "http://127.0.0.1:8080/random",
         ),
         Api(
             name = "-随机图+",
-            url = "http://127.0.0.1:8080/random"
+            url = "http://127.0.0.1:8080/random",
         ),
         Api(
             name = "+随机图+",
-            url = "http://127.0.0.1:8080/random"
+            url = "http://127.0.0.1:8080/random",
         ),
     ),
 ) {

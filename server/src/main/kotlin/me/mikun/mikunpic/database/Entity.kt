@@ -21,7 +21,6 @@ class PicEntity(
     var filename by PicTable.filename
 
     var hash by PicTable.hash
-
 }
 
 class IllustratorEntity(

@@ -72,12 +72,12 @@ class StorageDB(
                         otherTable = Illustrator2PlatformKeysTable,
                         joinType = JoinType.LEFT,
                         onColumn = PlatformKeyTable.id,
-                        otherColumn = Illustrator2PlatformKeysTable.platformkey
+                        otherColumn = Illustrator2PlatformKeysTable.platformkey,
                     ).join(
                         otherTable = IllustratorTable,
                         joinType = JoinType.LEFT,
                         onColumn = Illustrator2PlatformKeysTable.illustrator,
-                        otherColumn = IllustratorTable.id
+                        otherColumn = IllustratorTable.id,
                     ).selectAll().apply {
                         illustrator.platformKeyMap.forEach { platform, key ->
                             orWhere {
@@ -96,7 +96,8 @@ class StorageDB(
                     }
 
                     val platformIds = PlatformKeyTable.batchInsert(
-                        illustrator.platformKeyMap.toList(), ignore = true
+                        illustrator.platformKeyMap.toList(),
+                        ignore = true,
                     ) { (platform, key) ->
                         this[PlatformKeyTable.platform] = platform
                         this[PlatformKeyTable.key] = key
@@ -105,7 +106,8 @@ class StorageDB(
                     }
 
                     Illustrator2PlatformKeysTable.batchInsert(
-                        platformIds, ignore = true
+                        platformIds,
+                        ignore = true,
                     ) {
                         this[Illustrator2PlatformKeysTable.illustrator] = newIllustratorId
                         this[Illustrator2PlatformKeysTable.platformkey] = it
@@ -114,21 +116,22 @@ class StorageDB(
 
                 // TODO:: use insertReturning?
                 TagTable.batchInsert(
-                    pic.tags, ignore = true
+                    pic.tags,
+                    ignore = true,
                 ) {
                     this[TagTable.name] = it
                 }
 
                 newTagIds.addAll(
                     TagTable.select(
-                        TagTable.id
+                        TagTable.id,
                     ).where {
                         TagTable.name inList pic.tags
                     }.map {
                         it[TagTable.id].value
-                    })
+                    },
+                )
             }
-
 
             val newPicId = PicTable.insert {
                 it[PicTable.filename] = pic.filename
@@ -146,12 +149,12 @@ class StorageDB(
             }
 
             Pic2TagsTable.batchInsert(
-                newTagIds, ignore = true
+                newTagIds,
+                ignore = true,
             ) {
                 this[Pic2TagsTable.picId] = newPicId
                 this[Pic2TagsTable.tagId] = it
             }
-
         }
     }
 
@@ -168,12 +171,12 @@ class StorageDB(
                         otherTable = Illustrator2PlatformKeysTable,
                         joinType = JoinType.LEFT,
                         onColumn = PlatformKeyTable.id,
-                        otherColumn = Illustrator2PlatformKeysTable.platformkey
+                        otherColumn = Illustrator2PlatformKeysTable.platformkey,
                     ).join(
                         otherTable = IllustratorTable,
                         joinType = JoinType.LEFT,
                         onColumn = Illustrator2PlatformKeysTable.illustrator,
-                        otherColumn = IllustratorTable.id
+                        otherColumn = IllustratorTable.id,
                     ).selectAll().apply {
                         illustrator.platformKeyMap.forEach { platform, key ->
                             orWhere {
@@ -192,7 +195,8 @@ class StorageDB(
                     }
 
                     val platformIds = PlatformKeyTable.batchInsert(
-                        illustrator.platformKeyMap.toList(), ignore = true
+                        illustrator.platformKeyMap.toList(),
+                        ignore = true,
                     ) { (platform, key) ->
                         this[PlatformKeyTable.platform] = platform
                         this[PlatformKeyTable.key] = key
@@ -201,7 +205,8 @@ class StorageDB(
                     }
 
                     Illustrator2PlatformKeysTable.batchInsert(
-                        platformIds, ignore = true
+                        platformIds,
+                        ignore = true,
                     ) {
                         this[Illustrator2PlatformKeysTable.illustrator] = newIllustratorId
                         this[Illustrator2PlatformKeysTable.platformkey] = it
@@ -210,19 +215,21 @@ class StorageDB(
 
                 // TODO:: use insertReturning?
                 TagTable.batchInsert(
-                    pic.tags, ignore = true
+                    pic.tags,
+                    ignore = true,
                 ) {
                     this[TagTable.name] = it
                 }
 
                 newTagIds.addAll(
                     TagTable.select(
-                        TagTable.id
+                        TagTable.id,
                     ).where {
                         TagTable.name inList pic.tags
                     }.map {
                         it[TagTable.id].value
-                    })
+                    },
+                )
             }
 
             newIllustratorId?.let { newIllustratorId ->
@@ -239,7 +246,8 @@ class StorageDB(
             }
 
             Pic2TagsTable.batchInsert(
-                newTagIds, ignore = true
+                newTagIds,
+                ignore = true,
             ) {
                 this[Pic2TagsTable.picId] = picEntity.id
                 this[Pic2TagsTable.tagId] = it
@@ -264,7 +272,7 @@ class StorageDB(
 
     suspend fun selectPic(
         platform: Platform,
-        key: String
+        key: String,
     ): PicSelect? = transaction(db) {
         PicTable.selectAll().where {
             (PicTable.platform eq platform) and (PicTable.filename eq key)
@@ -279,7 +287,7 @@ class StorageDB(
     }
 
     suspend fun selectPic(
-        hash: String
+        hash: String,
     ): PicSelect? = transaction(db) {
         PicTable.selectAll().where {
             PicTable.hash eq hash
@@ -322,17 +330,14 @@ class StorageDB(
             val args: List<Pair<IColumnType<*>, Any?>> = emptyList(),
         )
 
-        private fun stringArg(value: String): Pair<IColumnType<*>, Any?> =
-            TextColumnType() to value
+        private fun stringArg(value: String): Pair<IColumnType<*>, Any?> = TextColumnType() to value
 
-        private fun intArg(value: Int): Pair<IColumnType<*>, Any?> =
-            IntegerColumnType() to value
+        private fun intArg(value: Int): Pair<IColumnType<*>, Any?> = IntegerColumnType() to value
 
-        private fun placeholders(count: Int) =
-            List(count) { "?" }.joinToString(
-                prefix = "(",
-                postfix = ")",
-            )
+        private fun placeholders(count: Int) = List(count) { "?" }.joinToString(
+            prefix = "(",
+            postfix = ")",
+        )
 
         private fun attachSql(storage: AttachedStorage) = PreparedSql(
             sql = """
@@ -344,13 +349,13 @@ class StorageDB(
             ),
         )
 
-        private fun detachSql(storage: AttachedStorage) =
-            "DETACH DATABASE ${storage.alias}"
+        private fun detachSql(storage: AttachedStorage) = "DETACH DATABASE ${storage.alias}"
 
         private fun illustratorFilterSql(
             illustratorFilter: OhMyRouting.Manage.Pic.Random.IllustratorFilter,
         ): PreparedSql? = when (illustratorFilter) {
             OhMyRouting.Manage.Pic.Random.IllustratorFilter.Any -> null
+
             OhMyRouting.Manage.Pic.Random.IllustratorFilter.None -> PreparedSql(
                 sql = "pic2illustrator.illustrator_id IS NULL",
             )
@@ -373,6 +378,7 @@ class StorageDB(
             tagFilter: OhMyRouting.Manage.Pic.Random.TagFilter,
         ): PreparedSql? = when (tagFilter) {
             OhMyRouting.Manage.Pic.Random.TagFilter.Any -> null
+
             OhMyRouting.Manage.Pic.Random.TagFilter.None -> PreparedSql(
                 sql = """
                     NOT EXISTS (
@@ -488,8 +494,8 @@ class StorageDB(
             }
             val pickedTags = storages.map(::pickedTagsSql)
             val args = candidates.flatMap { it.args } +
-                    intArg(count) +
-                    pickedTags.flatMap { it.args }
+                intArg(count) +
+                pickedTags.flatMap { it.args }
 
             return PreparedSql(
                 sql = """

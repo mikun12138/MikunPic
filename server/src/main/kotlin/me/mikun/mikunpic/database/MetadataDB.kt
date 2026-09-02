@@ -59,7 +59,7 @@ object MetadataDB {
                                 this.platform = platform
                                 this.key = key
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -84,7 +84,7 @@ object MetadataDB {
             otherTable = Illustrator2PlatformKeysTable,
             joinType = JoinType.LEFT,
             onColumn = IllustratorTable.id,
-            otherColumn = Illustrator2PlatformKeysTable.illustrator
+            otherColumn = Illustrator2PlatformKeysTable.illustrator,
         ).join(
             otherTable = PlatformKeyTable,
             joinType = JoinType.LEFT,
@@ -94,7 +94,7 @@ object MetadataDB {
             IllustratorTable.id,
             IllustratorTable.name,
             PlatformKeyTable.platform,
-            PlatformKeyTable.key
+            PlatformKeyTable.key,
         ).apply {
             if (keyword != null) {
                 where { IllustratorTable.name like "%$keyword%" }
@@ -110,7 +110,7 @@ object MetadataDB {
                     MutableIllustrator(
                         id,
                         row[IllustratorTable.name],
-                        mutableMapOf()
+                        mutableMapOf(),
                     )
                 }
 
@@ -121,7 +121,7 @@ object MetadataDB {
             Illustrator(
                 id = it.id,
                 name = it.name,
-                platformKeyMap = it.platformKeyMap.toMap()
+                platformKeyMap = it.platformKeyMap.toMap(),
             )
         }
     }

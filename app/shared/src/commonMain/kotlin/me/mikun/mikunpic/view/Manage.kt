@@ -20,7 +20,7 @@ import me.mikun.mikunpic.viewmodel.ManageViewModel
 
 @Composable
 fun Manage(
-    viewModel: ManageViewModel = viewModel { ManageViewModel() }
+    viewModel: ManageViewModel = viewModel { ManageViewModel() },
 ) {
     val pages = listOf<@Composable () -> Unit>(
         {
@@ -34,8 +34,7 @@ fun Manage(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-                ,
+                    .background(MaterialTheme.colorScheme.surfaceContainerLowest),
             ) {
                 ManageEditTable()
             }
@@ -44,12 +43,11 @@ fun Manage(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-                ,
+                    .background(MaterialTheme.colorScheme.surfaceContainerLowest),
             ) {
                 ManageStorages()
             }
-        }
+        },
     )
 
     Box {

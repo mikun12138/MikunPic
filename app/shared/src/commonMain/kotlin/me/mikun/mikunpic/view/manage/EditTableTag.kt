@@ -62,7 +62,7 @@ fun EditTableTag(
     LaunchedEffect(currentStorageLabel) {
         viewModel.updateTags()
         viewModel.updateImageShowing(
-            currentStorageLabel
+            currentStorageLabel,
         )
     }
 
@@ -74,7 +74,6 @@ fun EditTableTag(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-
         Row {
             when (editMode) {
                 EditMode.None -> {
@@ -82,7 +81,7 @@ fun EditTableTag(
                         onClick = {
                             tagToRemove.clear()
                             editMode = EditMode.Remove
-                        }
+                        },
                     ) {
                         Text("-")
                     }
@@ -90,7 +89,7 @@ fun EditTableTag(
                     Button(
                         onClick = {
                             editMode = EditMode.Add
-                        }
+                        },
                     ) {
                         Text("+")
                     }
@@ -102,13 +101,13 @@ fun EditTableTag(
                             scope.launch {
                                 tagToRemove.forEach {
                                     Client.deleteTag(
-                                        it
+                                        it,
                                     )
                                 }
                                 viewModel.updateTags()
                             }
                             editMode = EditMode.None
-                        }
+                        },
                     ) {
                         Text("OK")
                     }
@@ -117,33 +116,31 @@ fun EditTableTag(
                 EditMode.Add -> {
                     val tagToAdd = rememberTextFieldState()
                     TextField(
-                        tagToAdd
+                        tagToAdd,
                     )
 
                     Button(
                         onClick = {
                             scope.launch {
                                 Client.createTag(
-                                    tagToAdd.text.toString()
+                                    tagToAdd.text.toString(),
                                 )
                                 viewModel.updateTags()
                             }
                             editMode = EditMode.None
-                        }
+                        },
                     ) {
                         Text("OK")
                     }
                 }
 
                 else -> {
-
                 }
-
             }
         }
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            maxLines = 3
+            maxLines = 3,
         ) {
             when (editMode) {
                 EditMode.Remove -> {
@@ -155,7 +152,7 @@ fun EditTableTag(
                             },
                             label = {
                                 Text(tag)
-                            }
+                            },
                         )
                     }
                 }
@@ -169,12 +166,12 @@ fun EditTableTag(
                             onClick = {
                                 viewModel.toggleTagsSelected(tag)
                                 viewModel.updateImageShowing(
-                                    currentStorageLabel
+                                    currentStorageLabel,
                                 )
                             },
                             label = {
                                 Text(tag)
-                            }
+                            },
                         )
                     }
                 }
@@ -187,9 +184,8 @@ fun EditTableTag(
 
         LazyHorizontalStaggeredGrid(
             rows = StaggeredGridCells.Fixed(2),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) {
-
             items(imagesShowing) { (storageLabel, picId) ->
                 // TODO:: no bytes
                 val imageBytes by produceState<ByteArray?>(
@@ -207,10 +203,10 @@ fun EditTableTag(
                 AsyncImage(
                     model = ImageRequest.Builder(localPlatformContext)
                         .data(imageBytes)
-                        .memoryCacheKey("${storageLabel}:${picId}")
+                        .memoryCacheKey("$storageLabel:$picId")
                         .crossfade(true)
                         .build(),
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
         }

@@ -23,7 +23,7 @@ class EditTableTagViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _tags.value = Client.searchTag(
-                    count = Int.MAX_VALUE
+                    count = Int.MAX_VALUE,
                 )?.let {
                     it.tags
                 } ?: emptyList()
@@ -59,7 +59,7 @@ class EditTableTagViewModel : ViewModel() {
                     tagFilter = tagsSelected.value.takeIf { it.isNotEmpty() }?.let {
                         TagFilter.All(it)
                     } ?: TagFilter.Any,
-                    storageLabels = listOf(storageLabel)
+                    storageLabels = listOf(storageLabel),
                 )?.label2Pics.orEmpty().flatMap { (storageLabel, pics) ->
                     pics.map { storageLabel to it.id }
                 }
@@ -68,5 +68,4 @@ class EditTableTagViewModel : ViewModel() {
             }
         }
     }
-
 }

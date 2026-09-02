@@ -72,28 +72,26 @@ object UploadRule {
                     }
                 PlaceHolder(
                     type = type,
-                    value = it.toString()
+                    value = it.toString(),
                 )
             }
         }
     }
 
-    fun List<PlaceHolder>.asRegex(): Regex {
-        return buildString {
-            this@asRegex.forEach {
-                when (it.type) {
-                    PlaceHolder.Type.Simple -> {
-                        append(Regex.escape(it.value))
-                    }
+    fun List<PlaceHolder>.asRegex(): Regex = buildString {
+        this@asRegex.forEach {
+            when (it.type) {
+                PlaceHolder.Type.Simple -> {
+                    append(Regex.escape(it.value))
+                }
 
-                    else -> {
-                        val v = it.value.removePrefix("{").removeSuffix("}")
-                        append("""(?<$v>.+?)""")
-                    }
+                else -> {
+                    val v = it.value.removePrefix("{").removeSuffix("}")
+                    append("""(?<$v>.+?)""")
                 }
             }
-        }.let {
-            Regex(it)
         }
+    }.let {
+        Regex(it)
     }
 }

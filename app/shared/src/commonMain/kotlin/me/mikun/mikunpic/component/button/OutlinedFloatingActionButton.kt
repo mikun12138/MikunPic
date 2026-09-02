@@ -31,13 +31,13 @@ fun OutlinedFloatingActionButton(
         modifier = modifier
             .border(
                 ButtonDefaults.outlinedButtonBorder(true),
-                shape = FloatingActionButtonDefaults.shape
+                shape = FloatingActionButtonDefaults.shape,
             ),
         shape = shape,
         containerColor = containerColor,
         contentColor = contentColor,
         elevation = elevation,
         interactionSource = interactionSource,
-        content = content
+        content = content,
     )
 }

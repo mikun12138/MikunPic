@@ -50,7 +50,7 @@ fun TagCardPopup(
                 showPicCardPopup = false
                 picUrlToPopup = null
             },
-            picUrl = picUrlToPopup!!
+            picUrl = picUrlToPopup!!,
         )
     }
 

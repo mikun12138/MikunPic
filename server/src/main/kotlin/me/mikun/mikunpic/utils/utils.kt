@@ -5,46 +5,42 @@ import me.mikun.mikunpic.dto.data.Storage
 
 fun Iterable<String>.mapToNullable(): List<String?> = this.map { it.ifEmpty { null } }
 
-fun Storage.toStorageConfig(): MikunPicConfig.Storage {
-    return when (this) {
-        is Storage.Local -> {
-            MikunPicConfig.Storage.Local(
-                label = this.label,
-                path = this.path
-            )
-        }
+fun Storage.toStorageConfig(): MikunPicConfig.Storage = when (this) {
+    is Storage.Local -> {
+        MikunPicConfig.Storage.Local(
+            label = this.label,
+            path = this.path,
+        )
+    }
 
-        is Storage.Cos -> {
-            MikunPicConfig.Storage.Cos(
-                label = this.label,
-                secretId = this.secretId ?: "",
-                secretKey = this.secretKey ?: "",
-                bucketName = this.bucketName,
-                region = this.region
-            )
-        }
+    is Storage.Cos -> {
+        MikunPicConfig.Storage.Cos(
+            label = this.label,
+            secretId = this.secretId ?: "",
+            secretKey = this.secretKey ?: "",
+            bucketName = this.bucketName,
+            region = this.region,
+        )
     }
 }
 
-fun Storage.toStorageConfig(old: MikunPicConfig.Storage): MikunPicConfig.Storage {
-    return when (this) {
-        is Storage.Local -> {
-            val oldLocal = old as MikunPicConfig.Storage.Local
-            oldLocal.copy(
-                label = this.label,
-                path = this.path
-            )
-        }
+fun Storage.toStorageConfig(old: MikunPicConfig.Storage): MikunPicConfig.Storage = when (this) {
+    is Storage.Local -> {
+        val oldLocal = old as MikunPicConfig.Storage.Local
+        oldLocal.copy(
+            label = this.label,
+            path = this.path,
+        )
+    }
 
-        is Storage.Cos -> {
-            val oldCos = old as MikunPicConfig.Storage.Cos
-            oldCos.copy(
-                label = this.label,
-                secretId = this.secretId ?: oldCos.secretId,
-                secretKey = this.secretKey ?: oldCos.secretKey,
-                bucketName = this.bucketName,
-                region = this.region
-            )
-        }
+    is Storage.Cos -> {
+        val oldCos = old as MikunPicConfig.Storage.Cos
+        oldCos.copy(
+            label = this.label,
+            secretId = this.secretId ?: oldCos.secretId,
+            secretKey = this.secretKey ?: oldCos.secretKey,
+            bucketName = this.bucketName,
+            region = this.region,
+        )
     }
 }

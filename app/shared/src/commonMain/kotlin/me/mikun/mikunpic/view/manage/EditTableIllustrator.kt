@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.dp
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.component.act.IllustratorCardPopup
 import me.mikun.mikunpic.component.act.PicCardPopup
-import me.mikun.mikunpic.component.image.SizeCachedImage
 import me.mikun.mikunpic.component.card.AcrylicCard
+import me.mikun.mikunpic.component.image.SizeCachedImage
 import me.mikun.mikunpic.dto.data.Illustrator
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.dto.data.api.OhMyRouting.Manage.Pic.Random.IllustratorFilter
@@ -48,7 +48,7 @@ fun EditTableIllustrator() {
                 showIllustratorCardPopup = false
                 illustratorToPopup = null
             },
-            illustrator = illustratorToPopup!!
+            illustrator = illustratorToPopup!!,
         )
     }
 
@@ -61,7 +61,7 @@ fun EditTableIllustrator() {
                 showPicCardPopup = false
                 picUrlToPopup = null
             },
-            picUrl = picUrlToPopup!!
+            picUrl = picUrlToPopup!!,
         )
     }
 
@@ -97,7 +97,7 @@ fun EditTableIllustrator() {
                     onCLickPic = { picUrl ->
                         showPicCardPopup = true
                         picUrlToPopup = picUrl
-                    }
+                    },
                 )
             }
         }
@@ -132,7 +132,7 @@ private fun IllustratorCard(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f),
-        onClick = onClick
+        onClick = onClick,
     ) {
         Column(
             modifier = Modifier

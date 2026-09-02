@@ -19,7 +19,7 @@ import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import java.io.InputStream
 
 class PicStorageCos(
-    override val label: String
+    override val label: String,
 ) : PicStorage() {
     private lateinit var cosClient: COSClient
     private lateinit var bucket: Bucket
@@ -33,11 +33,11 @@ class PicStorageCos(
             fun initClient() {
                 val cred: COSCredentials = BasicCOSCredentials(
                     storage.secretId,
-                    storage.secretKey
+                    storage.secretKey,
                 )
 
                 val region = Region(
-                    storage.region
+                    storage.region,
                 )
                 val clientConfig = ClientConfig(region)
                 clientConfig.httpProtocol = HttpProtocol.https

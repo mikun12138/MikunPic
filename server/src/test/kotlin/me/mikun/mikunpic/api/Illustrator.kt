@@ -23,9 +23,9 @@ class Illustrator {
                         name = "mikun",
                         platformKeyMap = mapOf(
                             Platform.Pixiv to "mikun12138",
-                            Platform.Twitter to "mikun_12138"
-                        )
-                    )
+                            Platform.Twitter to "mikun_12138",
+                        ),
+                    ),
                 ),
             )
         }

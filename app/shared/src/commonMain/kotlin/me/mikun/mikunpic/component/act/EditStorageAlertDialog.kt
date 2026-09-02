@@ -45,12 +45,12 @@ fun EditStorageAlertDialog(
     storageToEdit?.let { storage ->
         SimpleAlertDialog(
             show = show,
-            onDismissRequest = onDismissRequest
+            onDismissRequest = onDismissRequest,
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 var onSubmitting by remember { mutableStateOf(false) }
                 var expanded by remember { mutableStateOf(false) }
@@ -64,14 +64,14 @@ fun EditStorageAlertDialog(
                             is Storage.Cos -> {
                                 StorageType.Cos
                             }
-                        }
+                        },
                     )
                 }
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = {
                         expanded = it
-                    }
+                    },
                 ) {
                     val textFieldState = rememberTextFieldState(storageType.value)
                     TextField(
@@ -87,7 +87,7 @@ fun EditStorageAlertDialog(
                         expanded = expanded,
                         onDismissRequest = {
                             expanded = false
-                        }
+                        },
                     ) {
                         DropdownMenuItem(
                             text = { Text("local") },
@@ -95,7 +95,7 @@ fun EditStorageAlertDialog(
                                 storageType = StorageType.Local
                                 textFieldState.setTextAndPlaceCursorAtEnd(storageType.value)
                                 expanded = false
-                            }
+                            },
                         )
                         DropdownMenuItem(
                             text = { Text("cos") },
@@ -103,7 +103,7 @@ fun EditStorageAlertDialog(
                                 storageType = StorageType.Cos
                                 textFieldState.setTextAndPlaceCursorAtEnd(storageType.value)
                                 expanded = false
-                            }
+                            },
                         )
                     }
                 }
@@ -125,7 +125,7 @@ fun EditStorageAlertDialog(
                                 colors = TextFieldDefaults.colors(
                                     focusedLabelColor = LocalContentColor.current.copy(alpha = 0.6f),
                                     unfocusedLabelColor = LocalContentColor.current.copy(alpha = 0.4f),
-                                )
+                                ),
                             )
                         }
 
@@ -139,8 +139,8 @@ fun EditStorageAlertDialog(
                                         Client.editStorage(
                                             Storage.Local(
                                                 label = storage.label,
-                                                path = form.path.text.toString()
-                                            )
+                                                path = form.path.text.toString(),
+                                            ),
                                         )
                                     }
 
@@ -150,7 +150,7 @@ fun EditStorageAlertDialog(
 
                                     onSubmitting = false
                                 }
-                            }
+                            },
                         ) {
                             Text("OK")
                             if (onSubmitting) {
@@ -182,7 +182,7 @@ fun EditStorageAlertDialog(
                                 colors = TextFieldDefaults.colors(
                                     focusedLabelColor = LocalContentColor.current.copy(alpha = 0.6f),
                                     unfocusedLabelColor = LocalContentColor.current.copy(alpha = 0.4f),
-                                )
+                                ),
                             )
                         }
 
@@ -199,7 +199,7 @@ fun EditStorageAlertDialog(
                                                 secretKey = form.secretKey.text.toString(),
                                                 bucketName = form.bucketName.text.toString(),
                                                 region = form.region.text.toString(),
-                                            )
+                                            ),
                                         )
                                     }
 
@@ -209,7 +209,7 @@ fun EditStorageAlertDialog(
                                 }
 
                                 onSubmitting = false
-                            }
+                            },
                         ) {
                             Text("OK")
                             if (onSubmitting) {
@@ -219,7 +219,6 @@ fun EditStorageAlertDialog(
                     }
 
                     else -> {
-
                     }
                 }
             }

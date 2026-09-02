@@ -30,20 +30,20 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import me.mikun.mikunpic.component.act.AddStorageAlertDialog
 import me.mikun.mikunpic.component.act.DeleteStorageAlertDialog
 import me.mikun.mikunpic.component.act.EditStorageAlertDialog
@@ -58,7 +58,7 @@ enum class StorageType(
 ) {
     None(""),
     Local("local"),
-    Cos("cos")
+    Cos("cos"),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +78,7 @@ fun ManageStorages(
         onClose = {
             showAddStorageDialog = false
             viewModel.flashStorages()
-        }
+        },
     )
 
     var showEditStorageDialog by remember { mutableStateOf(false) }
@@ -94,7 +94,7 @@ fun ManageStorages(
             showEditStorageDialog = false
             storageToEdit = null
             viewModel.flashStorages()
-        }
+        },
     )
 
     var showDeleteStorageDialog by remember { mutableStateOf(false) }
@@ -111,7 +111,7 @@ fun ManageStorages(
             showDeleteStorageDialog = false
             storageToDelete = null
             viewModel.flashStorages()
-        }
+        },
     )
 
     var showStorageDetailDialog by remember { mutableStateOf(false) }
@@ -127,16 +127,15 @@ fun ManageStorages(
         onClose = {
             showStorageDetailDialog = false
             storageToShowDetail = null
-        }
+        },
     )
-
 
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
     ) {
         Box(
             modifier = Modifier.weight(0.05f),
@@ -147,7 +146,7 @@ fun ManageStorages(
                 },
                 modifier = Modifier
                     .fillMaxHeight()
-                    .aspectRatio(2.5f)
+                    .aspectRatio(2.5f),
             ) {
                 Text("Add")
             }
@@ -155,20 +154,21 @@ fun ManageStorages(
 
         Box(
             modifier = Modifier
-                .weight(0.95f)
+                .weight(0.95f),
         ) {
             val currentStorageLabel by manageViewModel.currentStorageLabel.collectAsState()
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(256.dp),
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(8.dp),
             ) {
                 items(
                     items = storages,
                     key = { storage -> storage.label },
                 ) { storage ->
                     StorageCard(
-                        storage, onToggleStorage = { label ->
+                        storage,
+                        onToggleStorage = { label ->
                             manageViewModel.switchStorage(label)
                         },
                         storage.label == currentStorageLabel,
@@ -183,13 +183,12 @@ fun ManageStorages(
                         onDetailClicked = {
                             showStorageDetailDialog = true
                             storageToShowDetail = storage
-                        }
+                        },
                     )
                 }
             }
         }
     }
-
 }
 
 @Composable
@@ -231,11 +230,11 @@ private fun StorageCard(
                 if (isSelected) {
                     Modifier.shadow(
                         elevation = 12.dp,
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
                     )
                 } else {
                     Modifier
-                }
+                },
             ),
     ) {
         Box(
@@ -300,7 +299,7 @@ private fun StorageCardFront(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .padding(8.dp)
-                .fillMaxSize()
+                .fillMaxSize(),
         ) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -323,7 +322,7 @@ private fun StorageCardFront(
                     },
                     contentPadding = PaddingValues(
                         horizontal = 8.dp,
-                        vertical = 4.dp
+                        vertical = 4.dp,
                     ),
                 ) {
                     Text("Edit")
@@ -335,7 +334,7 @@ private fun StorageCardFront(
                     },
                     contentPadding = PaddingValues(
                         horizontal = 8.dp,
-                        vertical = 4.dp
+                        vertical = 4.dp,
                     ),
                 ) {
                     Text("Delete")
@@ -372,7 +371,7 @@ private fun StorageCardBack(
         Column(
             modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when (storage) {
                 is Storage.Local -> {
@@ -410,7 +409,6 @@ private fun StorageCardBack(
         ) {
             Text("Back")
         }
-
     }
 }
 

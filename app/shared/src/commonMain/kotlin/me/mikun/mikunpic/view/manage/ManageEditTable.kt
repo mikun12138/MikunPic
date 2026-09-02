@@ -38,13 +38,13 @@ private enum class Edit {
 
 @Composable
 fun BoxScope.ManageEditTable(
-    manageViewModel: ManageViewModel = viewModel { ManageViewModel() }
+    manageViewModel: ManageViewModel = viewModel { ManageViewModel() },
 ) {
     var editType by remember { mutableStateOf(Edit.Pic) }
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         EditTypeSelector(
             selectedType = editType,

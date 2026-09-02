@@ -71,31 +71,28 @@ private fun makeUploadRule(s: String): List<List<PlaceHolder>> {
                 }
             PlaceHolder(
                 type = type,
-                value = it.toString()
+                value = it.toString(),
             )
         }
     }
 }
 
-private fun List<PlaceHolder>.asRegex(): Regex {
-    return buildString {
-        this@asRegex.forEach {
-            when (it.type) {
-                PlaceHolder.Type.Simple -> {
-                    append(Regex.escape(it.value))
-                }
+private fun List<PlaceHolder>.asRegex(): Regex = buildString {
+    this@asRegex.forEach {
+        when (it.type) {
+            PlaceHolder.Type.Simple -> {
+                append(Regex.escape(it.value))
+            }
 
-                else -> {
-                    val v = it.value.removePrefix("{").removeSuffix("}")
-                    append("""(?<$v>.+?)""")
-                }
+            else -> {
+                val v = it.value.removePrefix("{").removeSuffix("}")
+                append("""(?<$v>.+?)""")
             }
         }
-    }.let {
-        Regex(it)
     }
+}.let {
+    Regex(it)
 }
-
 
 class RandomTest {
     @Test
@@ -128,6 +125,5 @@ class RandomTest {
         println(filename)
 
         println()
-
     }
 }

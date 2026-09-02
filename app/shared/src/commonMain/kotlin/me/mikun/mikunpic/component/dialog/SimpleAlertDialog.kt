@@ -15,11 +15,11 @@ import androidx.compose.ui.Modifier
 fun SimpleAlertDialog(
     show: Boolean,
     onDismissRequest: () -> Unit,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     if (show) {
         BasicAlertDialog(
-            onDismissRequest = onDismissRequest
+            onDismissRequest = onDismissRequest,
         ) {
             Surface(
                 modifier = Modifier

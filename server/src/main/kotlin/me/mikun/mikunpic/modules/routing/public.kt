@@ -45,7 +45,7 @@ fun Route.public() {
         for (db in StorageDB.dbs) {
             val pic = db.selectPic(
                 platform = platform,
-                key = req.key
+                key = req.key,
             ) ?: continue
 
             PicStorage.byKey(

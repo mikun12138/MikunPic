@@ -15,8 +15,8 @@ fun Application.configureDatabase() {
     MetadataDB.init(
         Database.connect(
             "jdbc:sqlite:./data/databases/metadata.db",
-            driver = "org.sqlite.JDBC"
-        )
+            driver = "org.sqlite.JDBC",
+        ),
     )
 
     File("./data/databases/storage").apply {
@@ -28,10 +28,10 @@ fun Application.configureDatabase() {
             StorageDB(
                 Database.connect(
                     "jdbc:sqlite:./data/databases/storage/${it.label}.db",
-                    driver = "org.sqlite.JDBC"
-                )
+                    driver = "org.sqlite.JDBC",
+                ),
             )
-        }
+        },
     )
 
 //    val storageLabels = StorageDB.dbs.map { it.nameNoEx }
@@ -45,5 +45,4 @@ fun Application.configureDatabase() {
 //            )
 //        }
 //    }
-
 }

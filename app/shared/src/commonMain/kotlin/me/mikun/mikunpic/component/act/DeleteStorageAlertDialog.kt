@@ -35,13 +35,13 @@ fun DeleteStorageAlertDialog(
     storageToDelete?.let { storage ->
         SimpleAlertDialog(
             show = show,
-            onDismissRequest = onDismissRequest
+            onDismissRequest = onDismissRequest,
         ) {
             var isDeleting by remember { mutableStateOf(false) }
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text("delete storage: ${storage.label}")
 
@@ -59,7 +59,7 @@ fun DeleteStorageAlertDialog(
                                 isDeleting = true
                                 val result = runCatching {
                                     Client.deleteStorage(
-                                        storage.label
+                                        storage.label,
                                     )
                                 }
 
@@ -71,8 +71,8 @@ fun DeleteStorageAlertDialog(
                         },
                         colors = ButtonDefaults.filledTonalButtonColors(
                             containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError
-                        )
+                            contentColor = MaterialTheme.colorScheme.onError,
+                        ),
                     ) {
                         Text("Y")
                     }
@@ -81,7 +81,7 @@ fun DeleteStorageAlertDialog(
                         enabled = !isDeleting,
                         onClick = {
                             onClose()
-                        }
+                        },
                     ) {
                         Text("N")
                     }

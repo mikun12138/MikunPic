@@ -69,7 +69,7 @@ private fun AppInternal() {
     }
 
     AppTheme(
-        darkTheme = true
+        darkTheme = true,
     ) {
         Box(
             modifier = Modifier

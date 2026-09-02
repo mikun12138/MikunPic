@@ -64,10 +64,9 @@ class PicStorageLocal(
         return false
     }
 
-    private fun isHidden(path: Path): Boolean =
-        runCatching {
-            Files.isHidden(path)
-        }.getOrDefault(false)
+    private fun isHidden(path: Path): Boolean = runCatching {
+        Files.isHidden(path)
+    }.getOrDefault(false)
 
     // for read
     private fun existingRegularFile(key: String): Path? {
@@ -112,11 +111,10 @@ class PicStorageLocal(
         return path
     }
 
-    private fun storageKey(path: Path): String =
-        rootPath.relativize(path)
-            .joinToString("/") {
-                it.toString()
-            }
+    private fun storageKey(path: Path): String = rootPath.relativize(path)
+        .joinToString("/") {
+            it.toString()
+        }
 
     override suspend fun random(): InputStream? {
         return withContext(Dispatchers.IO) {
@@ -139,13 +137,11 @@ class PicStorageLocal(
     override suspend fun byKey(
         key: String,
         thumbnail: OhMyRouting.Pic.Thumbnail,
-    ): InputStream? {
-        return withContext(Dispatchers.IO) {
-            existingRegularFile(key)?.let {
-                runCatching {
-                    Files.newInputStream(it, LinkOption.NOFOLLOW_LINKS)
-                }.getOrNull()
-            }
+    ): InputStream? = withContext(Dispatchers.IO) {
+        existingRegularFile(key)?.let {
+            runCatching {
+                Files.newInputStream(it, LinkOption.NOFOLLOW_LINKS)
+            }.getOrNull()
         }
     }
 
@@ -181,12 +177,10 @@ class PicStorageLocal(
                 override fun preVisitDirectory(
                     dir: Path,
                     attrs: BasicFileAttributes,
-                ): FileVisitResult {
-                    return if (dir != rootPath && isHidden(dir)) {
-                        FileVisitResult.SKIP_SUBTREE
-                    } else {
-                        FileVisitResult.CONTINUE
-                    }
+                ): FileVisitResult = if (dir != rootPath && isHidden(dir)) {
+                    FileVisitResult.SKIP_SUBTREE
+                } else {
+                    FileVisitResult.CONTINUE
                 }
 
                 override fun visitFile(
@@ -202,9 +196,7 @@ class PicStorageLocal(
                 override fun visitFileFailed(
                     file: Path,
                     exc: IOException,
-                ): FileVisitResult {
-                    return FileVisitResult.CONTINUE
-                }
+                ): FileVisitResult = FileVisitResult.CONTINUE
             },
         )
     }

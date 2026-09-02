@@ -40,7 +40,7 @@ fun BoxScope.PicCarousel(
 
     val carouselState = rememberCarouselState(
         initialItem =
-            114514 / 2,
+        114514 / 2,
     ) {
         114514
     }
@@ -156,8 +156,7 @@ fun BoxScope.PicCarousel(
                             }
                             .clickable {
                                 onClick(realIndex)
-                            }
-                        ,
+                            },
                         alignment = Alignment.Center,
                         contentScale = ContentScale.Fit,
                     )

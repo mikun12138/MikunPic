@@ -14,7 +14,7 @@ class Storage {
     @Test
     fun add() = ohMyTest {
         client.post(
-            Manage.Storage.Add()
+            Manage.Storage.Add(),
         ) {
             contentType(ContentType.Application.Json)
             setBody(
@@ -25,8 +25,8 @@ class Storage {
                         secretKey = "3",
                         bucketName = "2",
                         region = "1",
-                    )
-                )
+                    ),
+                ),
             )
         }
     }
@@ -34,7 +34,7 @@ class Storage {
     @Test
     fun edit() = ohMyTest {
         client.post(
-            Manage.Storage.Edit()
+            Manage.Storage.Edit(),
         ) {
             contentType(ContentType.Application.Json)
             setBody(
@@ -45,8 +45,8 @@ class Storage {
                         secretKey = "2",
                         bucketName = "3",
                         region = "4",
-                    )
-                )
+                    ),
+                ),
             )
         }
     }
@@ -54,13 +54,13 @@ class Storage {
     @Test
     fun delete() = ohMyTest {
         client.post(
-            Manage.Storage.Delete()
+            Manage.Storage.Delete(),
         ) {
             contentType(ContentType.Application.Json)
             setBody(
                 Manage.Storage.Delete.Body(
-                        storageLabel = "test0",
-                )
+                    storageLabel = "test0",
+                ),
             )
         }
     }

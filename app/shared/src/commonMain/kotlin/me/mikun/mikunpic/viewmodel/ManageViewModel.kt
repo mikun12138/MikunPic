@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class ManageViewModel: ViewModel() {
+class ManageViewModel : ViewModel() {
     private val _currentStorageLabel = MutableStateFlow("")
     val currentStorageLabel = _currentStorageLabel.asStateFlow()
 
@@ -14,7 +14,7 @@ class ManageViewModel: ViewModel() {
     val isLockStorage = _isLockStorage.asStateFlow()
 
     fun switchStorage(
-        storageLabel: String
+        storageLabel: String,
     ) {
         if (isLockStorage.value) {
             return
@@ -26,13 +26,8 @@ class ManageViewModel: ViewModel() {
     }
 
     fun lockStorage(
-        flag: Boolean
+        flag: Boolean,
     ) {
         _isLockStorage.value = flag
     }
-
-
-
-
-
 }

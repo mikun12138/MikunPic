@@ -51,7 +51,6 @@ class PicPathResolver(
             }
         }
 
-
         val illustrator =
             illustratorName?.let { name ->
                 Illustrator(
@@ -82,7 +81,6 @@ class PicPathResolver(
                 Platform.Other.value
             }
 
-
         val storeKey =
             path.joinToString("/") { pathItem ->
                 filename(pathItem)
@@ -92,8 +90,7 @@ class PicPathResolver(
             filename = filename(file),
             storeKey = storeKey,
             platform = platform,
-            illustrator = illustrator
+            illustrator = illustrator,
         )
     }
-
 }

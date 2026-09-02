@@ -21,7 +21,6 @@ fun Application.configureRouting() {
         public()
 
         authenticate("bearer") {
-
             get<OhMyRouting.Manage.Config> {
                 val config = call.receive<OhMyRouting.Manage.Config.Body>().mikunPicConfig
 
