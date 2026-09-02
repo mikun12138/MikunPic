@@ -4,23 +4,26 @@ import kotlinx.serialization.decodeFromString
 import me.mikun.mikunpic.dto.data.MikunPicConfig
 import net.mamoe.yamlkt.Yaml
 import java.io.File
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @Suppress("ktlint:standard:backing-property-naming")
 private var _LocalMikunPicConfig: MikunPicConfig? = null
 
-private val configFile = File("config.yaml")
+private val configFile: File by lazy {
+    File(ServerAppDirs.current.config, "config.yaml")
+}
 
-@OptIn(ExperimentalUuidApi::class)
 var LocalMikunPicConfig: MikunPicConfig
     get() {
         if (_LocalMikunPicConfig == null) {
-            if (!configFile.exists() || !configFile.isFile) {
-                configFile.createNewFile()
+            if (!configFile.exists()) {
+                configFile.parentFile.mkdirs()
                 configFile.writeText(
                     Yaml.encodeToString(MikunPicConfig.Def),
                 )
+            } else {
+                require(configFile.isFile) {
+                    "Config path is not a file: ${configFile.absolutePath}"
+                }
             }
 
             _LocalMikunPicConfig = runCatching {
@@ -36,10 +39,7 @@ var LocalMikunPicConfig: MikunPicConfig
         return _LocalMikunPicConfig!!
     }
     set(value) {
-        configFile.apply {
-            exists() || createNewFile()
-        }.writeText(
-            Yaml.encodeToString(value),
-        )
+        configFile.parentFile.mkdirs()
+        configFile.writeText(Yaml.encodeToString(value))
         _LocalMikunPicConfig = value
     }

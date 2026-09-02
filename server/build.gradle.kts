@@ -45,6 +45,9 @@ dependencies {
     implementation(libs.ktor.client.resources)
     implementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.ktor.serverTestHost)
+
+    implementation("net.harawata:appdirs:1.5.0")
+
     testImplementation(libs.kotlin.testJunit)
     testImplementation(kotlin("test"))
 }

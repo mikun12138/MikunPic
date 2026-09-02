@@ -50,20 +50,31 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "server/build/libs/mikunpic-0.1.0.jar"
-          target: "~/mikunpic/"
+          source: "server/build/libs/mikunpic-0.2.0.jar"
+          target: "~/.config/mikunpic/temp/"
           strip_components: 3
 
-      - name: Upload systemd service file
+      - name: Upload install script
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "scripts/mikunpic-user.service"
+          source: "server/deployment/install-user.sh"
           target: "~/.config/mikunpic/temp/"
-          strip_components: 1
+          strip_components: 2
+
+      - name: Upload user service template
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "server/deployment/mikunpic-user.service"
+          target: "~/.config/mikunpic/temp/"
+          strip_components: 2
 
       - name: Restart service
         uses: appleboy/ssh-action@v1.2.5
@@ -73,14 +84,5 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            mkdir -p ~/.config/systemd/user/
-            
-            # rename and move to user-service folder
-            if [ -f ~/.config/mikunpic/temp/mikunpic-user.service ]; then
-              mv ~/.config/mikunpic/temp/mikunpic-user.service ~/.config/systemd/user/mikunpic.service
-              echo "✔ Service file updated and renamed to mikunpic.service"
-            fi
-            
-            systemctl --user daemon-reload
-            systemctl --user enable mikunpic
-            systemctl --user restart mikunpic
+            SOURCE_JAR="$HOME/.config/mikunpic/temp/mikunpic-0.2.0.jar" \
+              bash "$HOME/.config/mikunpic/temp/install-user.sh"

@@ -15,10 +15,22 @@ import me.mikun.mikunpic.modules.configureSerialization
 import me.mikun.mikunpic.modules.routing.configureRouting
 import me.mikun.mikunpic.storage.PicStorage
 
+private const val APP_NAME = "MikunPic"
+private const val DEPLOY_MODE_PREFIX = "--deploy-mode="
+
 fun main(args: Array<String>) {
-    EngineMain
-        .main(args)
+    val deployMode = args.firstOrNull { it.startsWith(DEPLOY_MODE_PREFIX) }
+        ?.removePrefix(DEPLOY_MODE_PREFIX)
+        ?.let(ServerAppDirs.DeployType::byValue)
+        ?: error("Missing --deploy-mode=sys|user|portable")
+
+    ServerAppDirs.init(APP_NAME, deployMode)
+
+    EngineMain.main(
+        args.filterNot { it.startsWith(DEPLOY_MODE_PREFIX) }.toTypedArray(),
+    )
 }
+
 
 fun Application.module() {
     configureHTTP()

@@ -1,0 +1,11 @@
+[Unit]
+Description=Mikun Pic Service
+After=network.target
+
+[Service]
+WorkingDirectory={{WORKING_DIR}}
+ExecStart=/usr/bin/java -jar {{WORKING_DIR}}/{{JAR_NAME}} --deploy-mode=user
+Restart=always
+
+[Install]
+WantedBy=default.target
