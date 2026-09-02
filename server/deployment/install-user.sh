@@ -16,6 +16,30 @@ if [[ "$(id -u)" -eq 0 ]]; then
     exit 1
 fi
 
+write_service_file() {
+    if [[ -f "$SERVICE_TEMPLATE" ]]; then
+        sed -e "s|{{WORKING_DIR}}|$WORKING_DIR|g" \
+            -e "s|{{JAR_NAME}}|$JAR_NAME|g" \
+            -e "s|{{SERVICE_NAME}}|$SERVICE_NAME|g" \
+            "$SERVICE_TEMPLATE" > "$SERVICE_FILE"
+        return
+    fi
+
+    cat > "$SERVICE_FILE" <<EOF
+[Unit]
+Description=Mikun Pic Service
+After=network.target
+
+[Service]
+WorkingDirectory=$WORKING_DIR
+ExecStart=/usr/bin/java -jar $WORKING_DIR/$JAR_NAME --deploy-mode=user
+Restart=always
+
+[Install]
+WantedBy=default.target
+EOF
+}
+
 mkdir -p "$WORKING_DIR" "$SERVICE_DIR"
 
 if [[ -n "$SOURCE_JAR" ]]; then
@@ -28,11 +52,7 @@ else
     curl -fL "$JAR_URL" -o "$WORKING_DIR/$JAR_NAME"
 fi
 
-sed -e "s|{{WORKING_DIR}}|$WORKING_DIR|g" \
-    -e "s|{{JAR_NAME}}|$JAR_NAME|g" \
-    -e "s|{{SERVICE_NAME}}|$SERVICE_NAME|g" \
-    "$SERVICE_TEMPLATE" > "$SERVICE_FILE"
-
+write_service_file
 systemctl --user daemon-reload
 systemctl --user enable --now "$SERVICE_NAME.service"
 

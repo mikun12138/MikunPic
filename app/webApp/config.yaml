@@ -1,2 +1,11 @@
-#server: "https://pic.mikun.icu"
-server: "http://127.0.0.1:8080"
+server: 'http://127.0.0.1:8080'
+preview_api: '/random'
+apis: 
+  - name: '-随机图-'
+    url: 'http://127.0.0.1:8080/random'
+  - name: '+随机图-'
+    url: 'http://127.0.0.1:8080/random'
+  - name: '-随机图+'
+    url: 'http://127.0.0.1:8080/random'
+  - name: +随机图+
+    url: 'http://127.0.0.1:8080/random'
