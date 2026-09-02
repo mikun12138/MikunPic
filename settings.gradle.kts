@@ -1,4 +1,4 @@
-rootProject.name = "MikunPic"
+rootProject.name = "mikunpic"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 

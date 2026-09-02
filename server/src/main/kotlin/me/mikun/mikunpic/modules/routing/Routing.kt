@@ -8,13 +8,10 @@ import io.ktor.server.resources.get
 import io.ktor.server.response.respond
 import io.ktor.server.routing.application
 import io.ktor.server.routing.get
-import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
-import kotlinx.serialization.decodeFromString
 import me.mikun.mikunpic.LocalMikunPicConfig
-import me.mikun.mikunpic.dto.data.MikunPicConfig
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
-import me.mikun.mikunpic.onReloadConfig
+import me.mikun.mikunpic.reloadStorage
 
 fun Application.configureRouting() {
     routing {
@@ -25,7 +22,7 @@ fun Application.configureRouting() {
                 val config = call.receive<OhMyRouting.Manage.Config.Body>().mikunPicConfig
 
                 LocalMikunPicConfig = config
-                application.onReloadConfig()
+                application.reloadStorage()
 
                 call.respond(HttpStatusCode.Created)
             }

@@ -9,6 +9,7 @@ import io.ktor.server.resources.get
 import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.application
 import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.delay
 import kotlinx.io.readByteArray
@@ -22,6 +23,7 @@ import me.mikun.mikunpic.dto.data.Storage
 import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.sync
 import me.mikun.mikunpic.operator.uploadPic
+import me.mikun.mikunpic.reloadStorage
 import me.mikun.mikunpic.storage.PicStorage
 import me.mikun.mikunpic.storage.PicStorageLocal
 import me.mikun.mikunpic.utils.toStorageConfig
@@ -62,6 +64,7 @@ fun Route.manage() {
             LocalMikunPicConfig = LocalMikunPicConfig.copy(
                 storages = LocalMikunPicConfig.storages + receive.storage.toStorageConfig(),
             )
+            this@manage.application.reloadStorage()
             call.respond(HttpStatusCode.OK)
         }
 
@@ -81,6 +84,7 @@ fun Route.manage() {
             LocalMikunPicConfig = LocalMikunPicConfig.copy(
                 storages = LocalMikunPicConfig.storages.filter { it.label != receive.storage.label } + newStorage,
             )
+            this@manage.application.reloadStorage()
             call.respond(HttpStatusCode.OK)
         }
         post<OhMyRouting.Manage.Storage.Delete> {
@@ -91,6 +95,7 @@ fun Route.manage() {
             LocalMikunPicConfig = LocalMikunPicConfig.copy(
                 storages = LocalMikunPicConfig.storages.filter { it.label != receive.storageLabel },
             )
+            this@manage.application.reloadStorage()
             call.respond(HttpStatusCode.OK)
         }
 
@@ -101,6 +106,7 @@ fun Route.manage() {
                 syncRuleText = receive.syncRuleText,
             )
 
+            this@manage.application.reloadStorage()
             call.respond(HttpStatusCode.OK)
         }
     }

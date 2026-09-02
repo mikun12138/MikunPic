@@ -15,7 +15,7 @@ import me.mikun.mikunpic.modules.configureSerialization
 import me.mikun.mikunpic.modules.routing.configureRouting
 import me.mikun.mikunpic.storage.PicStorage
 
-private const val APP_NAME = "MikunPic"
+private const val APP_NAME = "mikunpic"
 private const val DEPLOY_MODE_PREFIX = "--deploy-mode="
 
 fun main(args: Array<String>) {
@@ -52,6 +52,6 @@ fun Application.module() {
     PicStorage.configure(this)
 }
 
-fun Application.onReloadConfig() {
-    PicStorage.configure(this)
+fun Application.reloadStorage() {
+    PicStorage.reload(this)
 }

@@ -35,6 +35,11 @@ sealed class PicStorage {
     companion object {
         val storages: MutableList<PicStorage> = mutableListOf()
 
+        fun reload(application: Application) {
+            storages.clear()
+            configure(application)
+        }
+
         fun configure(application: Application) {
             runCatching {
                 LocalMikunPicConfig.storages.forEach {
