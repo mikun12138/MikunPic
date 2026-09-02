@@ -215,7 +215,6 @@ fun Route.manage() {
     fun tag() {
         post<OhMyRouting.Manage.Tag.Create> {
             val receive = call.receive<OhMyRouting.Manage.Tag.Create.Body>()
-            println(receive)
 
             MetadataDB.createTag(
                 receive.name,
