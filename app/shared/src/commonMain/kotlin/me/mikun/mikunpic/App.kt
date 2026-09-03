@@ -37,6 +37,8 @@ import me.mikun.mikunpic.view.Manage
 import me.mikun.mikunpic.view.Nav
 import me.mikun.mikunpic.view.login.Login
 
+const val APP_NAME = "mikunpicc"
+
 @Composable
 fun App(
     onNavHostReady: suspend (NavController) -> Unit = {},

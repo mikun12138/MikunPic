@@ -8,8 +8,6 @@ import net.harawata.appdirs.AppDirsFactory
 import net.mamoe.yamlkt.Yaml
 import java.io.File
 
-private const val APP_NAME = "MikunPic"
-private const val CONFIG_FILE_NAME = "config.yaml"
 
 @Composable
 actual fun LoadConfig(): Config {

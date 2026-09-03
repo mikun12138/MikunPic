@@ -9,6 +9,8 @@ val LocalConfig = staticCompositionLocalOf<Config> {
     error("LocalConfig not provided")
 }
 
+const val CONFIG_FILE_NAME = "config.yaml"
+
 @Composable
 expect fun LoadConfig(): Config
 
