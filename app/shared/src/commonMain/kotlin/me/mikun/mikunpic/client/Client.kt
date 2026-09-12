@@ -351,6 +351,20 @@ object Client {
                 ),
             )
         }
+    suspend fun enableStorage(
+        storageLabel: String,
+        enable: Boolean
+    ) = httpClient.post(
+        OhMyRouting.Manage.Storage.Enable()
+    ) {
+        contentType(ContentType.Application.Json)
+        setBody(
+            OhMyRouting.Manage.Storage.Enable.Body(
+                storageLabel = storageLabel,
+                enable = enable,
+            ),
+        )
+    }
 
     fun buildPicLink(
         id: String,

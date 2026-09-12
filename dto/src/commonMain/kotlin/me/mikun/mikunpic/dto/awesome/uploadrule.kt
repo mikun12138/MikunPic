@@ -8,11 +8,11 @@ object UploadRule {
         val value: String = "",
     ) {
         enum class Type {
-            Simple,
             Unknown,
+            Simple,
             IllustratorName,
-            IllustratorPixiv,
-            IllustratorTwitter,
+            Platform,
+            Uid,
             Filename,
         }
     }
@@ -62,8 +62,8 @@ object UploadRule {
                     if (it.startsWith("{") and it.endsWith("}")) {
                         when (it.removePrefix("{").removeSuffix("}")) {
                             "illustratorName" -> PlaceHolder.Type.IllustratorName
-                            "pixiv" -> PlaceHolder.Type.IllustratorPixiv
-                            "twitter" -> PlaceHolder.Type.IllustratorTwitter
+                            "platform" -> PlaceHolder.Type.Platform
+                            "uid" -> PlaceHolder.Type.Uid
                             "filename" -> PlaceHolder.Type.Filename
                             else -> PlaceHolder.Type.Unknown
                         }

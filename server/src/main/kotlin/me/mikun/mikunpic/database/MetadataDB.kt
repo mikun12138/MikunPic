@@ -5,7 +5,6 @@ import me.mikun.mikunpic.database.table.PlatformKeyTable
 import me.mikun.mikunpic.database.table.TagTable
 import me.mikun.mikunpic.database.table.relation.Illustrator2PlatformKeysTable
 import me.mikun.mikunpic.dto.data.Illustrator
-import me.mikun.mikunpic.dto.data.Platform
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
@@ -75,7 +74,7 @@ object MetadataDB {
         data class MutableIllustrator(
             val id: Int,
             val name: String,
-            val platformKeyMap: MutableMap<Platform, String>,
+            val platformKeyMap: MutableMap<String, String>,
         )
 
         val result = mutableMapOf<Int, MutableIllustrator>()

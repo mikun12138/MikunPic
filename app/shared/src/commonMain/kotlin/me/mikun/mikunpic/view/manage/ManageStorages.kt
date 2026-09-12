@@ -3,6 +3,7 @@ package me.mikun.mikunpic.view.manage
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
@@ -38,12 +38,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
+import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.component.act.AddStorageAlertDialog
 import me.mikun.mikunpic.component.act.DeleteStorageAlertDialog
 import me.mikun.mikunpic.component.act.EditStorageAlertDialog
@@ -130,6 +132,8 @@ fun ManageStorages(
         },
     )
 
+    val scope = rememberCoroutineScope()
+
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -172,6 +176,18 @@ fun ManageStorages(
                             manageViewModel.switchStorage(label)
                         },
                         storage.label == currentStorageLabel,
+                        onEnableClicked = {
+                            scope.launch {
+                                Client.enableStorage(storageLabel = storage.label, enable = true)
+                                viewModel.flashStorages()
+                            }
+                        },
+                        onDisableClicked = {
+                            scope.launch {
+                                Client.enableStorage(storageLabel = storage.label, enable = false)
+                                viewModel.flashStorages()
+                            }
+                        },
                         onEditClicked = {
                             showEditStorageDialog = true
                             storageToEdit = storage
@@ -196,6 +212,8 @@ private fun StorageCard(
     storage: Storage,
     onToggleStorage: (String) -> Unit,
     isSelected: Boolean,
+    onEnableClicked: () -> Unit,
+    onDisableClicked: () -> Unit,
     onEditClicked: () -> Unit,
     onDeleteClicked: () -> Unit,
     onDetailClicked: () -> Unit,
@@ -210,58 +228,68 @@ private fun StorageCard(
     )
     val showBack = rotation > 90f
     val density = LocalDensity.current.density
+    val cardShape = MaterialTheme.shapes.extraLarge
 
-    AcrylicCard(
-        onClick = {
-            if (!flipped) {
-                onToggleStorage(storage.label)
-            } else {
-                onDetailClicked()
-            }
-        },
+    Box(
         modifier = Modifier
-            .padding(8.dp)
+            .fillMaxWidth()
             .aspectRatio(16 / 9f)
-            .graphicsLayer {
-                rotationY = rotation
-                cameraDistance = 16f * density
-            }
-            .then(
-                if (isSelected) {
-                    Modifier.shadow(
-                        elevation = 12.dp,
-                        shape = RoundedCornerShape(12.dp),
-                    )
-                } else {
-                    Modifier
-                },
-            ),
+            .padding(8.dp),
     ) {
-        Box(
+        AcrylicCard(
+            onClick = {
+                if (!flipped) {
+                    onToggleStorage(storage.label)
+                } else {
+                    onDetailClicked()
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    if (showBack) {
-                        rotationY = 180f
-                    }
-                },
+                    rotationY = rotation
+                    cameraDistance = 16f * density
+                }
+                .then(
+                    if (isSelected) {
+                        Modifier.border(
+                            width = 2.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = cardShape,
+                        )
+                    } else {
+                        Modifier
+                    },
+                ),
         ) {
-            if (showBack) {
-                StorageCardBack(
-                    storage = storage,
-                    onFlipClicked = {
-                        flipped = false
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        if (showBack) {
+                            rotationY = 180f
+                        }
                     },
-                )
-            } else {
-                StorageCardFront(
-                    storage = storage,
-                    onEditClicked = onEditClicked,
-                    onDeleteClicked = onDeleteClicked,
-                    onFlipClicked = {
-                        flipped = true
-                    },
-                )
+            ) {
+                if (showBack) {
+                    StorageCardBack(
+                        storage = storage,
+                        onFlipClicked = {
+                            flipped = false
+                        },
+                    )
+                } else {
+                    StorageCardFront(
+                        storage = storage,
+                        onEnableClicked = onEnableClicked,
+                        onDisableClicked = onDisableClicked,
+                        onEditClicked = onEditClicked,
+                        onDeleteClicked = onDeleteClicked,
+                        onFlipClicked = {
+                            flipped = true
+                        },
+                    )
+                }
             }
         }
     }
@@ -270,6 +298,8 @@ private fun StorageCard(
 @Composable
 private fun StorageCardFront(
     storage: Storage,
+    onEnableClicked: () -> Unit,
+    onDisableClicked: () -> Unit,
     onEditClicked: () -> Unit,
     onDeleteClicked: () -> Unit,
     onFlipClicked: () -> Unit,
@@ -316,6 +346,36 @@ private fun StorageCardFront(
                 ),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
+
+                if (storage.enable) {
+                    ElevatedButton(
+                        onClick = {
+                            onDisableClicked()
+                        },
+                        contentPadding = PaddingValues(
+                            horizontal = 8.dp,
+                            vertical = 4.dp,
+                        ),
+                    ) {
+                        Text(
+                            text = "Disable",
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                } else {
+                    ElevatedButton(
+                        onClick = {
+                            onEnableClicked()
+                        },
+                        contentPadding = PaddingValues(
+                            horizontal = 8.dp,
+                            vertical = 4.dp,
+                        ),
+                    ) {
+                        Text("Enable")
+                    }
+                }
+
                 ElevatedButton(
                     onClick = {
                         onEditClicked()

@@ -30,7 +30,7 @@ fun Route.public() {
             ?: OhMyRouting.Manage.Pic.TagFilter.Any
         // TODO:: cache
         StorageDB.randomPic(
-            StorageDB.dbs.map { it.nameNoEx }.toSet(),
+            StorageDB.enabledDbs.map { it.nameNoEx }.toSet(),
             1,
             illustratorFilter,
             tagFilter,
@@ -50,7 +50,7 @@ fun Route.public() {
     }
 
     get<OhMyRouting.Pic.Id> { req ->
-        val pic = StorageDB.byNameNoEx(req.storageLabel)?.selectPic(
+        val pic = StorageDB.findEnabled(req.storageLabel)?.selectPic(
             id = req.id.toInt(),
         ) ?: return@get call.respond(HttpStatusCode.NotFound)
 
@@ -69,7 +69,7 @@ fun Route.public() {
         val platform =
             Platform.byName(req.platform) ?: return@get call.respond(HttpStatusCode.NotFound)
 
-        for (db in StorageDB.dbs) {
+        for (db in StorageDB.enabledDbs) {
             val pic = db.selectPic(
                 platform = platform,
                 key = req.key,

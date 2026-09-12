@@ -119,6 +119,19 @@ interface OhMyRouting {
                     val syncRuleText: String,
                 )
             }
+
+            @Resource("enable")
+            class Enable : OhMyRouting {
+                override val parent = Manage()
+
+                @Serializable
+                data class Body(
+                    @SerialName("storage_label")
+                    val storageLabel: String,
+                    @SerialName("enable")
+                    val enable: Boolean,
+                )
+            }
         }
 
         @Resource("/config")

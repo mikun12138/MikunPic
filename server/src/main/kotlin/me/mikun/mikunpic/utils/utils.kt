@@ -9,6 +9,7 @@ fun Storage.toStorageConfig(): MikunPicConfig.Storage = when (this) {
     is Storage.Local -> {
         MikunPicConfig.Storage.Local(
             label = this.label,
+            enable = this.enable,
             path = this.path,
         )
     }
@@ -16,6 +17,7 @@ fun Storage.toStorageConfig(): MikunPicConfig.Storage = when (this) {
     is Storage.Cos -> {
         MikunPicConfig.Storage.Cos(
             label = this.label,
+            enable = this.enable,
             secretId = this.secretId ?: "",
             secretKey = this.secretKey ?: "",
             bucketName = this.bucketName,
@@ -29,6 +31,7 @@ fun Storage.toStorageConfig(old: MikunPicConfig.Storage): MikunPicConfig.Storage
         val oldLocal = old as MikunPicConfig.Storage.Local
         oldLocal.copy(
             label = this.label,
+            enable = this.enable,
             path = this.path,
         )
     }
@@ -37,6 +40,7 @@ fun Storage.toStorageConfig(old: MikunPicConfig.Storage): MikunPicConfig.Storage
         val oldCos = old as MikunPicConfig.Storage.Cos
         oldCos.copy(
             label = this.label,
+            enable = this.enable,
             secretId = this.secretId ?: oldCos.secretId,
             secretKey = this.secretKey ?: oldCos.secretKey,
             bucketName = this.bucketName,

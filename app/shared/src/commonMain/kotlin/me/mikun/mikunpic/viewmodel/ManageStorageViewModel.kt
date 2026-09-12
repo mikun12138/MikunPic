@@ -2,6 +2,7 @@ package me.mikun.mikunpic.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -21,6 +22,7 @@ class ManageStorageViewModel : ViewModel() {
             try {
                 val response = Client.fetchStorages()
                 _storages.value = response?.storages ?: emptyList()
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }

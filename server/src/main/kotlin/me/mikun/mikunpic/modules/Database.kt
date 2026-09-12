@@ -12,16 +12,31 @@ fun Application.configureDatabase() {
     val databaseDir = File(ServerAppDirs.current.data, "databases")
     databaseDir.mkdirs()
 
+    initMetadataDatabase(databaseDir)
+    initStorageDatabase(databaseDir)
+}
+
+fun Application.flashStorageDatabase() {
+    val databaseDir = File(ServerAppDirs.current.data, "databases")
+    databaseDir.mkdirs()
+
+    initStorageDatabase(databaseDir)
+}
+
+private fun initMetadataDatabase(databaseDir: File) {
     MetadataDB.init(
         Database.connect(
             "jdbc:sqlite:${File(databaseDir, "metadata.db").path}",
             driver = "org.sqlite.JDBC",
         ),
     )
+}
 
+private fun initStorageDatabase(databaseDir: File) {
     val storageDatabaseDir = File(databaseDir, "storage")
     storageDatabaseDir.mkdirs()
 
+    StorageDB.dbs.clear()
     StorageDB.dbs.addAll(
         LocalMikunPicConfig.storages.map {
             StorageDB(
@@ -33,3 +48,4 @@ fun Application.configureDatabase() {
         },
     )
 }
+

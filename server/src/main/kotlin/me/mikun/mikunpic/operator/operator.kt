@@ -2,9 +2,6 @@ package me.mikun.mikunpic.operator
 
 import io.ktor.server.routing.Route
 import io.ktor.util.Digest
-import io.ktor.utils.io.jvm.javaio.toByteReadChannel
-import io.ktor.utils.io.readRemaining
-import kotlinx.io.readByteArray
 import me.mikun.mikunpic.LocalMikunPicConfig
 import me.mikun.mikunpic.database.StorageDB
 import me.mikun.mikunpic.dto.awesome.PicPathResolver
@@ -22,7 +19,7 @@ suspend fun Route.uploadPic(
         it.build()
     }.toHexString()
 
-    StorageDB.byNameNoEx(storageLabel)?.apply {
+    StorageDB.find(storageLabel)?.apply {
         selectPic(
             hash = hash,
         )?.run {
@@ -63,20 +60,19 @@ suspend fun Route.sync(
         val picPathResolver = PicPathResolver(
             syncRuleText,
         )
-        storage.picKeys.forEach { picKey ->
+        storage.picKeys.forEach loop@ { picKey ->
             val picCreate = picPathResolver.resolve(
                 path = picKey.split("/"),
                 filename = { it },
-            ) ?: return
+            ) ?: return@loop
 
             val hash = storage.hash(picKey) ?: error("no hash")
-            println("$hash: $picKey")
 
-            StorageDB.byNameNoEx(storageLabel)?.apply {
+            StorageDB.find(storageLabel)?.apply {
                 selectPic(
                     hash = hash,
                 )?.run {
-                    return
+                    return@loop
                 }
 
                 createPic(
@@ -84,6 +80,7 @@ suspend fun Route.sync(
                     hash = hash,
                 )
             }
+            println("sync::$hash:$picKey")
         }
     }
 }

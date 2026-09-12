@@ -17,12 +17,12 @@ sealed class PicStorage {
         object : CopyOnWriteArraySet<String>() {
 
             private fun isValid(e: String?): Boolean = e != null &&
-                FileExtension.image.any {
-                    e.endsWith(
-                        it,
-                        ignoreCase = true,
-                    )
-                }
+                    FileExtension.image.any {
+                        e.endsWith(
+                            it,
+                            ignoreCase = true,
+                        )
+                    }
 
             override fun add(e: String?): Boolean = isValid(e) && super.add(e)
 
@@ -43,6 +43,10 @@ sealed class PicStorage {
         fun configure(application: Application) {
             runCatching {
                 LocalMikunPicConfig.storages.forEach {
+                    if (!it.enable) {
+                        application.log.info("skip storage::${it.label}")
+                        return@forEach
+                    }
                     when (it) {
                         is MikunPicConfig.Storage.Local -> {
                             storages.add(
@@ -72,7 +76,7 @@ sealed class PicStorage {
 
                         else -> error("??? how can you reach here ???")
                     }
-                    application.log.info("Add storage: ${it.label}")
+                    application.log.info("add storage::${it.label}")
                 }
             }.onFailure { e ->
                 application.log.error(e.message)

@@ -11,7 +11,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.application
 import io.ktor.utils.io.readRemaining
-import kotlinx.coroutines.delay
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
 import me.mikun.mikunpic.LocalMikunPicConfig
@@ -24,10 +23,7 @@ import me.mikun.mikunpic.dto.data.api.OhMyRouting
 import me.mikun.mikunpic.operator.sync
 import me.mikun.mikunpic.operator.uploadPic
 import me.mikun.mikunpic.reloadStorage
-import me.mikun.mikunpic.storage.PicStorage
-import me.mikun.mikunpic.storage.PicStorageLocal
 import me.mikun.mikunpic.utils.toStorageConfig
-import kotlin.time.Duration.Companion.milliseconds
 
 fun Route.manage() {
     fun storage() {
@@ -38,12 +34,14 @@ fun Route.manage() {
                         when (it) {
                             is MikunPicConfig.Storage.Local -> Storage.Local(
                                 label = it.label,
+                                enable = it.enable,
                                 pathRule = it.pathRule,
                                 path = it.path,
                             )
 
                             is MikunPicConfig.Storage.Cos -> Storage.Cos(
                                 label = it.label,
+                                enable = it.enable,
                                 pathRule = it.pathRule,
                                 secretId = "",
                                 secretKey = "",
@@ -109,6 +107,29 @@ fun Route.manage() {
             this@manage.application.reloadStorage()
             call.respond(HttpStatusCode.OK)
         }
+
+        post<OhMyRouting.Manage.Storage.Enable> {
+            val receive = call.receive<OhMyRouting.Manage.Storage.Enable.Body>()
+            if (LocalMikunPicConfig.storages.none { it.label == receive.storageLabel }) {
+                return@post call.respond(HttpStatusCode.Conflict)
+            }
+            LocalMikunPicConfig = LocalMikunPicConfig.copy(
+                storages = LocalMikunPicConfig.storages.map {
+                    if (it.label == receive.storageLabel) {
+                        when (it) {
+                            is MikunPicConfig.Storage.Local -> it.copy(enable = receive.enable)
+                            is MikunPicConfig.Storage.Cos -> it.copy(enable = receive.enable)
+                        }
+
+                    } else {
+                        it
+                    }
+                },
+            )
+
+            this@manage.application.reloadStorage()
+            call.respond(HttpStatusCode.OK)
+        }
     }
 
     fun pic() {
@@ -162,7 +183,7 @@ fun Route.manage() {
         post<OhMyRouting.Manage.Pic.Update> {
             val receive = call.receive<OhMyRouting.Manage.Pic.Update.Body>()
 
-            StorageDB.byNameNoEx(receive.storageLabel)?.apply {
+            StorageDB.find(receive.storageLabel)?.apply {
                 updatePic(
                     receive.pic,
                 )

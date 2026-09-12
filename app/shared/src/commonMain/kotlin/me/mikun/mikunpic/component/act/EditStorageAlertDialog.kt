@@ -139,6 +139,8 @@ fun EditStorageAlertDialog(
                                         Client.editStorage(
                                             Storage.Local(
                                                 label = storage.label,
+                                                enable = storage.enable,
+                                                pathRule = storage.pathRule,
                                                 path = form.path.text.toString(),
                                             ),
                                         )
@@ -195,6 +197,8 @@ fun EditStorageAlertDialog(
                                         Client.editStorage(
                                             Storage.Cos(
                                                 label = storage.label,
+                                                enable = storage.enable,
+                                                pathRule = storage.pathRule,
                                                 secretId = form.secretId.text.toString(),
                                                 secretKey = form.secretKey.text.toString(),
                                                 bucketName = form.bucketName.text.toString(),

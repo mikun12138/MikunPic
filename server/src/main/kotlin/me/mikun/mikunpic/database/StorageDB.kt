@@ -1,5 +1,6 @@
 package me.mikun.mikunpic.database
 
+import me.mikun.mikunpic.LocalMikunPicConfig
 import me.mikun.mikunpic.database.table.IllustratorTable
 import me.mikun.mikunpic.database.table.PicTable
 import me.mikun.mikunpic.database.table.PlatformKeyTable
@@ -140,7 +141,8 @@ class StorageDB(
                 it[PicTable.hash] = hash
                 it[PicTable.platform] = Platform.byName(pic.platform) ?: Platform.Other
                 it[PicTable.storeKey] = pic.storeKey
-                it[PicTable.link] = Platform.byName(pic.platform)?.buildLink(key = pic.filename) ?: ""
+                it[PicTable.link] =
+                    Platform.byName(pic.platform)?.buildLink(key = pic.filename) ?: ""
             }[PicTable.id].value
 
             newIllustratorId?.let { newIllustratorId ->
@@ -306,11 +308,20 @@ class StorageDB(
     companion object {
         val dbs = mutableListOf<StorageDB>()
 
-        fun byNameNoEx(
+        val enabledDbs
+            get() = dbs.filter { db ->
+                db.nameNoEx in LocalMikunPicConfig.storages.filter { it.enable }.map { it.label }
+            }
+
+        fun find(
             nameNoEx: String,
         ) = dbs.find { it.nameNoEx == nameNoEx }
 
-        fun random() = dbs.randomOrNull()
+        fun findEnabled(
+            nameNoEx: String,
+        ) = dbs.find { it.nameNoEx == nameNoEx }.takeIf {
+            LocalMikunPicConfig.storages.find { it.label == nameNoEx }?.enable == true
+        }
 
         private data class AttachedStorage(
             val label: String,
@@ -324,7 +335,7 @@ class StorageDB(
             val storeKey: String,
             val illustratorId: Int?,
             val illustratorName: String?,
-            val platformKeyMap: MutableMap<Platform, String> = linkedMapOf(),
+            val platformKeyMap: MutableMap<String, String> = linkedMapOf(),
             val tags: MutableSet<String> = linkedSetOf(),
         )
 
@@ -558,9 +569,9 @@ class StorageDB(
             val pickedTags = storages.map(::pickedTagsSql)
             val offset = (page.coerceAtLeast(1) - 1) * count
             val args = candidates.flatMap { it.args } +
-                intArg(count) +
-                (if (randomOrder) emptyList() else listOf(intArg(offset))) +
-                pickedTags.flatMap { it.args }
+                    intArg(count) +
+                    (if (randomOrder) emptyList() else listOf(intArg(offset))) +
+                    pickedTags.flatMap { it.args }
 
             val pickedSql = if (randomOrder) {
                 """
@@ -655,9 +666,9 @@ class StorageDB(
 
             val storageLabels = storageLabels.filter { it.isNotEmpty() }
             val storages = if (storageLabels.isEmpty()) {
-                dbs.toList()
+                enabledDbs.toList()
             } else {
-                storageLabels.mapNotNull { byNameNoEx(it) }
+                storageLabels.mapNotNull { findEnabled(it) }
             }
             if (storages.isEmpty()) return emptyMap()
 
@@ -713,11 +724,9 @@ class StorageDB(
                                 )
                             }
 
-                            (resultSet.getObject("platform") as? Number)?.toInt()?.let { ordinal ->
-                                Platform.entries.getOrNull(ordinal)?.let { platform ->
-                                    resultSet.getString("platform_key")?.let { platformKey ->
-                                        pic.platformKeyMap[platform] = platformKey
-                                    }
+                            resultSet.getString("platform")?.let { platform ->
+                                resultSet.getString("platform_key")?.let { platformKey ->
+                                    pic.platformKeyMap[platform] = platformKey
                                 }
                             }
 
@@ -769,12 +778,14 @@ class StorageDB(
             dbs.forEach { db ->
                 (db.db.connector().connection as Connection).use { connection ->
                     connection.createStatement().use { statement ->
-                        val sql = "VACUUM INTO ${sqliteLiteral(
-                            File(
-                                ServerAppDirs.current.data,
-                                "databases/${db.nameNoEx}.db.bak",
-                            ).path,
-                        )}"
+                        val sql = "VACUUM INTO ${
+                            sqliteLiteral(
+                                File(
+                                    ServerAppDirs.current.data,
+                                    "databases/${db.nameNoEx}.db.bak",
+                                ).path,
+                            )
+                        }"
                         statement.executeUpdate(sql)
                     }
                 }

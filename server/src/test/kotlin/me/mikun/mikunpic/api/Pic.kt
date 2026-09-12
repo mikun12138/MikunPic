@@ -61,8 +61,8 @@ class Pic {
                                         illustrator = me.mikun.mikunpic.dto.data.Illustrator(
                                             name = "mikun",
                                             platformKeyMap = mapOf(
-                                                Platform.Pixiv to "mikun12138",
-                                                Platform.Twitter to "mikun_12138",
+                                                Platform.Pixiv.value to "mikun12138",
+                                                Platform.Twitter.value to "mikun_12138",
                                             ),
                                         ),
                                         tags = listOf("a", "b", "y", "z"),
@@ -99,8 +99,8 @@ class Pic {
                             illustrator = me.mikun.mikunpic.dto.data.Illustrator(
                                 name = "mikun",
                                 platformKeyMap = mapOf(
-                                    Platform.Pixiv to "mikun${12138 + it}",
-                                    Platform.Twitter to "mikun_${12138 + it}",
+                                    Platform.Pixiv.value to "mikun${12138 + it}",
+                                    Platform.Twitter.value to "mikun_${12138 + it}",
                                 ),
                             ),
                             tags = listOf('a' + it, 'z' - it).map { it.toString() },

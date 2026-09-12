@@ -11,6 +11,7 @@ class PicPathResolver(
     init {
         require(ruleText.isNotBlank())
     }
+
     val uploadRule =
         UploadRule.makeUploadRule(ruleText)
 
@@ -25,8 +26,8 @@ class PicPathResolver(
         val file = path.last()
 
         var illustratorName: String? = null
-        var illustratorPixiv: String? = null
-        var illustratorTwitter: String? = null
+        var platform: String? = null
+        var uid: String? = null
 
         val dirnames = path.map { filename(it) }
 
@@ -40,14 +41,12 @@ class PicPathResolver(
                     matchResult?.groups["illustratorName"]?.value
             }
 
-            if (holders.any { it.type == UploadRule.PlaceHolder.Type.IllustratorPixiv }) {
-                illustratorPixiv =
-                    matchResult?.groups["pixiv"]?.value
+            if (holders.any { it.type == UploadRule.PlaceHolder.Type.Platform }) {
+                platform = matchResult?.groups["platform"]?.value
             }
 
-            if (holders.any { it.type == UploadRule.PlaceHolder.Type.IllustratorTwitter }) {
-                illustratorTwitter =
-                    matchResult?.groups["twitter"]?.value
+            if (holders.any { it.type == UploadRule.PlaceHolder.Type.Uid }) {
+                uid = matchResult?.groups["uid"]?.value
             }
         }
 
@@ -56,29 +55,14 @@ class PicPathResolver(
                 Illustrator(
                     name = name,
                     platformKeyMap = buildMap {
-                        illustratorPixiv?.let {
+                        if (platform != null && uid != null) {
                             put(
-                                Platform.Pixiv,
-                                it,
-                            )
-                        }
-                        illustratorTwitter?.let {
-                            put(
-                                Platform.Twitter,
-                                it,
+                                platform,
+                                uid
                             )
                         }
                     },
                 )
-            }
-
-        val platform =
-            if (illustratorPixiv != null) {
-                Platform.Pixiv.value
-            } else if (illustratorTwitter != null) {
-                Platform.Twitter.value
-            } else {
-                Platform.Other.value
             }
 
         val storeKey =

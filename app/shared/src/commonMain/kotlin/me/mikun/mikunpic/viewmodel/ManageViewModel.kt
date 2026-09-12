@@ -21,7 +21,10 @@ class ManageViewModel : ViewModel() {
         }
 
         viewModelScope.launch {
-            _currentStorageLabel.value = storageLabel
+            _currentStorageLabel.value =
+                if (_currentStorageLabel.value != storageLabel) {
+                    storageLabel
+                } else ""
         }
     }
 

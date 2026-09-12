@@ -14,6 +14,7 @@ import me.mikun.mikunpic.modules.configureOpenApi
 import me.mikun.mikunpic.modules.configureRateLimit
 import me.mikun.mikunpic.modules.configureResources
 import me.mikun.mikunpic.modules.configureSerialization
+import me.mikun.mikunpic.modules.flashStorageDatabase
 import me.mikun.mikunpic.modules.routing.configureRouting
 import me.mikun.mikunpic.storage.PicStorage
 
@@ -66,4 +67,5 @@ fun Application.module() {
 
 fun Application.reloadStorage() {
     PicStorage.reload(this)
+    flashStorageDatabase()
 }

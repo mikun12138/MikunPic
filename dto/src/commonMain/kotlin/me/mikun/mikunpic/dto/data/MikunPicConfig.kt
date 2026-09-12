@@ -25,6 +25,8 @@ data class MikunPicConfig constructor(
     sealed class Storage {
         @SerialName("label")
         abstract val label: String
+        @SerialName("enable")
+        abstract val enable: Boolean
 
         @SerialName("path_rule")
         abstract val pathRule: String
@@ -34,6 +36,8 @@ data class MikunPicConfig constructor(
         data class Local(
             @SerialName("label")
             override val label: String,
+            @SerialName("enable")
+            override val enable: Boolean = true,
             @SerialName("rule_text")
             override val pathRule: String = "",
             @SerialName("path")
@@ -45,6 +49,8 @@ data class MikunPicConfig constructor(
         data class Cos(
             @SerialName("label")
             override val label: String,
+            @SerialName("enable")
+            override val enable: Boolean = true,
             @SerialName("rule_text")
             override val pathRule: String = "",
             @SerialName("secret_id")

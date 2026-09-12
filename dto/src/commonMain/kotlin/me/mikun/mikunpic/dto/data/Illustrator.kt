@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class Illustrator(
     val id: Int? = null,
     val name: String,
-    val platformKeyMap: Map<Platform, String> = mapOf(),
+    val platformKeyMap: Map<String, String> = mapOf(),
 ) {
     companion object {
         val UnExist = Illustrator(id = -1, name = "")
@@ -56,6 +56,6 @@ enum class Platform(
     }
 
     companion object {
-        fun byName(name: String): Platform? = entries.find { it.value == name }
+        fun byName(name: String?): Platform? = entries.find { it.value == name }
     }
 }
