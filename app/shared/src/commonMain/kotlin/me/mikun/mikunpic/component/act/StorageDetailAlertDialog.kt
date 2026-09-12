@@ -26,6 +26,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
+import me.mikun.mikunpic.LocalConfig
+import me.mikun.mikunpic.LocalPref
 import me.mikun.mikunpic.client.Client
 import me.mikun.mikunpic.component.dialog.SimpleAlertDialog
 import me.mikun.mikunpic.dto.data.Storage
@@ -189,7 +191,11 @@ private fun SyncStorageAlertDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                val pathRule = rememberTextFieldState(storage.pathRule)
+                val pathRule = rememberTextFieldState(
+                    storage.pathRule.ifEmpty {
+                        LocalPref.uploadRule
+                    }
+                )
 
                 Text("sync storage: ${storage.label}")
 
